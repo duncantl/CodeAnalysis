@@ -64,3 +64,16 @@ function(x)
         }
    y
 }
+
+
+
+ifElse =
+function()
+{
+  if(length(x) > 10)
+      print(x)
+  else if(length(x) > 5 && FALSE)
+      show(x)
+  else
+      cat("x is small\n")
+}

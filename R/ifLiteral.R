@@ -9,38 +9,13 @@ function(expr, debug = FALSE)
         return(expr)
     }
 
-if(debug)browser()        
-if(is.call(expr) && as.character(expr[[1]]) == "b") browser()    
+#if(debug)browser()        
 
   els = as.list(expr)
   if(class(expr) == "{")
       els = els[-1]
     
-  ans = lapply(els, function(e) {
-      if(is(e, "if")) {
-
-          if(isFalse(e[[2]])) {  
-              if(length(e) == 3) # no else
-                  return(list())
-              else
-                 return(removeConstIf(e[[4]]))  # process else
-          } else if(isTrue(e[[2]])) # so if(TRUE)
-              return( removeConstIf(e[[3]]))
-          else
-              e
-      } else if(is(e, "for")) {
-            # Should do e[[3]] in case it has an if()
-          e[[4]] = removeConstIf(e[[4]], debug = TRUE)
-          return(e)
-      } else if(is.call(e) && as.character(e[[1]]) == "function") { # have to chek e[[1]] is is.name() and not a call like a$foo.
-          e[[length(e)]] = removeConstIf(e[[length(e)]])
-          e
-      } else if(is.call(e))
-          as.call(removeConstIf(e))
-      else
-          e
-  })
-
+  ans = lapply(els, removeConstIf_helper)
 
   ans = ans[ sapply(ans, length) > 0 ]
     
@@ -54,14 +29,40 @@ if(is.call(expr) && as.character(expr[[1]]) == "b") browser()
       as.call(ans)
    else
      ans
-
-
-
-# if(class(expr) == "{")
-#     ans = structure(c(bquote(`{`), ans), class = class(expr))
-#
-#  ans
 }
+
+removeConstIf_helper =
+function(e) {
+      if(is(e, "if")) {
+          if(isFalse(e[[2]])) {  
+              if(length(e) == 3) # no else
+                  return(list())
+              else
+                 return(removeConstIf(e[[4]]))  # process else
+          } else if(isTrue(e[[2]])) # so if(TRUE)
+              return( removeConstIf(e[[3]]))
+          else {
+              e[[3]] = removeConstIf(e[[3]])
+              if(length(e) > 3) {
+                  e[[4]] = if(class(e[[4]]) == "if")
+                              removeConstIf_helper(e[[4]])
+                           else
+                              removeConstIf(e[[4]])
+              }
+              e
+          }
+      } else if(is(e, "for")) {
+            # Should do e[[3]] in case it has an if()
+          e[[4]] = removeConstIf(e[[4]], debug = TRUE)
+          return(e)
+      } else if(is.call(e) && as.character(e[[1]]) == "function") { # have to chek e[[1]] is is.name() and not a call like a$foo.
+          e[[length(e)]] = removeConstIf(e[[length(e)]])
+          e
+      } else if(is.call(e))
+          as.call(removeConstIf(e))
+      else
+          e
+  }    
 
 
 isFalse =
