@@ -28,7 +28,6 @@ function(fun, recurse = TRUE)
         b =  b[1:(end + 1)]
   }
 
-
   if(recurse && !is.name(b) && !is.atomic(b)) {
       b[] = lapply(b, removeAfterReturn, TRUE)
   }
