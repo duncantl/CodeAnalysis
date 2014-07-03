@@ -1,5 +1,7 @@
 for loop concatenation, rewrite the code.
 
+removeAfterReturn  should work recursively to process blocks within functions.
+
 [Done] remove unused parameters
 
 [Done] remove unused assignments if we can tell there are no side effects of the RHS.

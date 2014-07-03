@@ -6,23 +6,38 @@ removeAfterReturn =
     #
     #  We should make this recursive, i.e. process the bodies of for/while loops
     #
-function(fun)
+function(fun, recurse = TRUE)
 {
-  b = body(fun)
-  if(class(b) != "{")
-      return(fun)
 
+  isFunc = is.function(fun)
+  if(isFunc) {
+      b = body(fun)
+  } else
+      b = fun
+  
+#  if(class(b) != "{")
+#      return(fun)  
+  
   e = as.list(b)[-1]
   i = sapply(e, isReturn)
-  if(!any(i))
-      return(fun)
-  
-  end = which(i)[1]
-  if(end < length(e)) {
-     body(fun) =  b[1:(end + 1)]
+#  if(!any(i)) 
+#      return(fun)
+  if(any(i)) { 
+     end = which(i)[1]
+     if(end < length(e)) 
+        b =  b[1:(end + 1)]
+  }
+
+
+  if(recurse && !is.name(b) && !is.atomic(b)) {
+      b[] = lapply(b, removeAfterReturn, TRUE)
   }
   
-  fun
+  if(isFunc) {
+      body(fun) = b
+      fun
+  } else
+      b
 }
 
 isReturn =
