@@ -1,0 +1,5 @@
+for loop concatenation, rewrite the code.
+
+[Done] remove unused parameters
+
+[Done] remove unused assignments if we can tell there are no side effects of the RHS.

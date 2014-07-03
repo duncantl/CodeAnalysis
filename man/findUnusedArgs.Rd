@@ -7,19 +7,20 @@
   parameters or local variables that are not used in the code.
 
   It is useful to remove any dead code with
-   \code{\link{removeConstIf}} and \code{\link{removeAfterReturn}}.
-  
-  This does not currently modify the code.
+  \code{\link{removeConstIf}} and \code{\link{removeAfterReturn}}.
+  This is done by default.
 }
 \usage{
-findUnusedArgs(fun, clean = TRUE)
-findUnusedAssignments(fun, clean = TRUE)
+findUnusedArgs(fun, remove = TRUE, clean = TRUE)
+findUnusedAssignments(fun, remove = TRUE, clean = TRUE)
 }
 \arguments{
   \item{fun}{the function to analyze}
   \item{clean}{a logical value controlling whether we remove dead code
      before processing the function with  \code{\link{removeConstIf}}
-    and \code{\link{removeAfterReturn}}}
+     and \code{\link{removeAfterReturn}}}
+   \item{remove}{a logical value controlling whether the code eliminates
+   the dead code and returns the modified code.}
 }
 \value{
  A character vector giving the names of the parameters or local
