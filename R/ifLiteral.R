@@ -1,9 +1,11 @@
 removeConstIf =
 function(expr, debug = FALSE)
 {
-    
+
     if(is.function(expr)) {
-        body(expr) = tmp = removeConstIf(b <- body(expr))
+        tmp = removeConstIf(b <- body(expr))
+        if(class(tmp) == "list" && length(tmp) == 1) tmp = tmp[[1]]
+         body(expr) = tmp
         return(expr)
     }
 
@@ -16,14 +18,16 @@ if(is.call(expr) && as.character(expr[[1]]) == "b") browser()
     
   ans = lapply(els, function(e) {
       if(is(e, "if")) {
-browser()          
-          if(isFalse(e[[2]])) {
-              if(length(e) == 3)
+
+          if(isFalse(e[[2]])) {  
+              if(length(e) == 3) # no else
                   return(list())
               else
-                 return(removeConstIf(e[[4]]))
-          } else if(isTrue(e[[2]]))
+                 return(removeConstIf(e[[4]]))  # process else
+          } else if(isTrue(e[[2]])) # so if(TRUE)
               return( removeConstIf(e[[3]]))
+          else
+              e
       } else if(is(e, "for")) {
             # Should do e[[3]] in case it has an if()
           e[[4]] = removeConstIf(e[[4]], debug = TRUE)
@@ -40,20 +44,23 @@ browser()
 
   ans = ans[ sapply(ans, length) > 0 ]
     
-
   if(class(expr) == "{") {
+     if(length(ans) == 1)
+         return(ans[[1]])
      expr[seq(along = ans) + 1] = ans
      expr = expr[1:(length(ans)+1)]
-     return( expr)
-  } else
-      return(ans)
+     expr
+  } else if(is.call(expr))
+      as.call(ans)
+   else
+     ans
 
 
-    
-  if(class(expr) == "{")
-      ans = structure(c(bquote(`{`), ans), class = class(expr))
-     #class(ans) = class(expr)
-  ans
+
+# if(class(expr) == "{")
+#     ans = structure(c(bquote(`{`), ans), class = class(expr))
+#
+#  ans
 }
 
 
