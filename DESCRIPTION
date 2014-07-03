@@ -1,7 +1,21 @@
 Package: CodeAnalysis
 Title: Tools for static analysis of R code
 Version: 0.1-0
-Description: This is
+Description: This package provides a (growing) collection of 
+ functions that analyze R code and identify particular idioms
+ or characteristics. Some of these functions  modify the code
+ to produce more streamlined version.
+ The package is motivated by compilation of R code and 
+ simplifying code ahead of compilation.
+ However, the functionality may be useful generally for improving R code
+ and diagnosing issues, and also in other contexts such as dynamic documents.
+ Currently, there is functionality to 
+   *  find unused parameters/arguments
+   *  find unused variables/assignments
+   *  identify constant parameters (i.e. unchanged in the function's body)
+   *  detect vector concatenation in loops
+   *  identify & remove dead code (after a call to return())
+   *  remove dead if/else code blocks (i.e. where we are certain the condition is TRUE or FALSE)
 Author: Duncan Temple Lang
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE

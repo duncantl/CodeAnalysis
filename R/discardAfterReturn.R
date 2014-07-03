@@ -3,6 +3,9 @@ removeAfterReturn =
     # discard any expressions after a top-level return() command.
     # Programmers leave code after return() (I do!) and we should not compile this.
     #
+    #
+    #  We should make this recursive, i.e. process the bodies of for/while loops
+    #
 function(fun)
 {
   b = body(fun)
