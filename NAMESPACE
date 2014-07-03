@@ -5,3 +5,5 @@ export(findUnusedArgs, findUnusedAssignments)
 export(constInputs)
 export(removeAfterReturn)
 
+export(removeConstIf)
+

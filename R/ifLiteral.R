@@ -51,7 +51,7 @@ function(e) {
           }
       } else if(is(e, "for")) {
             # Should do e[[3]] in case it has an if()
-          e[[4]] = removeConstIf(e[[4]], debug = TRUE)
+          e[[4]] = removeConstIf(e[[4]])
           return(e)
       } else if(is.call(e) && as.character(e[[1]]) == "function") { # have to chek e[[1]] is is.name() and not a call like a$foo.
           e[[length(e)]] = removeConstIf(e[[length(e)]])

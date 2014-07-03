@@ -1,5 +1,3 @@
-library(RLLVMCompile)
-
 f =
 function()
 {
@@ -11,3 +9,4 @@ function()
   b = 2 
 }
 
+removeAfterReturn(f)

@@ -14,6 +14,9 @@ function(fun)
 
   e = as.list(b)[-1]
   i = sapply(e, isReturn)
+  if(!any(i))
+      return(fun)
+  
   end = which(i)[1]
   if(end < length(e)) {
      body(fun) =  b[1:(end + 1)]
