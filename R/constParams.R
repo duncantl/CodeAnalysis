@@ -1,4 +1,9 @@
 constInputs =
+    #
+    #
+    #  Need to process recursively to see if functions
+    #  this function calls and passes arguments modify those or not.
+    #
 function(f)
 {
     sc = new("Script", as.list(body(f)[-1]))

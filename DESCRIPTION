@@ -5,5 +5,7 @@ Description: This is
 Author: Duncan Temple Lang
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
+Depends: CodeDepends
+
 
 
