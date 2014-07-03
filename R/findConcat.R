@@ -16,7 +16,7 @@ function(expr, possibleVars = character())
            next
         else if(class(e) == "for") {
             b = if(class(e[[4]]) != "{")  list(e[[4]]) else e[[4]]
-            ans = findConcat(b, possibleVars)
+            ans = findLoopConcat(b, possibleVars)
             if(is.character(ans))
                 return(ans)
        } else if(is.call(e)) {

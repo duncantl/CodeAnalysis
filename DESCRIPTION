@@ -3,12 +3,16 @@ Title: Tools for static analysis of R code
 Version: 0.1-0
 Description: This package provides a (growing) collection of 
  functions that analyze R code and identify particular idioms
- or characteristics. Some of these functions  modify the code
- to produce more streamlined version.
+ or characteristics. Some of these functions modify the code
+ to produce more streamlined version. 
  The package is motivated by compilation of R code and 
- simplifying code ahead of compilation.
+ simplifying code ahead of compilation. 
  However, the functionality may be useful generally for improving R code
  and diagnosing issues, and also in other contexts such as dynamic documents.
+ We will continue to add functionality to analyze code for different purposes, 
+ e.g. memory management, 
+      opportunities for parallelism, 
+      data locality for parallel computations, ...
  Currently, there is functionality to 
    *  find unused parameters/arguments
    *  find unused variables/assignments
@@ -19,7 +23,4 @@ Description: This package provides a (growing) collection of
 Author: Duncan Temple Lang
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
-Depends: CodeDepends
-
-
-
+Imports: CodeDepends

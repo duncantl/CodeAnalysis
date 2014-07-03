@@ -5,8 +5,11 @@ findUnusedArgs =
     # It does NOT test to see if it is referenced, but that code could neve be run
     #  e.g.   if(FALSE) {  foo(x)  }
     # 
-function(fun)
+function(fun, clean = TRUE)
 {
+    if(clean)
+        fun = removeConstIf(removeAfterReturn(fun))
+    
     sc = new("Script", as.list(body(fun)[-1]))
     inputs = getInputs(sc)
     i = sapply(names(formals(fun)), findWhenUnneeded, info = inputs)
@@ -16,8 +19,11 @@ function(fun)
 
 
 findUnusedAssignments =
-function(fun)
+function(fun, clean = TRUE)
 {
+    if(clean)
+        fun = removeConstIf(removeAfterReturn(fun))
+    
     sc = new("Script", as.list(body(fun)[-1]))
     inputs = getInputs(sc)
 

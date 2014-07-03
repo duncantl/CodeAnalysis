@@ -1,5 +1,5 @@
 removeConstIf =
-function(expr, debug = FALSE)
+function(expr)
 {
 
     if(is.function(expr)) {
@@ -8,8 +8,6 @@ function(expr, debug = FALSE)
          body(expr) = tmp
         return(expr)
     }
-
-#if(debug)browser()        
 
   els = as.list(expr)
   if(class(expr) == "{")
