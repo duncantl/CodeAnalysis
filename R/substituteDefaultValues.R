@@ -16,7 +16,7 @@ function(f, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
     names(w) = vnames
     vals = formals(f)[hasDef]
     e = mapply(function(id, e)
-                  substitute( v <- e, list(v = as.name(id), e = e)),
+                  substitute( if(.missing(v)) v <- e, list(v = as.name(id), e = e)),
                vnames, vals)
 
   # now merge these new expressions into the list of expressions.
