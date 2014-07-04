@@ -5,6 +5,12 @@ function(x)
 
 
 substituteDefaultValues =
+    #
+    # take a function and insert the expressions for the default values
+    # of any parameters that have them into the body of the code.
+    #
+    # 
+    #
 function(f, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
 {
     hasDef = sapply(formals(f), isDefaultValue)
@@ -35,7 +41,6 @@ function(f, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
 
     body(f) = substitute({})
     body(f)[seq(along = els) + 1L] = els
-#    body(f) = structure(c("{", els), class = "{")
     
      f
 }
