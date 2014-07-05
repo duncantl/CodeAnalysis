@@ -55,6 +55,15 @@ substituteDefaultValues(f, removeDefaults = TRUE,
 \code{\link{getGlobals}}
 }
 \examples{
+g =
+function(a = x, b = y)
+{
+   x = 1
+   y = 2
+   a + b * (x + y)
+}
+
+substituteDefaultValues(g)
 }
 \keyword{programming}
 \concept{code rewriting}

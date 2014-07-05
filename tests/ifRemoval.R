@@ -1,3 +1,4 @@
+library(CodeAnalysis)
 #XXX Fix h - body is list(x)
 h = function(x) x
 

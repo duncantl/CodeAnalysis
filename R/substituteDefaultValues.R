@@ -40,7 +40,7 @@ function(f, removeDefaults = TRUE, sc = new("Script", as.list(body(f))[-1]), inf
 
 
     if(removeDefaults)
-        formals(f) = replicate(length(formals(f)), formals()[[1]], simplify = FALSE) 
+        formals(f) = structure(replicate(length(formals(f)), formals()[[1]], simplify = FALSE) , names = names(formals(f)))
     
     formals(f)[[".missingCall"]] = formals()$f
 
