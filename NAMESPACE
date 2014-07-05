@@ -7,3 +7,5 @@ export(removeAfterReturn)
 
 export(removeConstIf)
 
+export(getGlobals)
+export(substituteDefaultValues)

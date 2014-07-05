@@ -1,3 +1,5 @@
+library(CodeAnalysis)
+
 f =
     #
     # This is a good example as we see foo used in the default values
@@ -32,10 +34,9 @@ function(a = x, b = y)
 }
 
 getGlobals(g)$variables
-
-library(CodeAnalysis)
 tmp = substituteDefaultValues(g)
-formals(tmp)[] = replicate(length(formals(tmp)), formals(getGlobals)[[1]], simplify = FALSE)
+getGlobals(tmp, .ignoreDefaultArgs = TRUE)$variables
 
+formals(tmp)[] = replicate(length(formals(tmp)), formals(getGlobals)[[1]], simplify = FALSE)
 getGlobals(tmp)$variables
 

@@ -11,7 +11,7 @@ substituteDefaultValues =
     #
     # 
     #
-function(f, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
+function(f, removeDefaults = TRUE, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
 {
     hasDef = sapply(formals(f), isDefaultValue)
     vnames = names(formals(f))[hasDef]
@@ -38,6 +38,10 @@ function(f, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
         els = c(els[1:(pos-1L)], e[as.character(gr[[i]]$id)], els[pos:length(els)])
     }
 
+
+    if(removeDefaults)
+        formals(f) = replicate(length(formals(f)), formals()[[1]], simplify = FALSE) 
+    
     formals(f)[[".missingCall"]] = formals()$f
 
     body(f) = substitute({})

@@ -24,8 +24,10 @@ getGlobals =
     #
     # skip  is for the names of functions for which we are to ignore calls to these
     #
-function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, localVars = character(),
-          skip = c(".R", ".typeInfo", ".signature", ".pragma"), .debug = TRUE, .assert = TRUE)
+function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, 
+         skip = c(".R", ".typeInfo", ".signature", ".pragma"),
+         .debug = TRUE, .assert = TRUE,
+         localVars = character())
 {
 
   if(is.logical(.debug))
@@ -70,7 +72,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, localVars 
           localVars <<- c(localVars, as.character(e[[2]]))
 
           
-      
       if(is.call(e)) {
            if(is.call(e[[1]]))  # e.g. x$bob()
                return(lapply(e, fun,  w))
