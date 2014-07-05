@@ -1,6 +1,7 @@
 for loop concatenation, rewrite the code.
+  We need type information about the elements to be able to initialize the answer vector.
 
-removeAfterReturn  should work recursively to process blocks within functions.
+[Done] removeAfterReturn  should work recursively to process blocks within functions.
 
 [Done] remove unused parameters
 

@@ -11,12 +11,18 @@ findLoopConcat =
     # findLoopConcat(e)
 function(expr, possibleVars = character())
 {
+   isFunc = is.function(expr)
+   if(isFunc) {
+       fun = expr
+       expr = body(expr)
+   } 
+   
    for(e in as.list(expr)) {
        if(class(e) == "{")
            next
         else if(class(e) == "for") {
             b = if(class(e[[4]]) != "{")  list(e[[4]]) else e[[4]]
-            ans = findLoopConcat(b, possibleVars)
+            ans = findLoopConcat(b, rewrite, possibleVars)
             if(is.character(ans))
                 return(ans)
        } else if(is.call(e)) {
@@ -34,8 +40,14 @@ function(expr, possibleVars = character())
                        return(lhs)
                }
            }
-               
        }
    }
    return(character())
+}
+
+
+rewriteConcatLoop =
+function(expr)
+{
+   expr
 }
