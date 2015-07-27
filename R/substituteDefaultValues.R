@@ -35,7 +35,11 @@ function(f, removeDefaults = TRUE, sc = new("Script", as.list(body(f))[-1]), inf
         # now go backwards so the indices won't be affected.            
     for(i in rev(names(gr))) {
         pos = as.integer(i)
-        els = c(els[1:(pos-1L)], e[as.character(gr[[i]]$id)], els[pos:length(els)])
+        ## the if prevents a 1:0 == 1 related bug, which caused the first expression
+        ## to happen both before and after the inserted if ~ GB
+        els = c(if(pos > 1) els[1:(pos-1L)],
+            e[as.character(gr[[i]]$id)],
+            els[pos:length(els)])
     }
 
 
