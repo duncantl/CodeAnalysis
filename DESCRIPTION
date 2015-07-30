@@ -1,6 +1,6 @@
 Package: CodeAnalysis
 Title: Tools for static analysis of R code
-Version: 0.1-0
+Version: 0.1-1
 Description: This package provides a (growing) collection of 
  functions that analyze R code and identify particular idioms
  or characteristics. Some of these functions modify the code
