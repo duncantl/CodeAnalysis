@@ -9,6 +9,12 @@ findLoopConcat =
     # This returns
     #  e = quote({ x = c(); for(i in z)  x = c(x, f(i)) })
     # findLoopConcat(e)
+    #
+    #
+    # Note that expression( {...}) doesn't behave.
+    # It just returns. This is because as.list doesn't behave itself.
+    # Fixed now.
+    #
 function(expr, possibleVars = character())
 {
    isFunc = is.function(expr)
@@ -16,6 +22,11 @@ function(expr, possibleVars = character())
        fun = expr
        expr = body(expr)
    } 
+
+      # if we have an expression with one block of expressions, as.list() won't get its components, so get the
+      # "{" object.
+  if(is.expression(expr) && length(expr) == 1 && class(expr[[1]]) == "{")
+      expr = expr[[1]]
    
    for(e in as.list(expr)) {
        if(class(e) == "{")
@@ -47,6 +58,9 @@ function(expr, possibleVars = character())
 
 
 rewriteConcatLoop =
+    #
+    # Not implemented.
+    #
 function(expr)
 {
    expr
