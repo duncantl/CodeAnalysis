@@ -3,6 +3,7 @@
 1. Identify repetitive code, i.e. the same code evaluated in multiple places.
 1. Identify when a variable can be rm()'ed (since no longer used) and so garbage collected
 1. Remove redudant code, i.e. whose result is not used.
+1. Identify invariants that are recomputed, e.g. within loops.
 1. Loop "correction" that lacks preallocation, or that can be mapped to apply()
 1. Opportunities for parallelization
 1. Identify unused columns in a data frame read via read.table()/etc. so that we can
