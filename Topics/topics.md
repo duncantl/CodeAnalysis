@@ -4,6 +4,7 @@
 1. Identify when a variable can be rm()'ed (since no longer used) and so garbage collected
 1. Remove redudant code, i.e. whose result is not used.
 1. Loop "correction" that lacks preallocation, or that can be mapped to apply()
+1. Opportunities for parallelization
 1. Identify unused columns in a data frame read via read.table()/etc. so that we can
    add colClasses = NULL for these
 1. colClasses and type inference.
