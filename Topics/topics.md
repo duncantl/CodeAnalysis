@@ -12,6 +12,6 @@
 1. Summarize code from a project (see RCleanProject)
 1. findGlobals() alternative that handles, e.g.,  pkg::fun as a single entity and not ::, pkg, fun
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
-1. CodeDepends and processing methods.
+1. CodeDepends and processing S4 methods.
 1. Ref classes and S6 and validation.
-
+1. ?Documentation generation?
