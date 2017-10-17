@@ -23,7 +23,7 @@ this](https://github.com/clarkfitzg/codedoctor/blob/master/R/read_faster.R))
 1. Extract functions defined inside functions that do not modify the shared variables.
 1. findGlobals() alternative that handles, e.g.,  pkg::fun as a single entity and not ::, pkg, fun
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
-2. Rewrite functions to avoid dependence on global variables, ie:
+2. Rewrite functions to make explicit dependence on global variables, ie:
 ```{R}
 f = function(x) x + y
 # becomes:
@@ -44,9 +44,10 @@ f = function(x, .y = y) x + .y
 To discuss in group meeting this week:
 
 1. Outcomes: paper?, CRAN package?
-2. Focus: Who will take an interest? rstatic and CodeDepends are somewhat
-   lower level, perhaps this is an opportunity to make something more user
-   facing.
+2. Focus: Who will take an interest? Package developers? More / less
+   experienced R users? Maybe different for each application
 2. Code analysis package dependencies
     - It's confusing for an outsider if Duncan, Gabe, Nick, and Clark to
       each have their own somewhat related R code analysis package
+    - rstatic and CodeDepends are somewhat lower level, perhaps this is an
+      opportunity to make something more user facing.
