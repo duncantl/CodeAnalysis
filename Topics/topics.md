@@ -8,6 +8,7 @@
    removal
 1. Identify invariants that are recomputed, e.g. within loops.
 1. Loop "correction" that lacks preallocation, or that can be mapped to apply()
+1. Opportunities for parallelization
 
 ### Data Related
 
@@ -15,13 +16,14 @@
    add colClasses = NULL for these. (Clark: Here is [code for
 this](https://github.com/clarkfitzg/codedoctor/blob/master/R/read_faster.R))
 1. colClasses and type inference.
-1. Opportunities for parallelization
+1. Identify objects that are supposed to have the same length.
 
 ### Functions
 
 1. Refactoring functions to smaller, more modular functions
 1. Extract functions defined inside functions that do not modify the shared variables.
-1. findGlobals() alternative that handles, e.g.,  pkg::fun as a single entity and not ::, pkg, fun
+1. [somewhat done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
+   single entity and not ::, pkg, fun
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
 2. Rewrite functions to make explicit dependence on global variables, ie:
 ```{R}
@@ -29,6 +31,11 @@ f = function(x) x + y
 # becomes:
 f = function(x, .y = y) x + .y
 ```
+1. Identify self-referencing parameters, e.g. 
+```
+function(x = length(y), y = sum(x))
+```
+1. Identify recursive functions so can change name throughout if change name of top-level function.
 
 ### General & Packaging
 

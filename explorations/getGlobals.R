@@ -9,3 +9,21 @@ function()
   ctr = 20L
   ans = foo(bob, x = ctr, 1L) # structure(1:10, class = "Jane", names = letters[1:10]))
 }
+
+
+do =
+function(x)
+{
+    lapply(x, table)
+    sapply(x, function(x) sort(x))
+    mapply(f, 1:10, 2:11)
+    apply(m, 1, order)
+}
+
+ns =
+function()
+{
+    x = base::seq(1, 10)
+    y = foo(10)
+    x + y
+}
