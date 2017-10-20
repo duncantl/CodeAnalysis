@@ -37,16 +37,15 @@ function()
                 }
 
                  # Check if in the body of a for loop.
+                if(inForLoop(node)) {
+                        # ans = c(ans, val)
+                    if(node$read$fn$name ==  "c" &&
+                       any(sapply(node$read$args, sameNode, node$write))) 
+                        nodes <<- c(nodes, node)                     
 
-                   # ans = c(ans, val)
-                if(node$read$fn$name ==  "c" &&
-                    any(sapply(node$read$args, sameNode, node$write))) {
-                      nodes <<- c(nodes, node)                     
-                }
-
-                 
-                if(is(node, "Replacement") && node$write$name %in% names(vars)) {
-                     nodes <<- c(nodes, node)
+                        # ans[i] = val
+                    if(is(node, "Replacement") && node$write$name %in% names(vars)) 
+                        nodes <<- c(nodes, node)
                 }
               }
             }
@@ -54,6 +53,18 @@ function()
     }
     
     list(process = process, nodes = function() nodes, result = function() list(vars = vars, nodes = nodes))
+}
+
+
+inForLoop =
+function(node)
+{
+    while(!is.null(node)) {
+        if(is(node, "For"))
+           return(TRUE)
+        node = node$parent
+    }
+    FALSE   
 }
 
 sameNode =
