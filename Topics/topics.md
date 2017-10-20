@@ -3,25 +3,28 @@
 ### Performance
 
 1. Identify repetitive code, i.e. the same code evaluated in multiple places.
-1. Identify when a variable can be rm()'ed (since no longer used) and so garbage collected.
-   See CodeDepends for this.
-1. Remove redudant code, i.e. whose result is not used. aka dead code removal
+1. [TOP] [Nick / Duncan] Identify when a variable can be rm()'ed (since no
+   longer used) and so garbage collected. See CodeDepends for this.
+1. [TOP] [Nick / Duncan] Dead code removal (remove redudant code, i.e. whose
+   result is not used). Recursing into functions to identify side effects.
 1. Identify invariants that are recomputed, e.g. within loops.
-1. Loop "correction" that lacks preallocation, or that can be mapped to apply()
-1. Opportunities for parallelization
+1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation, or that
+   can be mapped to apply() -- simple examples
+1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
 
-1. Identify unused columns in a data frame read via read.table()/etc. so that we can
+1. [DONE] Identify unused columns in a data frame read via read.table()/etc. so that we can
    add colClasses = NULL for these. (Clark: Here is [code for
 this](https://github.com/clarkfitzg/codedoctor/blob/master/R/read_faster.R))
-1. colClasses and type inference.
+1. [MED] colClasses and type inference -- `vapply()`
 1. Identify objects that are supposed to have the same length.
 
 ### Functions
 
 1. Refactoring functions to smaller, more modular functions
-1. Extract functions defined inside functions that do not modify the shared variables.
+1. [LAST] [Nick] Extract functions defined inside functions that do not modify
+   the shared variables. To allow testing.
 1. [somewhat done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
    single entity and not ::, pkg, fun (Nick: also done in rstatic, see
    [here](https://github.com/nick-ulle/rstatic/blob/master/R/collapse_namespaces.R))
@@ -32,19 +35,27 @@ f = function(x) x + y
 # becomes:
 f = function(x, .y = y) x + .y
 ```
-1. Identify self-referencing parameters, e.g. 
+1. [MED] Identify self-referencing parameters, e.g. 
 ```
 function(x = length(y), y = sum(x))
 ```
+and strict/lazy eval
 1. Identify recursive functions so can change name throughout if change name of top-level function.
 
 ### General & Packaging
 
-1. Summarize code from a project (see RCleanProject)
+1. [TOP] [Matt / Duncan] Summarize code from a project (see RCleanProject).
+   Find minimal example: create graph of scripts for directory?
+1. [TOP] [Matt / Duncan] Identify input/output data files (see CodeDepends).
+1. [MED] Identify checkpoints where intermediate results can be saved to resume
+   later (see
+   [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
 1. CodeDepends and processing S4 methods.
 1. Ref classes and S6 and validation.
 1. ?Documentation generation?
-2. Identify code which can be safely evaluated early, ie. `c(1:2, 4:6)`.
+2. [TOP] [Clark] Identify code which can be safely evaluated during static
+   analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
+   of analysis.
 
 
 ## Meeting
