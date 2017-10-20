@@ -10,6 +10,8 @@
 1. Identify invariants that are recomputed, e.g. within loops.
 1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation, or that
    can be mapped to apply() -- simple examples
+    See explorations/findConcat.R and explorations/concat.R example.
+	Need to rewrite the code, but identifying the simple cases.
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
