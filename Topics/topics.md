@@ -23,7 +23,8 @@ this](https://github.com/clarkfitzg/codedoctor/blob/master/R/read_faster.R))
 1. Refactoring functions to smaller, more modular functions
 1. Extract functions defined inside functions that do not modify the shared variables.
 1. [somewhat done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
-   single entity and not ::, pkg, fun
+   single entity and not ::, pkg, fun (Nick: also done in rstatic, see
+   [here](https://github.com/nick-ulle/rstatic/blob/master/R/collapse_namespaces.R))
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
 2. Rewrite functions to make explicit dependence on global variables, ie:
 ```{R}
