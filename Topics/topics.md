@@ -16,9 +16,9 @@
 
 ### Data Related
 
-1. [DONE] Identify unused columns in a data frame read via read.table()/etc. so that we can
-   add colClasses = NULL for these. (Clark: Here is [code for
-this](https://github.com/clarkfitzg/codedoctor/blob/master/R/read_faster.R))
+1. [DONE] Identify unused columns in a data frame read via
+   read.table()/etc. so that we can add colClasses = NULL for these. The
+   code for this is now here in the package, see `R/readFaster.R`.
 1. [MED] colClasses and type inference -- `vapply()`
 1. Identify objects that are supposed to have the same length.
 
