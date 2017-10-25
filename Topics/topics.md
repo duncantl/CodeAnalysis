@@ -6,12 +6,12 @@
 1. [TOP] [Nick / Duncan] Identify when a variable can be rm()'ed (since no
    longer used) and so garbage collected. See CodeDepends for this.
 1. [TOP] [Nick / Duncan] Dead code removal (remove redudant code, i.e. whose
-   result is not used). Recursing into functions to identify side effects.
+   result is not used). Recursing into functions to identify possible side effects.
 1. Identify invariants that are recomputed, e.g. within loops.
 1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation, or that
    can be mapped to apply() -- simple examples
     See explorations/findConcat.R and explorations/concat.R example.
-	Need to rewrite the code, but identifying the simple cases.
+	Need to implement rewriting the code, but identifying the simple cases.
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
@@ -27,10 +27,13 @@ this](https://github.com/clarkfitzg/codedoctor/blob/master/R/read_faster.R))
 1. Refactoring functions to smaller, more modular functions
 1. [LAST] [Nick] Extract functions defined inside functions that do not modify
    the shared variables. To allow testing.
-1. [somewhat done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
-   single entity and not ::, pkg, fun (Nick: also done in rstatic, see
+1. [basics done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
+   single entity and not ::, pkg, fun.
+   See explorations/findGlobals.R.  (Nick: also done in rstatic, see
    [here](https://github.com/nick-ulle/rstatic/blob/master/R/collapse_namespaces.R))
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
+1. Later, grow our findGlobals() to  a) descend into nested function definitions and thus handle
+   closures correctly, b) identify variables that are used before being defined.
 2. Rewrite functions to make explicit dependence on global variables, ie:
 ```{R}
 f = function(x) x + y

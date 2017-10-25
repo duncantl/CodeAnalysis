@@ -4,7 +4,28 @@ if(FALSE) {
     source("../explorations/findConcat.R"); e = parse("../explorations/concat.R");
     findConcat(e[1:2])
     findConcat(e[3:4])
-    findConcat(e[5:6])    
+    findConcat(e[5:6])
+
+
+    # When rewriting the code
+    z = findConcat(e[1:2])
+    # Something like
+    # This is what we want in the ans = c() to become
+    #  ans = integer(length(x))
+    #
+    # This gives the length(x)
+    len = Call$new("length", args = list(Symbol$new("x")))
+
+    # So then we have the LHS. So up one step to the parent and
+    # then get the RHS - the read.
+    # We'll insert into that.
+    a = z$vars[[1]]$parent$read
+    a$args[[1]] = len
+    #
+    # And change c() to be let's say an integer().  Depends on the return type of i
+
+    a$set_fn(Symbol$new("integer"))
+
 }
 
 
