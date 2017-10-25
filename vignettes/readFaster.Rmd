@@ -1,0 +1,304 @@
+---
+title: "CodeAnalysis-read_faster"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CodeAnalysis-read_faster}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+We can modify code to make it more
+efficient. Consider this simple script:
+
+```{R, eval = FALSE}
+
+d = read.csv("data.csv")
+
+hist(d[, 1])
+
+```
+
+This script only uses the first column of `d`, which means that all the
+other columns were unnecessary. If `data.csv` is sufficiently large, and it
+has many columns, then this program will spend an excessive amount of time
+reading data that are never used.
+
+```{R}
+
+library(CodeAnalysis)
+
+script = parse(text = '
+    d = read.csv("data.csv")
+    hist(d[, 2])
+    ')
+
+read_faster(script)
+
+```
+
+## Static Analysis
+
+`read_faster()` uses static code analysis to infer which columns are
+required to run the complete script.  For example, we can statically
+analyze literals and evaluate simple functions such as `c()`
+
+```{R, eval = FALSE}
+mtcars[, c(1L, 3L)]
+mtcars[, "mpg"]
+mtcars$mpg
+```
+
+We cannot statically analyze code where the value isn't known until
+runtime.
+
+```{R, eval = FALSE}
+
+# TODO: Decide. Currently this fails, but could just as easily have it be a
+# warning.
+read_faster(parse(text = '
+    d = read.csv("data.csv")
+    hist(d[, rpois(1, 1)])
+'), "d")
+
+```
+
+### Inferring column names
+
+If the code does not use subsets based on column names then it doesn't
+matter what the column names are. 
+
+If the column names are initially specified, ie:
+
+```{R, eval = FALSE}
+
+d = read.table("data.csv", col.names = c("a", "b", "c"))
+
+```
+
+then we know the column names.
+
+Lastly, if `header = TRUE` we can try to look at the data itself to infer
+the column names. We can only try, because the location of the data may
+not be the same as the location where `read_faster()` is called.
+
+## Future Work
+
+### Necessary 
+
+_These tasks should be completed before a public release._
+
+Verify the indices subsetting `d` can be computed at the time of
+static analysis.
+
+Check if any commands imply that the whole data set must be loaded. For
+example:
+
+```{R, eval = FALSE}
+d = read.csv("data.csv")
+d[, 5] = 2
+write.csv(d, "data2.csv")  # Uses all columns of d
+```
+
+The safe thing to do anytime we see a use of `d` which is not a subset is
+to assume that it will then require all columns.
+
+Handle variables which are redefined. This could likely be done through a
+single static assignment (SSA) preprocessing step. For example, the
+following is problematic because we must restrict the code analysis and
+transformations to `x` before it is redefined:
+
+```{R, eval = FALSE}
+
+x = read.csv("data.csv")
+print(x[1, 1])
+x = list(1, 2, 3)
+print(x[[1]])
+
+```
+
+
+### Nice to Have
+
+_These tasks are less critical._
+
+Through constant propagation we can also handle variables defined from
+literals:
+
+```{R, eval = FALSE}
+cols = c("cyl", disp")
+mtcars[, cols]
+```
+
+Account for indirect use of variables. The following should infer that the
+4th column is used.
+
+```{R, eval = FALSE}
+d = read.csv("data.csv")
+d2 = d * 2
+d2[, 4]
+```
+
+Read subsets without corresponding variable assignments, for example:
+
+```{R, eval = FALSE}
+hist(read.csv("data.csv")[, 2])
+```
+
+More complicated forms of assignment. Haven't verified which work.
+
+```{R, eval = FALSE}
+a = b = read.csv("data.csv")
+```
+
+Further column selection operations including non standard evaluation such
+as using `subset`, or `lm(y ~ x, data)`.
+
+TODO: Return to this point, continue editing down into user facing manual.
+Design stuff can live in the other doc.
+
+## Implementation
+
+How can we tell which columns are used?
+
+
+Fri Sep 22 10:31:23 PDT 2017
+
+For the moment I'm ignoring NSE such as `subset`.
+
+Thinking now that it's fine to depend on `data.table`.
+`data.table::fread` has a `select` parameter for column names. It would be
+more convenient for our purposes here if `select` took an integer vector of
+the column indices instead. Indices are more general because:
+
+- Not every text file has column names
+- Not every data frame has meaningful column names
+- Column names may not be unique
+
+One approach is to take all the uses of column names and map them into
+integers.
+The code will go through three representations then:
+
+__Original__ including mixed names and integers:
+
+```{R, eval = FALSE}
+
+mpg = mtcars$mpg
+cyl = mtcars[, 2]
+disp = mtcars[, "disp"]
+wt = mtcars[[5]]
+
+```
+
+__Name Replacement__ substitutes the names with integers, and converts all
+`data.frame` subsetting commands into single `[`. Assume that we know the
+column names.
+
+```{R, eval = FALSE}
+
+mpg = mtcars[, 1]
+cyl = mtcars[, 2]
+disp = mtcars[, 3]
+wt = mtcars[, 5]
+
+```
+
+As we replace names we can update the set of variables which are used, so that
+after processing all statements we know which are used.
+
+
+__Subset mapping__ maps the original indices to corresponding indices in the
+smaller `data.frame`. The index map is a sorted integer vector of the
+columns that are used. This step cannot happen with the previous because
+it's necessary to first know all the columns which will be used.
+
+```{R, eval = FALSE}
+
+index_map = c(1, 2, 3, 5)
+
+.mtcars = fread(..., select = index_map)
+
+mpg = .mtcars[, 1]
+cyl = .mtcars[, 2]
+disp = .mtcars[, 3]
+wt = .mtcars[, 4]   # This one changes
+
+```
+
+## Details
+
+__Nested subsetting__
+
+Suppose that `x` is the data frame of interest. Consider the following
+reasonable code:
+
+```
+x[x[, "d"] > 10, "b"]
+```
+
+Replacing names gives us the following in standard form:
+
+x[x[, 4] > 10, 2]
+
+Because there is nested subsetting we need to respect the structure of the
+parse tree to correctly substitute these variables with indices.
+
+TODO: What is the issue in my mind? I don't want this to happen:
+```
+# First step updates the inner
+x[x[, 4] > 10, "b"]
+
+# Second step updates the outer based on the original statement
+x[x[, "d"] > 10, 2]
+```
+
+This leaves us with the task of having to merge the parse trees. We
+definitely want to avoid this. So we need to update the tree in place,
+incrementally. In the more general case it may happen that the locations of
+the parse tree change as it is modified.  Then we'll need a way to guarantee
+that nothing is overwritten. Maybe applying the changes depth first?
+
+
+## Limitations
+
+What are the limitations of the approach that I've just outlined? 
+
+It's really only designed for data frames. So it would be a little
+dangerous if I _think_ something is a data frame, when in fact it's a list.
+Then if I replace `[[` and `$` with `[` it won't work. I can get around
+this by focusing on functions that return data frames, for example
+`read.csv()`.
+
+I haven't yet considered subsetting rows, there may be a way to do that
+efficiently.  A common way is to subset based on the value of some column.
+I could do this by keeping on open file pointer, reading a chunk of the
+data, subset it, add that subset to a list, then rbind the subsets
+together. This potentially lets R quickly process files larger than memory.
+
+How to get every column which is used when new copies of the data frame
+are created? For example:
+
+```{R, eval = FALSE}
+
+mtcars2 = mtcars[possible_subset, ]
+
+# Now `gear` column must be read in.
+mtcars2$gear
+
+```
+
+Stepping back, R has many ways to write programs. To simplify tasks here we
+first put the code into a canonical form, and then do "surgery" on it.
+
+
+## Side Notes
+
+
+info = lapply(code, CodeDepends::getInputs)
+
+# The CodeDepends output says when `read.csv` func is called, which is
+# helpful. But it doesn't let me see if the result of `read.csv` is
+# assigned to a variable, which is what I need.
+
+code2 = quote(x <- rnorm(n = read.csv("data.csv")))
+
+CodeDepends::getInputs(code2)
