@@ -31,6 +31,9 @@ do.call(", fname, ", args)"
 # Testing
 ############################################################
 
+# Clark: We could use a package like optparse or docopt to handle named
+# arguments. We could also hook it up with a documentation generation
+# system like Roxygen.
 
 #' Write Row Sums Of Infile To Outfile
 fileRowSums = function(infile, outfile, ...)
