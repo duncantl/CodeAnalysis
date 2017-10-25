@@ -10,7 +10,8 @@ if(FALSE) {
 
 
     # When rewriting the code
-    z = findConcat(e[1:2])
+    found = findConcat(e[1:2])
+
     # Something like
     # This is what we want in the ans = c() to become
     #  ans = integer(length(x))
@@ -25,25 +26,12 @@ if(FALSE) {
     a$args[[1]] = len
     #
     # And change c() to be let's say an integer().  Depends on the return type of i
+    # Clark: 
 
     a$set_fn(Symbol$new("integer"))
 
     findConcat(e[5:6])    
 
-    # Clark: Above fails with:
-    #  Error in to_ast.default(code) :
-    #  Cannot convert 'expression' to an ASTNode.
-    # Asking Nick: https://github.com/nick-ulle/rstatic/issues/2
-    e2 = lapply(e, to_ast)
-
-    code = quote(
-        for(i in x) {
-           ans = c(ans, f(i))
-        }
-    )
-
-    # Clark: If this list is nonempty then we can think about transforming
-    # the code into an `sapply` type call.
     found = findConcat(code)$nodes[[1]]
 
     found$parent$parent
