@@ -7,7 +7,9 @@
    longer used) and so garbage collected. See CodeDepends for this.
 1. [TOP] [Nick / Duncan] Dead code removal (remove redudant code, i.e. whose
    result is not used). Recursing into functions to identify possible side effects.
-1. Identify invariants that are recomputed, e.g. within loops.
+1. Find use of undefined variables. CodeDepends:::freeVariables(readScript(file))
+1. Identify invariants that are recomputed, e.g. within loops, or in multiple expressions.
+1. Find expressions that differ only by one term and that look like they should be in a loop.
 1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation, or that
    can be mapped to apply() -- simple examples
     See explorations/findConcat.R and explorations/concat.R example.
