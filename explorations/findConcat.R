@@ -74,19 +74,59 @@ function(code)
         # it right vs calling the $new() as Duncan uses elsewhere.
         # What's the difference if I call the $copy() method?
 
+        # Nick: Yeah, code generation is a little too verbose right now. I
+        # haven't used rstatic to generate much code, and this is definitely a
+        # rough edge that should be fixed.
+        #
+        # The $new() method is a static constructor for R6 classes. Every
+        # R6 class has $new().
+        # 
+        # The $copy() method makes a deep copy of an existing node and its
+        # descendants. Normally with R6 you would use $clone(deep = TRUE) to
+        # make a deep copy, but if you use that on an ASTNode, the node's
+        # children will still have the original as their parent.
+
         # ans = rep(NA, length(x))
         init$read = quote_ast(rep(NA, length(REPLACE_ME)))
-        init$read$args[[2]]$args = list(loop$iter)
+
+        # Nick: Use $copy() on loop$iter here to so that you don't get multiple
+        # references to the same object. You generally need to $copy() unless
+        # the object's old location is no longer part of the tree.
+        #
+        # I'm not sure when that's the case in your code, so I've probably
+        # added $copy() in more places than you really need.
+        init$read$args[[2]]$args = list(loop$iter$copy())
 
         # TODO: If there's any other code in the body of the loop then this
         # will probably break it.
 
         # for(i in seq_along(x)) {
-        loop$iter = Call$new("seq_along", args = list(loop$iter))
+
+        # Nick: Same thing as above with $copy().
+        loop$iter = Call$new("seq_along", args = list(loop$iter$copy()))
 
         # Clark: I would like a way to change the variables with basename i
         # in the following subtree to the loop iteration variable. How to do
         # this? Without doing everything in rstatic's intro vignette.
+
+        # Nick: There's no built-in function to rename variables (yet).
+        #
+        # You can use node_apply() to quickly apply a transformation function
+        # to nodes of interest without having to write methods for the entire
+        # traversal. Example (working with rstatic_0.0.0.9031):
+        #
+        # rename_var = function(node) UseMethod("rename_var")
+        # rename_var.ASTNode = function(node) node
+        #
+        # # Override what happens to Symbols.
+        # rename_var.Symbol = function(node) {
+        #   if (node$basename == "i")
+        #     node$basename = "j"
+        #
+        #   node
+        # }
+        #
+        # node_apply(YOUR_AST, rename_var)
 
         original = concat$copy()
 
@@ -94,12 +134,12 @@ function(code)
 
         # out[j] = g(y[j])
         concat$write = quote_ast(out[j])
-        concat$write$args = list(init$write, loop$ivar)
+        concat$write$args = list(init$write$copy(), loop$ivar$copy())
 
         rhs = concat$read = quote_ast(g(y[j]))
-        rhs$fn = fcall$fn
-        rhs$args[[1]]$args[[1]] = init$write
-        rhs$args[[1]]$args[[2]] = loop$ivar
+        rhs$fn = fcall$fn$copy()
+        rhs$args[[1]]$args[[1]] = init$write$copy()
+        rhs$args[[1]]$args[[2]] = loop$ivar$copy()
     }
     ast
 }
