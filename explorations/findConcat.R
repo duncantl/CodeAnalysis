@@ -10,7 +10,8 @@ if(FALSE) {
 
 
     # When rewriting the code
-    z = findConcat(e[1:2])
+    found = findConcat(e[1:2])
+
     # Something like
     # This is what we want in the ans = c() to become
     #  ans = integer(length(x))
@@ -30,24 +31,77 @@ if(FALSE) {
 
     findConcat(e[5:6])    
 
-    # Clark: Above fails with:
-    #  Error in to_ast.default(code) :
-    #  Cannot convert 'expression' to an ASTNode.
-    # Asking Nick: https://github.com/nick-ulle/rstatic/issues/2
-    e2 = lapply(e, to_ast)
-
-    code = quote(
-        for(i in x) {
-           ans = c(ans, f(i))
-        }
-    )
-
-    # Clark: If this list is nonempty then we can think about transforming
-    # the code into an `sapply` type call.
     found = findConcat(code)$nodes[[1]]
 
     found$parent$parent
 
+    preallocate1(e[1:2])    
+
+}
+
+
+preallocate1 =
+#
+# This only works for that looks EXACTLY like case 1:
+# 
+# ans = c()
+# for(xi in x) {
+#    ans = c(ans, f(xi))
+# }
+# 
+# Transform to version that does preallocation:
+#
+# ans = rep(NA, length(x))
+# for(i in seq_along(x)) {
+#    ans[i] = f(x[i])
+# }
+function(code)
+{
+
+    ast = to_ast(code)
+    # Not worrying about nested loops for the moment
+    found = findConcat(code, ast = ast)
+
+    # Seems unnecessary to loop here, since probably only works for one
+    # found variable anyways.
+    for(i in seq_along(found$vars)){
+
+        init = found$vars[[i]]$parent
+        concat = found$nodes[[1]]
+        loop = parentForLoop(concat)
+
+        # Clark: Doing this because it's easier and I'm more likely to get
+        # it right vs calling the $new() as Duncan uses elsewhere.
+        # What's the difference if I call the $copy() method?
+
+        # ans = rep(NA, length(x))
+        init$read = quote_ast(rep(NA, length(REPLACE_ME)))
+        init$read$args[[2]]$args = list(loop$iter)
+
+        # TODO: If there's any other code in the body of the loop then this
+        # will probably break it.
+
+        # for(i in seq_along(x)) {
+        loop$iter = Call$new("seq_along", args = list(loop$iter))
+
+        # Clark: I would like a way to change the variables with basename i
+        # in the following subtree to the loop iteration variable. How to do
+        # this? Without doing everything in rstatic's intro vignette.
+
+        original = concat$copy()
+
+        fcall = concat$read$args[[2]]
+
+        # out[j] = g(y[j])
+        concat$write = quote_ast(out[j])
+        concat$write$args = list(init$write, loop$ivar)
+
+        rhs = concat$read = quote_ast(g(y[j]))
+        rhs$fn = fcall$fn
+        rhs$args[[1]]$args[[1]] = init$write
+        rhs$args[[1]]$args[[2]] = loop$ivar
+    }
+    ast
 }
 
 
@@ -80,7 +134,7 @@ function()
                 }
 
                  # Check if in the body of a for loop.
-                if(inForLoop(node)) {
+                if(!is.null(parentForLoop(node))) {
                         # ans = c(ans, val)
                     if(node$read$fn$name ==  "c" &&
                        any(sapply(node$read$args, sameNode, node$write))) 
@@ -99,15 +153,18 @@ function()
 }
 
 
-inForLoop =
+parentForLoop =
+#
+# Return the node corresponding to the first found containing for loop, and
+# NULL if not inside a for loop
 function(node)
 {
     while(!is.null(node)) {
         if(is(node, "For"))
-           return(TRUE)
+           return(node)
         node = node$parent
     }
-    FALSE   
+    NULL
 }
 
 sameNode =

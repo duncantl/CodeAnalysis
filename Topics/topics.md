@@ -11,9 +11,11 @@
 1. Identify invariants that are recomputed, e.g. within loops, or in multiple expressions.
 1. Find expressions that differ only by one term and that look like they should be in a loop.
 1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation, or that
+1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation
    can be mapped to apply() -- simple examples
     See explorations/findConcat.R and explorations/concat.R example.
 	Need to implement rewriting the code, but identifying the simple cases.
+2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple examples
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
