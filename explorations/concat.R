@@ -1,5 +1,7 @@
 # also 1:length(x) to seq(along = x)
 
+# Case 1
+
 ans = c()
 for(xi in x) {
    ans = c(ans, f(xi))
