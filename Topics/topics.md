@@ -4,6 +4,8 @@ Goals for the paper:
 
 Keep the examples simple and manageable.
 
+Aim for December 21st, 2017 to submit this.
+
 TODO: Write more about the examples. Why is this cool / interesting? Can we
 explain it in a conversational way? Even before writing code.
 
@@ -17,19 +19,26 @@ Possible Running Examples:
 
 ### Performance
 
-1. Identify repetitive code, i.e. the same code evaluated in multiple places.
-1. [TOP partially done] [Nick / Duncan] Identify when a variable can be rm()'ed (since no
-   longer used) and so garbage collected. See CodeDepends for this.
+1. Identify repetitive code, i.e. the same code evaluated in multiple
+   places.
+1. [TOP partially done] [Nick / Duncan] Identify when a variable can be
+   rm()'ed (since no longer used) and so garbage collected. See CodeDepends
+   for this.
 1. [TOP] [Nick / Duncan] (remove redudant code)
 1. [TOP] [Nick / Duncan] Dead code removal - remove expressions which are
-   not used later; whose result is not used). Recursing into functions to identify possible side effects.
-1. Find use of undefined variables. CodeDepends:::freeVariables(readScript(file))
-1. Identify invariants that are recomputed, e.g. within loops, or in multiple expressions.
-1. Find expressions that differ only by one term and that look like they should be in a loop.
-1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks preallocation
-   See explorations/findConcat.R and explorations/concat.R example.
-   Identify and rewrite.
-2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple examples. Check RLoopFusion.
+   not used later; whose result is not used). Recursing into functions to
+   identify possible side effects.
+1. Find use of undefined variables.
+   CodeDepends:::freeVariables(readScript(file))
+1. Identify invariants that are recomputed, e.g. within loops, or in
+   multiple expressions.
+1. Find expressions that differ only by one term and that look like they
+   should be in a loop.
+1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks
+   preallocation See explorations/findConcat.R and explorations/concat.R
+   example.  Identify and rewrite.
+2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple
+   examples. Check RLoopFusion.
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
