@@ -1,21 +1,35 @@
 # Ideas for Code Analysis
 
+Goals for the paper:
+
+Keep the examples simple and manageable.
+
+TODO: Write more about the examples. Why is this cool / interesting? Can we
+explain it in a conversational way? Even before writing code.
+
+Organizational: We can split these up into sub directories for each task.
+Use plain text.
+
+Possible Running Examples:
+1. Matt's yield gap analysis project
+1. Scott's code (data not available)
+
+
 ### Performance
 
 1. Identify repetitive code, i.e. the same code evaluated in multiple places.
-1. [TOP] [Nick / Duncan] Identify when a variable can be rm()'ed (since no
+1. [TOP partially done] [Nick / Duncan] Identify when a variable can be rm()'ed (since no
    longer used) and so garbage collected. See CodeDepends for this.
-1. [TOP] [Nick / Duncan] Dead code removal (remove redudant code, i.e. whose
-   result is not used). Recursing into functions to identify possible side effects.
+1. [TOP] [Nick / Duncan] (remove redudant code)
+1. [TOP] [Nick / Duncan] Dead code removal - remove expressions which are
+   not used later; whose result is not used). Recursing into functions to identify possible side effects.
 1. Find use of undefined variables. CodeDepends:::freeVariables(readScript(file))
 1. Identify invariants that are recomputed, e.g. within loops, or in multiple expressions.
 1. Find expressions that differ only by one term and that look like they should be in a loop.
-1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation, or that
-1. [TOP] [Clark / Duncan] Loop "correction" that lacks preallocation
-   can be mapped to apply() -- simple examples
-    See explorations/findConcat.R and explorations/concat.R example.
-	Need to implement rewriting the code, but identifying the simple cases.
-2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple examples
+1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks preallocation
+   See explorations/findConcat.R and explorations/concat.R example.
+   Identify and rewrite.
+2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple examples. Check RLoopFusion.
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
@@ -53,9 +67,9 @@ and strict/lazy eval
 
 ### General & Packaging
 
+1. [TOP] [Matt / Duncan] Identify input/output data files (see CodeDepends).
 1. [TOP] [Matt / Duncan] Summarize code from a project (see RCleanProject).
    Find minimal example: create graph of scripts for directory?
-1. [TOP] [Matt / Duncan] Identify input/output data files (see CodeDepends).
 1. [MED] Identify checkpoints where intermediate results can be saved to resume
    later (see
    [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
@@ -65,7 +79,6 @@ and strict/lazy eval
 2. [TOP] [Clark] Identify code which can be safely evaluated during static
    analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
    of analysis.
-
 
 ## Meeting
 
