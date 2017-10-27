@@ -110,6 +110,35 @@ last_uses2 = get_last_uses(sc2, info2)
 # could be used above the control structure where it's defined.
 
 
+# ------------------------------------------------------------
+# Now let's try this with rstatic.
+
+library(rstatic)
+
+node1 = to_cfg(example1)
+
+plot(node1$ssa)
+
+# Need a better way to get info for specific variables from the SSA graph.
+#
+# All of the info we need is there, but it's not easy to get at. We also need
+# the basenames of all variables in the AST.
+#
+# Here's a hacky way to do it:
+
+vars = names(node1$ssa$blocks)
+vars = vars[!grepl("^(%|[.]_)", vars)]
+
+first_def = vars[grepl("_1$", vars)]
+
+# For each variable, find the node immediately after its last definition.
+#lapply(first_def, function(name) {
+#  uses = adjacent_vertices(node1$ssa$graph, name, "out")
+#
+#  # When there's more than one use, there's no easy way to tell which use comes
+#  # first in the code.
+#  browser()
+#})
 
 
 # ------------------------------------------------------------
