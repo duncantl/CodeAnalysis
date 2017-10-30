@@ -1,0 +1,11 @@
+"a","b","c","d"
+"a",10,TRUE,11
+"b",2,FALSE,4
+"c",5,TRUE,8
+"d",6,FALSE,10
+"e",1,FALSE,6
+"f",3,FALSE,9
+"g",9,FALSE,16
+"h",7,TRUE,15
+"i",8,TRUE,17
+"j",4,FALSE,14

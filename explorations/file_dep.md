@@ -38,4 +38,36 @@ Create a dependency graph, which can be plotted/visualized. Identify
 orphaned files "automatically", e.g. scripts that produce files that are not used
 elsewhere, files that are never used.
 
+## Code
+
+library(RCleanProject)
+library(CodeDepends)
+
+base_dir = "file_dep"
+
+scripts = list.files(base_dir, pattern = "\\.[Rr]$", full.name = TRUE)
+
+
+sscripts = lapply(scripts, readScript)
+info = lapply(sscripts, as, "ScriptInfo")
+names(info) = scripts
+
+tmp = lapply(info, function(x) getDepends(,x))
+
+all.dep = do.call(rbind, tmp)
+all.dep$SourceFilename = rep(names(info), sapply(tmp, nrow))
+rownames(all.dep) = NULL # seq(1, nrow(all.dep))
+
+loaded = basename(all.dep[all.dep$operation %in% c("read.csv", "load"), "filename"])
+written = basename(all.dep[all.dep$operation %in% c("write.csv", "save"), "filename"])
+data_files = list.files(base_dir, pattern = "\\.csv$|\\.rda$")
+
+# The ones that both written and read
+intersect(written, loaded)
+
+# Not read
+setdiff(data_files, loaded)
+
+# Not read or written
+setdiff(data_files, c(written, loaded))
 
