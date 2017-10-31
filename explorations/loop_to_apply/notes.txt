@@ -1,0 +1,48 @@
+Tue Oct 31 10:32:24 PDT 2017
+
+Introduction
+============
+
+We would like to transform loops in R into an apply style call. This is
+valuable because it's easier to subsequently make an apply function run in
+parallel.
+
+Suppose we start with this code:
+
+ans = rep(NA, length.out = length(x))
+for(i in seq_along(x)) {
+   ans[i] = f(x[i])
+}
+
+Then we would like to transform it to this:
+
+ans = sapply(x, f)
+
+This sapply() version is idiomatic R. In contrast, the following is truly
+iterative code which cannot be naturally converted to an apply style
+function, because the output of each iteration depends on the previous
+iteration.
+
+for(i in 1:n) {
+   estimate = update(estimate)
+}
+
+It could happen that someone who is familiar with idiomatic R writes
+something in a complex for loop, because it's not immediately obvious that
+it can be put in the form of an apply function. Then the code analysis
+methods should be capable of pointing this out.
+
+This technique could also be applied as part of a series of code processing
+steps. For example, we could first fuse multiple loops using Ulle's
+RLoopFusion package, then transform them into an apply version, and then
+transform into a parallel version.
+
+Method
+=======
+
+The simplest case is when every iteration only depends on the index
+variable, ie. the `i` in `for(i in seq_along(x))`. This is the case for the
+example above, where each assignment is into `ans[i]`. More generally, if
+the only assignments in the body of the loop are to unique addresses then
+it can be transformed. 
+
