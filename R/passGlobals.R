@@ -53,19 +53,36 @@ function(fun, gVarsByFun)
 }
 
 updateCallsFun =
+    #
+    # returns a function that will update a Call object (in the rstatic
+    # AST node tree) which is a call to one of the functions that requires
+    # global variables to be passed to it.
+    #
 function(gVarsByFun)
 {
     function(node) {
 
         if(is(node, "Call") && node$fn$name %in% names(gVarsByFun)) {
-            browser()
-            extra = gVarsByFun[[ node$fn$name ]]
-            node$args = append(node$args, lapply(extra, Symbol$new))
+           extra = gVarsByFun[[ node$fn$name ]]
+           # We may want to add .x = x rather than just x by position
+           # but we need to know if the . was prepended to the variable name
+           # or more generally what parameter each global corresponds to
+           node$args = append(node$args, lapply(extra, Symbol$new))
         }
     }
 }
 
 addParams =
+    #
+    # Given a function which currently references
+    # non-local/global variables, change the variable names
+    # to have a . prepended and then add these as parameters
+    # and a default value which is the name of the original global
+    # variable.
+    # So, e.g.,
+    #   function(x) x + beta
+    # becomes
+    #   function(x, .beta = beta) x + .beta
 function(fun, varNames, addDot = TRUE)
 {
     ofun = fun    
@@ -86,6 +103,11 @@ function(fun, varNames, addDot = TRUE)
 
 addGlobalParam =
     #
+    # Add a new parameter to a function with the specified name
+    # and if default is provided add it as the default value
+    # This default can be evaluated or not in this call.
+    #
+    # Tests
     # f = function(x) {}
     # addGlobalParam(f, "bob")
     # addGlobalParam(f, "bob", 1)
@@ -111,9 +133,14 @@ function(fun, param, default, asIs = inherits(default, "AsIs"))
 
 changeParamName =
     #
+    # Rewrite the body of a function to change the name of one or more
+    # variables to a new name, e.g.
+    #
     # f = function(x, b) { x + b + 1}
     # changeParamName(f, c("x", "b"), c(".x", ".b"))
     #
+    # Which then becomes
+    # function(x, .b) { x + .b + 1}
 function(fun, origName, newName = names(origName))
 {
     ast = to_ast(fun)
@@ -123,6 +150,10 @@ function(fun, origName, newName = names(origName))
 }
 
 renameVarFun =
+    #
+    # Returns a function that knows to change a Symbol (in the AST)
+    # to a new name based on the name-value pairs in the parameter map.
+    #
 function(map)
 {
     function(node) {
