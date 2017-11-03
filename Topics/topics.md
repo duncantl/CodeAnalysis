@@ -26,7 +26,7 @@ Possible Running Examples:
    for this.
 1. [TOP] [Nick / Duncan] (remove redudant code)
 1. [TOP] [Nick / Duncan] Dead code removal - remove expressions which are
-   not used later; whose result is not used). Recursing into functions to
+   not used later; whose result is not used. Recursing into functions to
    identify possible side effects.
 1. Find use of undefined variables.
    CodeDepends:::freeVariables(readScript(file))
@@ -81,7 +81,7 @@ and strict/lazy eval
    Find minimal example: create graph of scripts for directory?
 1. [MED] Identify checkpoints where intermediate results can be saved to resume
    later (see
-   [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
+     [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
 1. CodeDepends and processing S4 methods.
 1. Ref classes and S6 and validation.
 1. ?Documentation generation?
