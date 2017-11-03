@@ -13,7 +13,7 @@
 #
 # @example
 # source("Topics/globalsRewrite/example/simple.R")
-# z = do(f, g, main)
+# z = mkGlobalsLocal(f, g, main)
 
 mkGlobalsLocal =
 function(..., .funs = list(...))
@@ -46,7 +46,7 @@ function(..., .funs = list(...))
   if(any(calls)) {
       # Add arguments to the calls to these updated functions
       .funs[calls] = lapply(.funs[calls], passGlobals, gvars[hasNonLocals])
-      tmp = do(.funs = .funs[calls])
+      tmp = mkGlobalsLocal(.funs = .funs[calls])
       .funs[names(tmp)] = tmp
   
       updatedFuns = append(updatedFuns, .funs[calls])
@@ -84,10 +84,14 @@ function(gVarsByFun)
 
         if(is(node, "Call") && node$fn$name %in% names(gVarsByFun)) {
            extra = gVarsByFun[[ node$fn$name ]]
-           # We may want to add .x = x rather than just x by position
+           #XXX We may want to add .x = x rather than just x by position
            # but we need to know if the . was prepended to the variable name
            # or more generally what parameter each global corresponds to
+           id = names(node$args)
+           if(length(id) != length(node$args))
+               id = character(length(node$args))
            node$args = append(node$args, lapply(extra, Symbol$new))
+           names(node$args) = c(id, paste0(".", extra))
         }
     }
 }
