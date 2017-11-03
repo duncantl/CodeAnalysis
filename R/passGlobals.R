@@ -7,39 +7,59 @@
 # calls need to be passed these global variables. If so, we add these variables
 # as parameters. Then we iterate again.
 #
+# This doesn't handle functions that are called via *apply.
+# We could wrap those in closures. Or get the default
+# values to be the global variables.
 #
+# @example
+# source("Topics/globalsRewrite/example/simple.R")
+# z = do(f, g, main)
 
 do =
 function(..., .funs = list(...))
 {
-  if(length(names(.funs)) == 0) {
+      #XXX similar code in both clauses (last 2 lines)
+  if(missing(.funs) && length(names(.funs)) == 0) {
+        # Caller gave functions via ... but no names.
       k = sys.call()
       syms = k[-1]
       nm = sapply(syms, is.name)
       names(.funs)[nm] = sapply(syms[nm], as.character)
+  } else if(length(names(.funs)) == 0) {
+      # Handle names if .funs is passed as .funs = list(f, g, main)        
+      k = sys.call()
+      syms = k[[2]][-1]
+      nm = sapply(syms, is.name)
+      names(.funs)[nm] = sapply(syms[nm], as.character)
   }
-# Handle names if .funs is passed as .funs = list(f, g, main)  
-
-  g = lapply(.funs, function(f) codetools::findGlobals(f, FALSE))
-  gvars = lapply(g, function(x) x$var)
+  
+  g = lapply(.funs, codetools::findGlobals, FALSE)
+  gvars = lapply(g, `[[`, "variables")
   hasNonLocals = sapply(gvars, length) > 0
   .funs[hasNonLocals] = mapply(addParams, .funs[hasNonLocals], gvars[hasNonLocals])
 
   updatedFuns = .funs[hasNonLocals]
 
-
+  # See which functions call any of these updated functions.
+  # We will have to change their calls to these updated functions.
   calls = sapply(g, function(f) any(unlist(f) %in% names(updatedFuns)))
   if(any(calls)) {
+      # Add arguments to the calls to these updated functions
       .funs[calls] = lapply(.funs[calls], passGlobals, gvars[hasNonLocals])
       tmp = do(.funs = .funs[calls])
       .funs[names(tmp)] = tmp
   
       updatedFuns = append(updatedFuns, .funs[calls])
   }
+  
   updatedFuns
 }
 
 passGlobals =
+    #
+    # Add additional arguments to calls to any of the functions
+    # named in gVarsByFun
+    #
 function(fun, gVarsByFun)    
 {
     ofun = fun
@@ -153,6 +173,7 @@ renameVarFun =
     #
     # Returns a function that knows to change a Symbol (in the AST)
     # to a new name based on the name-value pairs in the parameter map.
+    # Symbol with name values not in the map remain unchanged.
     #
 function(map)
 {
