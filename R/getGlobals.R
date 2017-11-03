@@ -19,7 +19,7 @@ getGlobals =
     # When run on compileFunction(), we find ir and nenv as globals.
     # nenv is real as it used before it is defined.
     #  ir appears as a global because its is referenced in a function definition
-    #  not call.
+    #  not a call.
     #
     #
     # skip  is for the names of functions for which we are to ignore calls to these
