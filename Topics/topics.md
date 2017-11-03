@@ -52,8 +52,11 @@ Possible Running Examples:
 ### Functions
 
 1. Refactoring functions to smaller, more modular functions
-1. [LAST] [Nick] Extract functions defined inside functions that do not modify
+1. [Mostly done] [Duncan] Extract functions defined inside functions that do not modify
    the shared variables. To allow testing.
+   See Topics/extractFunctions/.
+   (DTL: I needed this for another purpose so implemented it. We had it as LAST, but different
+   considerations arose.)
 1. [basics done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
    single entity and not ::, pkg, fun.
    See explorations/findGlobals.R.  (Nick: also done in rstatic, see
