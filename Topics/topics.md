@@ -24,10 +24,10 @@ Possible Running Examples:
 1. [TOP partially done] [Nick / Duncan] Identify when a variable can be
    rm()'ed (since no longer used) and so garbage collected. See CodeDepends
    for this.
-1. [TOP] [Nick / Duncan] (remove redudant code)
-1. [TOP] [Nick / Duncan] Dead code removal - remove expressions which are
-   not used later; whose result is not used. Recursing into functions to
-   identify possible side effects.
+1. [TOP] [Nick / Duncan] Replace redundant expressions with variables.
+1. [TOP] [Nick / Duncan] Remove expressions which are not used later, unless
+   they contain known functions with side effects. A complete solution would
+   require recursing into called functions to identify possible side effects.
 1. Find use of undefined variables.
    CodeDepends:::freeVariables(readScript(file))
 1. Identify invariants that are recomputed, e.g. within loops, or in

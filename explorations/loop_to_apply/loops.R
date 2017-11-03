@@ -11,6 +11,19 @@ for(i in seq_along(x)) {
 ans = sapply(x, f)
 
 
+# Example 1b - Extra argument
+############################################################
+
+# Original:
+ans = rep(NA, length.out = length(x))
+for(i in seq_along(x)) {
+    ans[i] = f(x[i], z = 100)
+}
+
+# Transformed:
+ans = sapply(x, f, z = 100)
+
+
 # Example 2 - Intermediate variable used inside loop
 #
 # I often use intermediate variables to make my code easier to read and
