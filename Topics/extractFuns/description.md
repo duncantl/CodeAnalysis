@@ -68,6 +68,12 @@ variable name.
 
 We can write the externalFunctions to a separate file or keep them in the R session.
 
+Of course, some of these functions may use variables defined within their
+enclosing/primary function. When these functions are defined separately, we
+would have to arrange to call these functions with these extra arguments.  Also,
+we have to add extra parameters to these functions to accept these additional
+arguments.  This is topic of section ??.
+
 
 
 
