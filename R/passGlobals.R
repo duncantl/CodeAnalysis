@@ -15,7 +15,7 @@
 # source("Topics/globalsRewrite/example/simple.R")
 # z = do(f, g, main)
 
-do =
+mkGlobalsLocal =
 function(..., .funs = list(...))
 {
       #XXX similar code in both clauses (last 2 lines)
