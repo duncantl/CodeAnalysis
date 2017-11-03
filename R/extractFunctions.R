@@ -10,6 +10,7 @@ function(body)
     funcs = list()
     function(expr, i) {
 
+           #XXX This should check that the body of the function does not call <<-
         if(is(expr, "Assign") && is(expr$read, "Function") 
            && is(expr$write, "Symbol")) {
             # collect this
