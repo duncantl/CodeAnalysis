@@ -22,16 +22,15 @@ function(existingVars = character())
         if(is(el, "Symbol") && is(el$parent, "Call") && el$parent$fn$name %in% c("::", ":::"))
             return(TRUE)
         
-#        if(is(el, "Symbol") && el$name == "order") browser()
-
         
         if(is(el, "Symbol") && is(el$parent, "For") && identical(el, el$parent$ivar)) {
-             # define the loop variable temporarily
+             # define the loop variable. It stays in scope after the for() loop.
             addLocalVar(el$name)
         }
         
         if(is(el, "Function")) {
-            #browser()
+            # recursively process a function() definition.
+            #
             # This won't handle the case where the function is defined in the body
             # of another function and is not called and uses variables that are defined
             # after this new function is defined, e.g.,
@@ -50,13 +49,14 @@ function(existingVars = character())
             funs <<- c(funs, tmp$functions)
             return(FALSE)
         }
-        
+
+
         if(is(el, "Symbol") && is(el$parent, "Assign") && identical(el, el$parent$write)) {
+            # the left hand side of an assignment.
+            # If el$name == <<-, use addVar(el$name)
             addLocalVar(el$name)
             return(TRUE)
         }
-
-#if(is(el, "Symbol") && el$name == "table") browser()
            
         if(is(el, "Symbol") && is(el$parent, "Call") && is(el$parent$fn, "Symbol") &&
            el$parent$fn$name %in% ApplyFunNames && !identical(el, el$parent$fn))
@@ -71,6 +71,8 @@ function(existingVars = character())
         } else if(is(el, "Symbol") && !(is(el$parent, "Call") && identical(el, el$parent$fn))) {
             addVar(el$name)
         } else if(is(el, "Call")) {
+            # if the function being called is returned via a call, don't do anything here.
+            # e.g.  f(1)(a, b, c)
             if(is(el$fn, "Call")) 
                 return(TRUE)
 
