@@ -30,10 +30,6 @@ loop_to_sapply = function(forloop)
 
     # Passes checks, convert to sapply
 
-    # Clark: The following is the clearest and easiest way for me to write
-    # this code. Is there any advantage to using the constructors from
-    # rstatic?
-
     map = list(fun = replacer$args[[3]]$fn$basename
         , lhs = replacer$args[[1]]$basename
         , arg = ss$args[[1]]$basename
