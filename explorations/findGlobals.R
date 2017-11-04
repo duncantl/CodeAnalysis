@@ -31,7 +31,20 @@ function(existingVars = character())
         }
         
         if(is(el, "Function")) {
-#browser()            
+            #browser()
+            # This won't handle the case where the function is defined in the body
+            # of another function and is not called and uses variables that are defined
+            # after this new function is defined, e.g.,
+            #
+            #  function() {
+            #     f = function() a
+            #     a = 10
+            #  }
+            # Ideally we would allow this and only resolve f's global variables
+            # when it is called having collected all the other functions.
+            # And if it is not called, but returned, then we would process when finishing the
+            # outer function. All doable.
+            # But for now just aggressively check what has been defined up to this point.
             tmp = findGlobals(ast = el, merge = FALSE, existingVars = c(params, localVars))
             vars <<- c(vars, tmp$vars)
             funs <<- c(funs, tmp$functions)
