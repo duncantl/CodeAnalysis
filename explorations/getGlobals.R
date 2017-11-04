@@ -28,6 +28,17 @@ function()
     x + y
 }
 
+nested0 =
+    #
+    #
+    #
+function(x, alpha = 2)
+{
+  sapply(x, function(e) g(e + alpha) )
+}
+
+
+
 nested =
     #
     #
@@ -36,6 +47,7 @@ function(x)
 {
   sapply(x, function(e) g(e + alpha) )
 }
+
 
 
 nested2 =
@@ -49,4 +61,13 @@ nested3 =
 function(x)
 {
   sapply(x, function(e) for(i in e) g(i, beta))
+}
+
+whileLoop =
+function(x)
+{
+    while(f(a) > x) {
+        a = x + a
+    }
+    b
 }

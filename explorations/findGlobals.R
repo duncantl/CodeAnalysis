@@ -1,10 +1,12 @@
 library(rstatic)
 
+ApplyFunNames = c("sapply", "lapply", "vapply", "apply", "mapply")
+
 genCollector =
-function(...)
+function(existingVars = character())
 {
     params = character()
-    localVars = character()
+    localVars = existingVars
     funs = character()
     vars = character()
     loopVar = character()
@@ -20,18 +22,17 @@ function(...)
         if(is(el, "Symbol") && is(el$parent, "Call") && el$parent$fn$name %in% c("::", ":::"))
             return(TRUE)
         
-        if(is(el, "Symbol") && el$name == "order") browser()
+#        if(is(el, "Symbol") && el$name == "order") browser()
 
         
         if(is(el, "Symbol") && is(el$parent, "For") && identical(el, el$parent$ivar)) {
              # define the loop variable temporarily
             addLocalVar(el$name)
-#            browser()
         }
         
         if(is(el, "Function")) {
-browser()            
-            tmp = findGlobals(ast = el, merge = FALSE)
+#browser()            
+            tmp = findGlobals(ast = el, merge = FALSE, existingVars = c(params, localVars))
             vars <<- c(vars, tmp$vars)
             funs <<- c(funs, tmp$functions)
             return(FALSE)
@@ -41,8 +42,20 @@ browser()
             addLocalVar(el$name)
             return(TRUE)
         }
+
+#if(is(el, "Symbol") && el$name == "table") browser()
            
-        if(is(el, "Symbol") && !(is(el$parent, "Call") && identical(el, el$parent$fn))) {
+        if(is(el, "Symbol") && is(el$parent, "Call") && is(el$parent$fn, "Symbol") &&
+           el$parent$fn$name %in% ApplyFunNames && !identical(el, el$parent$fn))
+        {
+                m = match.call(get(el$parent$fn$name), to_r(el$parent))
+                if(is.name(m$FUN) && m$FUN == el$name) #XXX could be ns::foo
+                    # Also, could be the same symbol in another argument other than FUN!
+                    addFuns(as.character(el$name))
+                else
+                    addVar(el$name)
+                
+        } else if(is(el, "Symbol") && !(is(el$parent, "Call") && identical(el, el$parent$fn))) {
             addVar(el$name)
         } else if(is(el, "Call")) {
             if(is(el$fn, "Call")) 
@@ -56,14 +69,14 @@ browser()
                     addFuns(rstatic:::deparse_string(to_r(el)))
                     lapply(el$args, process)
                     return(FALSE)
-            } else if(el$fn$name %in% c("sapply", "lapply", "vapply", "apply", "mapply")) {
-                addFuns(el$fn$name)                    
+            } else if(FALSE && el$fn$name %in% c("sapply", "lapply", "vapply", "apply", "mapply")) {
+                addFuns(el$fn$name)  # the sapply/....
                 m = match.call(get(el$fn$name), to_r(el))
                 if(is.name(m$FUN)) #XXX could be ns::foo
                    addFuns(as.character(m$FUN))
                 # Now we need to avoid processing this FUN element again.
 
-           } else {
+            } else {
                addFuns(el$fn$name)
            }
         }
@@ -95,9 +108,9 @@ browser()
 }
 
 findGlobals =
-function(fun, merge = TRUE, ast = to_ast(fun))    
+function(fun, merge = TRUE, ast = to_ast(fun), existingVars = character())    
 {
-    col = genCollector()
+    col = genCollector(existingVars)
     col$addParams(names(ast$params))
 
     sapply(ast$params, col$process)
