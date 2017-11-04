@@ -27,3 +27,26 @@ function()
     y = foo(10)
     x + y
 }
+
+nested =
+    #
+    #
+    #
+function(x)
+{
+  sapply(x, function(e) g(e + alpha) )
+}
+
+
+nested2 =
+function(x)
+{
+  sapply(x, function(e) lapply(e, g, beta))
+}
+
+
+nested3 =
+function(x)
+{
+  sapply(x, function(e) for(i in e) g(i, beta))
+}
