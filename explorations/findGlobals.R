@@ -3,17 +3,52 @@ library(rstatic)
 genCollector =
 function(...)
 {
-    vars = character()
+    params = character()
+    localVars = character()
     funs = character()
+    vars = character()
+    loopVar = character()
 
     process = function(el) {
-        if(is(el, "Symbol") && !is(el$parent, "Call"))
-            addParams(el$name)
-        else if(is(el, "Call")) {
+
+        if(is(el, "Parameter"))
+              # Already in params.
+            return(TRUE)
+
+        # if the symbol is part of ns::fun identifying the function in call ns::fun(.....)
+        # then ignore as we deal with this below at the :: or ::: object.
+        if(is(el, "Symbol") && is(el$parent, "Call") && el$parent$fn$name %in% c("::", ":::"))
+            return(TRUE)
+        
+        if(is(el, "Symbol") && el$name == "order") browser()
+
+        
+        if(is(el, "Symbol") && is(el$parent, "For") && identical(el, el$parent$ivar)) {
+             # define the loop variable temporarily
+            addLocalVar(el$name)
+#            browser()
+        }
+        
+        if(is(el, "Function")) {
+browser()            
+            tmp = findGlobals(ast = el, merge = FALSE)
+            vars <<- c(vars, tmp$vars)
+            funs <<- c(funs, tmp$functions)
+            return(FALSE)
+        }
+        
+        if(is(el, "Symbol") && is(el$parent, "Assign") && identical(el, el$parent$write)) {
+            addLocalVar(el$name)
+            return(TRUE)
+        }
+           
+        if(is(el, "Symbol") && !(is(el$parent, "Call") && identical(el, el$parent$fn))) {
+            addVar(el$name)
+        } else if(is(el, "Call")) {
             if(is(el$fn, "Call")) 
                 return(TRUE)
 
-            
+#browser()            
             if(el$fn$name %in% c("::", ":::")) {
 
                     # And don't process these elements below
@@ -21,32 +56,41 @@ function(...)
                     addFuns(rstatic:::deparse_string(to_r(el)))
                     lapply(el$args, process)
                     return(FALSE)
-               
             } else if(el$fn$name %in% c("sapply", "lapply", "vapply", "apply", "mapply")) {
+                addFuns(el$fn$name)                    
                 m = match.call(get(el$fn$name), to_r(el))
-                if(is.name(m$FUN))
+                if(is.name(m$FUN)) #XXX could be ns::foo
                    addFuns(as.character(m$FUN))
-           } else
+                # Now we need to avoid processing this FUN element again.
+
+           } else {
                addFuns(el$fn$name)
+           }
         }
 
         TRUE
     }
 
-    addParams = function(ids)
-        vars <<- c(vars, ids)
+    addVar = function(ids) {
+        if(!(ids %in% c(params, localVars)))
+           vars <<- c(vars, ids)
+    }
 
     addFuns = function(ids)
-        funs <<- c(funs, ids)    
+        funs <<- c(funs, ids)
+    
+    addLocalVar = function(name)
+        localVars <<- c(localVars, name)
 
-    list(addParams = addParams,
+    list(addVar = addVar,
          addFuns = addFuns,
          process = process,
+         addParams = function(ids) params <<- c(params, ids),
          result = function(merge = TRUE) {
              if(merge)
-                table(c(funs, vars))
+                c(funs, vars)
              else
-                list(functions = table(funs), vars = table(vars))
+                list(functions = funs, vars = vars)
          })
 }
 
