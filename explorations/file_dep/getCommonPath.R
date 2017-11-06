@@ -3,9 +3,9 @@ getCommonPath =
     # getCommonPath(c("~/Data/A", "~/Data/B"))
     ##
     # getCommonPath( c("~/vt_project/code/funs.R", "~/vt_project/code/calc_weather_funs.R", 
-"~/vt_project/data/vt1995_2015_clean.Rda", "~/vt_project/data/weather_stn_info.Rda", 
-"~/vt_project/data/all_weather_filled.Rda", "~/vt_project/vt_database/site_characteristics.csv", 
-"~/vt_project/data/site_weather.rda", "~/vt_project/data/all_vt_weather.Rda"))
+#"~/vt_project/data/vt1995_2015_clean.Rda", "~/vt_project/data/weather_stn_info.Rda", 
+#"~/vt_project/data/all_weather_filled.Rda", "~/vt_project/vt_database/site_characteristics.csv", 
+#"~/vt_project/data/site_weather.rda", "~/vt_project/data/all_vt_weather.Rda"))
     #
 function(files, dirs = dirname(files))
 {
@@ -20,33 +20,59 @@ function(files, dirs = dirname(files))
     rev(els)
 }
 
-rewritePaths =
+defPathVars =
+    #
+    # Want a data frame with the name of the variable, the directory
+    # 
+    #
 function(files, commonPaths = getCommonPath(files))
 {
     ans = list()
-    if(length(commonPaths) > 1) 
-        ans$baseDir = commonPaths[[1]]
+    ans = data.frame(var = "baseDir",
+                     path = commonPaths[[1]],
+                     subdir = "",
+                     rvar = "baseDir",
+                     stringsAsFactors = FALSE)
 
-
-    for(i in files[-1]) {
-        sprintf("file.path(%s, '%s')", )
+    for(i in commonPaths[-1]) {
+        ans = rbind(ans,
+                    data.frame(var = sprintf("%sDir", basename(i)),
+                               path = i,
+                               subdir = basename(i), 
+                               rvar = sprintf("file.path(baseDir, '%s')", basename(i)),
+                               stringsAsFactors = FALSE))
     }
+    ans
 }
 
 
 replacePath =
 function(expr, paths, ast = to_ast(expr))
 {
-    astTravers(ast, changePathFun(paths))
+    astTraverse(ast, changePathFun(paths))
     to_r(ast)
 }
 
-changePathFuns =
+changePathFun =
 function(paths)
 {
+    paths = paths[order(nchar(paths$path), decreasing = TRUE), ]
     function(node) {
         if(is(node, "Character"))  {
-            sapply(paths$dir, function(x) grep)
+#            browser()
+            f = path.expand(node$value)
+            w = sapply(paths$path, grepl, f)
+            if(any(w)) {
+               w = which(w)[1]
+               e = Call$new("file.path", args = list(Symbol$new(paths$var[w]),
+                                             Character$new(basename(f))))
+               browser()
+               i = which(sapply(node$parent$args, identical, node))
+               node$parent$args[[i]] = e
+               # replaceNode(node$parent, node, e)
+            }
         }
+
+        TRUE
     }
 }

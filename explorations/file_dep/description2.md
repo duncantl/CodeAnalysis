@@ -35,6 +35,7 @@ We can find these calls  using CodeDepends.
 We read the script and then get the information for each expression with
 ```
 library(CodeDepends)
+f = "~/DSIProjects/MattCleanProject/Variety_trial_analysis/code/calc_weather_var.R"
 sc = readScript(f)
 info = as(sc, "ScriptInfo")
 ```
@@ -73,6 +74,14 @@ and then change the code use these.
 We can compute the common path using a simple approach or via suffix trees (see R suffixtree
 package):
 
+```
+paths = getCommonPath(files)
+```
+
+```
+pathVars = defPathVars(, paths)
+```
+
 We then have a collection of strings identifying paths to files in the code and a 
 one or more variables. We process each of these expressions and substitute the 
 string with a call to file.path() with the relevant variable 
@@ -81,7 +90,65 @@ sc[w] = lapply(sc[w], replacePath, pathVars)
 ```
 And then we can write the script back to a file.
 
+
+
 ## Changing the Working Directory
 People also sometimes use setwd() in their scripts 
 to temporarily move to a directory and then read or write a file in that directory.
-This is generally not a good idea.
+This is generally not a good idea. It amounts to using global variables.
+As we add code to the script, it has to know the current working directory.
+If we move code arom one part of the script to another, it has to know which
+directory we are currently in.
+And if there is an error in the script, we are left in an unexpected directory.
+
+So we would like to detect uses of setwd() and remove them, and update
+calls to read.csv(), write.csv(), source(), load(), etc.  to use the appropriate directory name.
+
+Consider the file FAO56_dualcropcoeff.R
+This starts with
+```
+modelscaffoldDir = "Data/Oct2017"
+setwd(modelscaffoldDir)
+
+irrigation.parameters <- read.csv('irrigation_parameters.csv', stringsAsFactors = F)
+crop.parameters.df <- read.csv('crop_parameters.csv', stringsAsFactors = F)
+```
+
+Ideally we would like the calls to read.csv() to read as
+```
+irrigation.parameters <- read.csv(file.path('Data/Oct2017', 'irrigation_parameters.csv'), stringsAsFactors = FALSE)
+crop.parameters.df <- read.csv(file.path('Data/Oct2017', 'crop_parameters.csv'), stringsAsFactors = FALSE)
+```
+Or we could directly fuse the string literals together to get, e.g., 
+'Data/Oct2017/irrigation_parameters.csv'
+If the script uses variables within calls to read.csv(), etc., we can't fuse them
+at code analysis time, so using file.path() is more flexible.
+Similarly, if the actually directory is not fixed, but dynamically computed,
+we will want to assign it to a variable when we replace the call to setwd(),
+e.g.,
+```n
+.CurrentWorkingDirectory = "Data/Oct2017"
+```
+
+As before, we need to parse the expressions in our script
+and then find the terms we need to change.
+These include the calls to setwd() and all of the expressions that 
+read or write.
+
+```
+f = "~/CompileExamples/GreenWater/ModelConstruction/FAO56_dualcropcoeff.R"
+sc = readScript(f)
+info = as(sc, "ScriptInfo")
+```
+
+```
+w = which(sapply(info, function(x) "setwd" %in% names(x@functions)))
+```
+
+
+
+
+
+One might argue that we have to know all the functions that read and write
+from or to a file. Indeed this is true. However, we can find these with code analysis,
+once we know the basic functions that do this.
