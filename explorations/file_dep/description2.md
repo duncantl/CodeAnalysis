@@ -1,5 +1,8 @@
 People often use full paths to the files they read (either R code or data files)
 in their scripts, e.g.
+
+(code and data available at https://osf.io/gkwjx/)
+
 ```
 source("~/vt_project/code/funs.R")
 source("~/vt_project/code/calc_weather_funs.R")
