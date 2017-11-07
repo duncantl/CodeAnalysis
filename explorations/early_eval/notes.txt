@@ -1,0 +1,56 @@
+[TOP] [Clark] Identify code which can be safely evaluated during static
+analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
+of analysis
+
+TODO: "eval" is a loaded word, how can we better describe this?
+TODO: More use cases for this? Loop invariants?
+
+Early Evaluation
+================
+
+Data analysis scripts often begin by loading data, ie:
+
+dframe = read.csv(data.csv)
+keepers = c("age", "weight", "blood_pressure")
+dframe = dframe[, keepers]
+
+If a subset operation immediately follows the data reading call, then we
+only need to read in some of the columns. More generally, the script might not
+use all the columns of the data that it reads. For large data sets we can
+save time and memory by only reading the columns that are necessary. 
+For data coming from a SQL database we can "push" the column selection into
+the database. This means the database only passes R the columns that it
+needs.
+
+We can often safely evaluate many functions with literal arguments, such as
+`c, paste, seq, :, `. The following example shows a case where we would
+like to know the value of `first_columns` at code analysis time, because
+the user selects columns using R's default names.
+
+first_columns = paste0("V", 1:3)
+ss = df[, first_columns]
+f(ss)
+
+With these basic examples a user can look and immediately know which
+variables are literal constants that can safely be evaluated and known.
+For the column selection use case we would like to evaluate as much of
+the column selection code as possible so that we can know which columns are
+required.
+
+More generally, which expressions in the code can be evaluated based on
+literal expressions? We cannot (and do not want to) touch code that does
+any of the following:
+- reading external data
+- random number generation
+- drawing plots
+- loading packages
+- tricky stuff involving environments
+
+(Clark: Just dreaming)
+I want something like the idea of the set of R functions which are
+mathematically closed under evaluation with literal arguments. That is,
+evaluating `f(1L, "A", ...<more literal args>)` has no side effects and
+returns something that can be written as a literal vector in R. I mean it
+should return something like a scalar/vector or list of literals:
+- c(1, 4)
+- list(10, c("A", "B"))

@@ -6,6 +6,8 @@ Introduction
 Where possible, we would like to transform loops in R into an apply style call. This is
 valuable because it's easier to a) understand and reason about the body of the loop,
 and b) subsequently run the loop in parallel (e.g. with mclapply()).
+We're not doing it for speed, because apply functions are only slightly
+faster than for loops.
 
 Suppose we start with this code:
 

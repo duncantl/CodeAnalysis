@@ -37,7 +37,7 @@ Possible Running Examples:
 1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks
    preallocation See explorations/findConcat.R and explorations/concat.R
    example.  Identify and rewrite.
-2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple
+2. [TOP partially done] [Clark / Duncan] Map code inside for loops into apply() -- simple
    examples. Check RLoopFusion.
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
