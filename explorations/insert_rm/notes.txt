@@ -1,0 +1,113 @@
+The goal is to insert a call to rm() after the last expression where each
+variable is used. For instance, consider the code:
+
+n = 3
+mu = 3.1
+
+x = rnorm(n, mu)
+y = rnorm(n, mu)
+
+# ...
+
+This kind of code is common in practice for setting up the parameters in a
+simulation or model. If n and mu are not used again after the calls to rnorm(),
+then they do not need to be kept in memory. So we could rewrite the code as:
+
+n = 3
+mu = 3.1
+
+x = rnorm(n, mu)
+y = rnorm(n, mu)
+
+rm(n)
+rm(mu)
+
+# ...
+
+The explicit call to rm() tells R's garbage collector that n and mu will not be
+used again, so their memory can be freed. In this example, the benefit is small
+since n and mu are just scalars. However, it's possible the user will generate
+or load large data that is only used for part of their script, and then the
+benefit is more substantial. [Nick: I have a good example of this in the 2017
+DMC scripts]
+
+The basic strategy for this code transformation is to identify the last
+expression where each variable is used. In the example above, the last
+expression where n is used is:
+
+y = rnorm(n, mu)
+
+Thus rm(n) can be inserted after this expression. Coincidentally, this is also
+the last expression where mu is used, so rm(mu) can also be inserted after this
+expression.
+
+A complication arises when a variable's last use is in an if-statement. For
+example:
+
+n = 3
+mu = 3.1
+
+if (mu < 1) {
+  x = runif(n, 0, mu)
+  y = runif(n, 0, mu)
+} else {
+  x = rnorm(n, mu)
+  y = rnorm(n, mu)
+}
+
+# ...
+
+Now the last use of n in the order the code is presented is:
+
+y = rnorm(n, mu)
+
+This code only runs when mu < 1, so the last use of n could also be:
+
+y = runif(n, 0, mu)
+
+Thus it is not sufficient to insert rm(n) after only one of these expressions.
+There are two ways to solve this. The first is to insert rm(n) after the
+if-statement:
+
+n = 3
+mu = 3.1
+
+if (mu < 1) {
+  x = runif(n, 0, mu)
+  y = runif(n, 0, mu)
+} else {
+  x = rnorm(n, mu)
+  y = rnorm(n, mu)
+}
+rm(n)
+rm(mu)
+
+# ...
+
+The advantage of this strategy is that it is relatively simple. The
+disadvantage is that freeing the memory for n might be delayed longer than is
+really necessary. There could be many other computations inside the
+if-statement after the last use of n.
+
+The second way to solve this case is to insert rm(n) after all of the "last"
+uses:
+
+n = 3
+mu = 3.1
+
+if (mu < 1) {
+  x = runif(n, 0, mu)
+  y = runif(n, 0, mu)
+  rm(n)
+  rm(mu)
+} else {
+  x = rnorm(n, mu)
+  y = rnorm(n, mu)
+  rm(n)
+  rm(mu)
+}
+
+# ...
+
+This strategy is harder to implement but always inserts the rm() at the optimal
+location.
