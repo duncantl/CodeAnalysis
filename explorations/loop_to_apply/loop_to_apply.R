@@ -23,9 +23,16 @@ loop_to_sapply = function(forloop)
     ss = replacer$args[[3]]$args[[1]]
     if( !is(ss, "Subset") ) return(forloop)
 
+    # Only allowing indexing based on simple variables:
+    # x[i]      OK
+    # x[i-1]    NOPE
+    leftindex = replacer$args[[2]]
+    rightindex = ss$args[[2]]
+    if( !is(leftindex, "Symbol") || !is(rightindex, "Symbol") ) return(forloop)
+
     # index, ivar, and subset function index should all be the same
-    if( replacer$args[[2]]$basename != forloop$ivar$basename ||
-        forloop$ivar$basename != ss$args[[2]]$basename ) return(forloop)
+    if( (leftindex$basename != forloop$ivar$basename) ||
+        (forloop$ivar$basename != rightindex$basename) ) return(forloop)
 
     # Passes checks, convert to sapply
 
