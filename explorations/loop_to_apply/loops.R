@@ -59,3 +59,12 @@ loopbody = function(xi)
     g(tmp)
 }
 ans = sapply(x, loopbody)
+
+
+# Example 3 - Truly iterative, cannot transform
+############################################################
+ans = rep(NA, length.out = length(x))
+ans[1] = 1
+for(i in seq_along(x)[-1L]) {
+    ans[i] = f(ans[i - 1])
+}
