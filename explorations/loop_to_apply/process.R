@@ -14,3 +14,7 @@ ex1b = to_ast(code[[5]])
 
 # TODO: fix below use case:
 loop_to_sapply(ex1b)
+
+# True iterative case, just return forloop
+ex3 = to_ast(code[[16]])
+loop_to_sapply(ex3)
