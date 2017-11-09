@@ -82,11 +82,19 @@ y = c(x, 30)
 The expression c(x, 30) can be evaluated early by the conservative rule if
 and only if x is a known literal. This suggests the approach of an "early
 evaluation pass" over a script, where parts of the AST are identified as
-either known or unknown.
+either known or unknown. Below is a visual for a mini script, K/U means that
+the AST rooted at that point is known/unknown.
+
+col = 100
+K
+dframe = read.csv("mydata.csv")
+         U        K
+plot(dframe[, col])
+U    U        K
 
 This can be thought of as evaluating the code using a tiny version of the R
 language containing only the safe functions. When the mini language hits an
-"object not found" error it just moves on. It also must eagerly evaluate
+"object not found" error it just moves on to the next line. It also must eagerly evaluate
 arguments. This is because our main interest is in evaluating c("a", "b") in
 the call dframe[, c("a", "b")].
 
