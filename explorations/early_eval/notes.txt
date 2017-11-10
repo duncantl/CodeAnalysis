@@ -107,7 +107,7 @@ matching the structure of the AST. All we need to do is mark the nodes
 which are known. This means that the portion of the AST rooted at that node
 is known. This differs slightly from what I wrote above, because 
 dframe[, col] would only be marked for the col. The data structure could
-be represented as a list of indices, for example:
+be represented as a list of indices corresponding to the code, for example:
 
 K = list(1
        , c(2, 3, 2)
@@ -115,7 +115,16 @@ K = list(1
 )
 
 This particular representation helps if we have other code that operates on
-indices, for example the column inference code.
+indices, for example the column inference code. 
+
+----- Clark: This is maybe too much on implementation.
+If the code has been parsed
+into an expression with variable name "code" we can evaluate it using this
+data structure:
+
+lapply(K, function(ind, .code = code)  ...
+-----
+
 
 This can be thought of as evaluating the code using a tiny version of the R
 language containing only the safe functions. When the mini language hits an
