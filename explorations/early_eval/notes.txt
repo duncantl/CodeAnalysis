@@ -83,14 +83,39 @@ The expression c(x, 30) can be evaluated early by the conservative rule if
 and only if x is a known literal. This suggests the approach of an "early
 evaluation pass" over a script, where parts of the AST are identified as
 either known or unknown. Below is a visual for a mini script, K/U means that
-the AST rooted at that point is known/unknown.
+an element of the AST at that point is known/unknown.
+
 
 col = 100
-K
 dframe = read.csv("mydata.csv")
-         U        K
 plot(dframe[, col])
-U    U        K
+
+
+col = 100
+K     K
+# RHS all known => LHS defined
+
+dframe = read.csv("mydata.csv")
+U        U        K
+# RHS not all known => LHS not defined
+
+plot(dframe[, col])
+U    U     K  K
+
+More concisely, we can represent the same information in a data structure
+matching the structure of the AST. All we need to do is mark the nodes
+which are known. This means that the portion of the AST rooted at that node
+is known. This differs slightly from what I wrote above, because 
+dframe[, col] would only be marked for the col. The data structure could
+be represented as a list of indices, for example:
+
+K = list(1
+       , c(2, 3, 2)
+       , c(3, 2, 4)
+)
+
+This particular representation helps if we have other code that operates on
+indices, for example the column inference code.
 
 This can be thought of as evaluating the code using a tiny version of the R
 language containing only the safe functions. When the mini language hits an
@@ -106,6 +131,9 @@ y = c(x, 30)    # Now x is unknown
 
 The second line x = max(1, 2) redefines x using a function not considered
 safe. So this becomes equivalent to rm(x) in the mini language.
+
+So far we've ignored any subtleties that arise with control flow, non
+standard evaluation, or special functions such as rm().
 
 ------
 
