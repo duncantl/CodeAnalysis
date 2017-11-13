@@ -123,6 +123,9 @@ into an expression with variable name "code" we can evaluate it using this
 data structure:
 
 lapply(K, function(ind, .code = code)  ...
+
+I think that we can use a depth first traversal of the AST to implement
+early evaluation.
 -----
 
 

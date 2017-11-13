@@ -48,5 +48,11 @@ y = 4:2
 z = c(x, y)
 ')
 
+# We need the methods for seq to actually work
+for(m in methods(seq)){
+    assign(m, get(m), mini)
+}
 
+# After this we have x, y, z defined inside mini. The end goal is to "fill
+# in" the AST with evaluated expressions wherever possible.
 eval2(ex2, mini)
