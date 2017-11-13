@@ -1,27 +1,26 @@
-library(codetools)
+library(CodeDepends)
 
-early_eval = function(expr)
+
+# I'll think of a better name for this once I figure out what exactly it
+# should do.
+eval2 = function(expr, env)
 {
+
     expr = as.expression(expr)
+    info = CodeDepends::getInputs(expr)
+    used = c(info@inputs, names(info@functions))
+
+    # TODO: Evaluate sequentially using
+    # lapply(expr, CodeDepends::getInputs)
+
+    available = used %in% ls(env)
+
+    # The simplest thing is to just fail if a variable doesn't exist in the
+    # environment. Early evaluation is more sophisticated.
+    if(all(available)) {
+        return(eval(expr, env))
+    } else {
+        notfound = paste(used[!available], collapse = " ")
+        stop("Variables not found: ", notfound)
+    }
 }
-
-
-safe_funcs = c("=", "<-", "c", ":", "$", "[", "[[", "list", "seq")
-
-
-mini = new.env(parent = emptyenv())
-
-# Nothing here yet:
-ls(mini)
-
-# This works, discovers + in base
-eval(1 + 2, envir = mini)
-
-# Same
-local(1 + 2)
-
-# And it finds this in the stats package
-eval(median(c(1, 2)), envir = mini)
-
-# Then I need to modify the search path.
-# docs say that it's not possible to detach base.

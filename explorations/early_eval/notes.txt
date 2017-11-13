@@ -151,3 +151,11 @@ would include data loading, plotting, random numbers, and calls to external
 compiled code. This approach seems far more difficult, because we need to
 know what the underlying C code does. And we have to examine all the
 underlying library code rather than just the code written by the user.
+
+
+Other Applications
+================
+
+Having a restricted R evaluation may also be helpful for someone learning
+the language. Give them a task that can be solved with a
+small set of functions and let them have at it.
