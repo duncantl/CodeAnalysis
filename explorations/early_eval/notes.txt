@@ -5,6 +5,14 @@ of analysis
 TODO: "eval" is a loaded word, how can we better describe this?
 TODO: More use cases for this? Loop invariants?
 
+
+Prior Work
+==========
+
+Luke Tierney's work on byte compilation does constant folding. Here we're
+trying to take that idea a little further, for a different purpose.
+
+
 Early Evaluation
 ================
 
