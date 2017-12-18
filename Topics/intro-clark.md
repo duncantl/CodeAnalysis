@@ -1,17 +1,9 @@
-## Abstract
-
-In this paper we demonstrate new opportunities to apply code analysis to the R
-language. Many of these have not been explored before by the R community. These
-analyses can help us both understand our R code better and improve the
-performance.
-
-We hope the prototypes we present here will motivate members of the community
-to develop a more robust set of tools for code analysis.
+Clark writing this:
 
 ## Introduction
 
 R makes interactive workflows fun and easy. For example, when analyzing
-data we might take the following steps.
+data we might take the following steps:
 
 - Load the data into the workspace
 - Plot various slices
@@ -19,17 +11,31 @@ data we might take the following steps.
 - Filter down to a subset of the rows
 - Apply a statistical test
 - Define a function to apply to many subgroups
-- ... and so on
+- ...
 
-This results in an ad hoc, organic data analysis script.
+By the end of the process we've learned something about our data, and we
+may want to share or preserve some of what we've done. But all we currently
+have is an ad hoc, organic data analysis script or command history.
 
-Often we start out with global variables and ad hoc organic scripts. Once
-we realize that parts of it may be useful elsewhere we might start
-organizing the lines of code into functions. Often the early drafts of the
-code are not idiomatic or efficient.
+Often this first draft of the code is not idiomatic or efficient. An
+experienced R user may be able to quickly go through and improve it, but it
+would be better if the code "just fixed itself". This is where code
+analysis and metaprogramming can help. 
 
-We can use code analysis to
-  make it easier to clean them up.
-* (MORE)
+This paper demonstrates R code analysis techniques through the following
+examples: By examining a collection of related R files that may `source()`
+each other and create other files such as plots and data we can determine
+the structure of new projects, or of old projects that we've forgotten.
+Next we show an example of programmatically changing existing code from a
+slow, non idiomatic `for` loop into a parallel `lapply`. The next example
+shows several ways to simplify code to make it easier to understand. The
+last example actually improves performance by using less memory.
+
+Code analysis is not a magic bullet. We can't anticipate all ways that one
+might misuse R's computational model, but we can detect and improve some of
+the common ones.  Colloquially, metaprogramming means "programs which write
+programs". We can use these techniques to understand our code, to simplify
+it, and to improve the performance.
 
 
+## Related Work
