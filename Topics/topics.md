@@ -39,7 +39,9 @@ Possible Running Examples:
    example.  Identify and rewrite.
 2. [TOP partially done] [Clark / Duncan] Map code inside for loops into apply() -- simple
    examples. Check RLoopFusion.
-1. [TOP] [Clark] Opportunities for parallelization -- simple examples
+1. [TOP done] [Clark] Opportunities for parallelization -- simple examples.
+   See items marked Done here:
+https://github.com/clarkfitzg/phd_research/blob/master/notes/checkpoint.md
 
 ### Data Related
 
@@ -88,7 +90,7 @@ and strict/lazy eval
 1. CodeDepends and processing S4 methods.
 1. Ref classes and S6 and validation.
 1. ?Documentation generation?
-2. [TOP] [Clark] Identify code which can be safely evaluated during static
+2. [TOP partially done] [Clark] Identify code which can be safely evaluated during static
    analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
    of analysis.
 

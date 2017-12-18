@@ -5,6 +5,14 @@ of analysis
 TODO: "eval" is a loaded word, how can we better describe this?
 TODO: More use cases for this? Loop invariants?
 
+
+Prior Work
+==========
+
+Luke Tierney's work on byte compilation does constant folding. Here we're
+trying to take that idea a little further, for a different purpose.
+
+
 Early Evaluation
 ================
 
@@ -83,14 +91,51 @@ The expression c(x, 30) can be evaluated early by the conservative rule if
 and only if x is a known literal. This suggests the approach of an "early
 evaluation pass" over a script, where parts of the AST are identified as
 either known or unknown. Below is a visual for a mini script, K/U means that
-the AST rooted at that point is known/unknown.
+an element of the AST at that point is known/unknown.
+
 
 col = 100
-K
 dframe = read.csv("mydata.csv")
-         U        K
 plot(dframe[, col])
-U    U        K
+
+
+col = 100
+K     K
+# RHS all known => LHS defined
+
+dframe = read.csv("mydata.csv")
+U        U        K
+# RHS not all known => LHS not defined
+
+plot(dframe[, col])
+U    U     K  K
+
+More concisely, we can represent the same information in a data structure
+matching the structure of the AST. All we need to do is mark the nodes
+which are known. This means that the portion of the AST rooted at that node
+is known. This differs slightly from what I wrote above, because 
+dframe[, col] would only be marked for the col. The data structure could
+be represented as a list of indices corresponding to the code, for example:
+
+K = list(1
+       , c(2, 3, 2)
+       , c(3, 2, 4)
+)
+
+This particular representation helps if we have other code that operates on
+indices, for example the column inference code. 
+
+----- Clark: This is maybe too much on implementation.
+If the code has been parsed
+into an expression with variable name "code" we can evaluate it using this
+data structure:
+
+lapply(K, function(ind, .code = code)  ...
+
+I think that we can use a depth first traversal of the AST to implement
+early evaluation.
+-----
+
 
 This can be thought of as evaluating the code using a tiny version of the R
 language containing only the safe functions. When the mini language hits an
@@ -107,6 +152,9 @@ y = c(x, 30)    # Now x is unknown
 The second line x = max(1, 2) redefines x using a function not considered
 safe. So this becomes equivalent to rm(x) in the mini language.
 
+So far we've ignored any subtleties that arise with control flow, non
+standard evaluation, or special functions such as rm().
+
 ------
 
 A different approach is to identify functions that are "not safe". These
@@ -114,3 +162,11 @@ would include data loading, plotting, random numbers, and calls to external
 compiled code. This approach seems far more difficult, because we need to
 know what the underlying C code does. And we have to examine all the
 underlying library code rather than just the code written by the user.
+
+
+Other Applications
+================
+
+Having a restricted R evaluation may also be helpful for someone learning
+the language. Give them a task that can be solved with a
+small set of functions and let them have at it.
