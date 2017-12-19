@@ -68,11 +68,25 @@ simplify it, and to improve the performance.
 
 ## Related Work
 
-futures
-Bohringer's parallelism package
-lintr
-drake
-covr
+Bengtsson's packages, __globals__ and __futures__, use static code analysis
+to identify global variables to send to another R session for asynchronous
+parallel evaluation.
+
+Bohringer's __parallelize.dynamic__ dynamically decides where to
+parallelize code based on the use of potentially nested `Apply()` functions.
+
+Hester's __lintr__ accounts for the most popular use of code analysis
+currently in the community. It checks for stylistic consistency. More
+relevant to this paper, it identifies unused local variables and probably
+mistaken use of global variables.
+
+The __covr__ package checks which fraction package code the unit tests
+exercise. It works by walking the AST and inserting tracing code.
+
+Landau's __drake__ offers reproducible computatation on R objects similar to
+GNU Make. It detects when variables are updated, and hence trigger more
+computations.
+
 
 
 trackr
