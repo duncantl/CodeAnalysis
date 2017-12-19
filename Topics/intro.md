@@ -87,13 +87,29 @@ Landau's __drake__ offers reproducible computatation on R objects similar to
 GNU Make. It detects when variables are updated, and hence trigger more
 computations.
 
+Several packages in the __Tidyverse__ family use non-standard evaluation to
+build a language within the language. Non-standard evaluation means that code
+is captured and possibly modified before it is evaluated. The uses of
+non-standard evaluation in these packages are relatively simple cases of
+metaprogramming.
 
+The __trackr__ package is designed to record information about the artifacts
+(data, plots, etc) of a computation so that they can be organized and easily
+discovered later. In addition to collecting metadata from other sources,
+__trackr__ collects metadata about the computation from the code itself. This
+is an example of using metaprogramming to gather information from code about a
+project.
 
-trackr
-tidyverse NSE
-compiler
-roxygen
+The __compiler__ package is perhaps the best example of how metaprogramming can
+be used to radically improve the performance of R code. The package takes R
+code and translates it into bytecode, a machine-readable code that can be
+interpreted faster than R code. Since the translation from R expressions to
+bytecode instructions is not one-to-one, the __compiler__ package has to
+implement some logic (or intelligence about R code).
 
-
-Roxygen2 generates R documentation files based on comments in the code, but
-doesn't examine the code itself.
+The __roxygen2__ package generates R documentation files based on comments in
+the code, but doesn't examine the code itself. While __roxygen2__ is not an
+example of code analysis, the package does analyze structured comments created
+by the programmer. We point it out because code analysis could potentially be
+used to automatically collect some of the information that __roxygen2__
+currently requires programmers to write manually.
