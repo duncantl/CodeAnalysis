@@ -23,7 +23,7 @@ ans = sapply(x, f)
 This sapply() version is idiomatic R. In contrast, the following is truly
 iterative code which cannot be naturally converted to an apply style
 function, because the output of each iteration depends on the previous
-iteration.
+iteration. In CS this is called a "read after write" or "true" dependency.
 <!-- need to define estimate first. More context would be good. -->
 for(i in 1:n) {
    estimate = update(estimate)
@@ -44,7 +44,4 @@ Method
 
 The simplest case is when every iteration only depends on the index
 variable, ie. the `i` in `for(i in seq_along(x))`. This is the case for the
-example above, where each assignment is into `ans[i]`. More generally, if
-the only assignments in the body of the loop are to unique addresses then
-it can be transformed. 
-
+example above, where each assignment is into `ans[i]`. 
