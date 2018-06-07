@@ -2,7 +2,7 @@ library(rstatic)
 
 if(FALSE) {
 
-    source("../explorations/findConcat.R"); e = parse("../explorations/concat.R");
+    source("../explorations/concat/findConcat.R"); e = parse("../explorations/concat/concat.R");
 
     findConcat(e[1:2])
     findConcat(e[3:4])
