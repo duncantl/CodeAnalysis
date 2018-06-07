@@ -1,3 +1,12 @@
++ Fix mkGlobalsLocal() to optionally not add a default value to a parameter
+   e.g. not replace Jvar with .Jvar = Jvar
+
++ Have mkGlobalsLocal() return the entire list, not just the ones that were changed.
+   Make this an option.
+
++ mkGlobalsLocal() not changing references inside return() clause. See rstatic probably.
+
+
 for loop concatenation, rewrite the code.
   We need type information about the elements to be able to initialize the answer vector.
 
