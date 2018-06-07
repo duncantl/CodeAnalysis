@@ -54,3 +54,13 @@ fails2 = function(n)
    
    ans
 }
+
+
+
+usedBefore =
+function(x)
+{
+    ans = x + a
+    a = 1
+    ans
+}
