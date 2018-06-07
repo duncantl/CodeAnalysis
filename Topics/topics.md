@@ -20,7 +20,7 @@ Possible Running Examples:
 ### Performance
 
 1. Identify repetitive code, i.e. the same code evaluated in multiple
-   places.
+   places.  How is this related/different to "redundant expressions".
 1. [TOP partially done] [Nick / Duncan] Identify when a variable can be
    rm()'ed (since no longer used) and so garbage collected. See CodeDepends
    for this.
@@ -35,7 +35,7 @@ Possible Running Examples:
 1. Find expressions that differ only by one term and that look like they
    should be in a loop.
 1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks
-   preallocation See explorations/findConcat.R and explorations/concat.R
+   preallocation See explorations/concat/findConcat.R and explorations/concat/concat.R
    example.  Identify and rewrite.
 2. [TOP partially done] [Clark / Duncan] Map code inside for loops into apply() -- simple
    examples. Check RLoopFusion.
@@ -53,19 +53,20 @@ https://github.com/clarkfitzg/phd_research/blob/master/notes/checkpoint.md
 
 ### Functions
 
-1. Refactoring functions to smaller, more modular functions
+1. Refactoring functions to smaller, more modular functions.  Finding blocks that seem logically
+   separate. Can use CodeDepends to block functions. Similar to parallelism.
 1. [Mostly done] [Duncan] Extract functions defined inside functions that do not modify
    the shared variables. To allow testing.
-   See Topics/extractFunctions/.
-   (DTL: I needed this for another purpose so implemented it. We had it as LAST, but different
-   considerations arose.)
+   See Topics/extractFuns/.
+   (DTL: I needed this for another purpose so implemented it. We had it as LAST, but different considerations arose.)
 1. [basics done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
    single entity and not ::, pkg, fun.
    See explorations/findGlobals.R.  (Nick: also done in rstatic, see
    [here](https://github.com/nick-ulle/rstatic/blob/master/R/collapse_namespaces.R))
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
-1. Later, grow our findGlobals() to  a) descend into nested function definitions and thus handle
-   closures correctly, b) identify variables that are used before being defined.
+1. Later, grow our findGlobals() to  a) [done] (see getGlobals) descend into nested function definitions and thus handle
+   closures correctly, b) identify variables that are used before being defined.  Issues with
+   conditional evaluation.
 2. Rewrite functions to make explicit dependence on global variables, ie:
 ```{R}
 f = function(x) x + y
@@ -92,8 +93,12 @@ and strict/lazy eval
 1. ?Documentation generation?
 2. [TOP partially done] [Clark] Identify code which can be safely evaluated during static
    analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
-   of analysis.
-
+   of analysis.  This isn't that compelling unless we have real examples.
+   This particular example could expand to take a lot of space.
+1. Identify values that are file names or directories.  This is related to RTypeInference
+   but then inferring that the character vector is being used in a particular way.
+   We can manually identify the primitive functions that work with files and then find those
+   that call these with what arguments.  See FileDirectoryTypes.md.
 ## Meeting
 
 To discuss in group meeting this week:
