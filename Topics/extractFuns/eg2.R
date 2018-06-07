@@ -25,10 +25,10 @@ w = sapply(globals, function(x) length(x$variables)) >  0
 sapply(globals[w], `[[`, "variables")
 
 
-# So we can now use mkGlobalLocals() to rewrite the functions to add the global
+# So we can now use mkGlobalsLocal() to rewrite the functions to add the global
 # variables as
 
-# mkGlobalLocals()
+# mkGlobalsLocal()
 
 ################################
 #
