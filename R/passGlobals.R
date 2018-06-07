@@ -16,7 +16,7 @@
 # z = mkGlobalsLocal(f, g, main)
 
 mkGlobalsLocal =
-function(..., .funs = list(...))
+function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)))
 {
       #XXX similar code in both clauses (last 2 lines)
   if(missing(.funs) && length(names(.funs)) == 0) {
@@ -185,7 +185,8 @@ function(map)
         if(is(node, "Symbol")) {
             i = match(node$name, map)
             if(!is.na(i)) {
-                node$set_basename(names(map)[i])
+                #node$set_basename(names(map)[i])
+                node$basename = names(map)[i]
             }
         }
     }
