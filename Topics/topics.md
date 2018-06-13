@@ -79,6 +79,20 @@ function(x = length(y), y = sum(x))
 ```
 and strict/lazy eval
 1. Identify recursive functions so can change name throughout if change name of top-level function.
+1. Check consistency of signatures and default parameters for S3 / S4
+   methods. In the example below we would like to ensure that both
+    functions include the default parameter `y = 100`.
+```{r}
+foo = function(x, y = 100, ...)
+{
+    UseMethod("foo")
+}
+
+foo.character = function(x, y = 100, ...)
+{
+}
+```
+
 
 ### General & Packaging
 
@@ -99,6 +113,14 @@ and strict/lazy eval
    but then inferring that the character vector is being used in a particular way.
    We can manually identify the primitive functions that work with files and then find those
    that call these with what arguments.  See FileDirectoryTypes.md.
+
+
+### Existing Work
+
+The covr package detects some non idioms in code. For example,
+[seq_linter](https://github.com/jimhester/lintr/blob/master/R/seq_linter.R)
+checks for `1:length(...), 1:nrow(...)`.
+
 ## Meeting
 
 To discuss in group meeting this week:
