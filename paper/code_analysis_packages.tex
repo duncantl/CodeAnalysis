@@ -1,0 +1,107 @@
+\section{Prior work on R Code Analysis Packages}
+\label{sec:code_analysis_packages}
+
+Several R packages analyze R code. This
+section provides an overview of prior work in the area.
+Table~\ref{table-codeanalysis} compares existing packages.
+
+\begin{table}[]
+    \centering
+    \label{table-codeanalysis}
+    \begin{tabular}{ll}
+        \textbf{Package}    & \textbf{Use Case}
+        \\ CodeDepends  & infer higher level semantics
+        \\ codetools    & byte compilation, general tools
+        \\ covr         & measure unit test coverage
+        \\ globals      & identify global variables
+        \\ lintr        & identify problems in style and usage
+    \end{tabular}
+    \caption{Popular R packages for code analysis}
+\end{table}
+
+There's significant redundancy in the functionality among these packages.
+For example, most of them have code to determine if an object is
+defined locally. This is a problem, because they don't all correctly handle the
+corner cases of \texttt{<<-, ->>, assign()}.
+
+\subsection{Packages}
+
+\textbf{codetools} ships with R as a recommended package
+\cite{R-codetools}. It supports byte compilation. It includes high level
+functions such as \texttt{checkUsage} to inspect closures for possible
+problems, and low level functions such as \texttt{walkCode} to traverse an
+AST.
+
+\textbf{CodeDepends} gathers all kinds of information on code
+\cite{R-CodeDepends}. This includes information on files accessed,
+attaching packages, variables used / redefined / updated / removed,
+and functions called. It provides a user facing way to handle functions
+with nonstandard evaluation.
+
+\textbf{globals} statically detects which variables are needed to evaluate
+an expression, and then uses R's normal rules to dynamically search
+environments and find them \cite{R-globals}. This package supports
+exporting these variables to distributed compute environments in the future
+package.
+
+\textbf{covr} checks unit test coverage of R code \cite{R-covr}. It is a specialized code
+analysis tool with wide applicability. Several hundred R packages on CRAN
+list it as a suggested package. From the vignette: ``Function definitions
+are modified by parsing the abstract syntax tree and inserting trace
+statements.'' Looking at the source code it walks the AST and replaces
+\texttt{CODE} with the following:
+
+\begin{lstlisting}
+{
+    count(key)
+    CODE
+}
+\end{lstlisting}
+
+It resembles \texttt{base::trace}, because both replace actual functions
+with instrumented versions. It handles control flow functions \texttt{if,
+for, while, switch} specially so that it can descend into all branches. It
+relies on a third party tool to check coverage of C code.
+
+\textbf{lintr} checks R code for style and semantic issues \cite{R-lintr}.
+Users can customize options or add their own checks. The package uses
+\texttt{utils::getParseData()} to examine code at the token and positional
+level. Identifying the positions of issues in a physical source file allows
+an integrated development environment (IDE) to point out these issues to
+the developer. It does not fix the issues it finds. This is too bad,
+because many of the style issues are easy to fix.
+
+The analysis uses at least four different
+representations of the code:
+
+\begin{enumerate}
+
+    \item \textbf{AST} The vignette says that new linters will be called on
+        each top level expression in the file. This seems like the most
+        natural way to do things, although less convenient for identifying
+        positions.
+    \item \textbf{Tokens} These seem generally more complex
+        compared to the AST. \texttt{unneeded\_concatenation\_linter}
+        seems to go to a lot of trouble to match delimiters, which doesn't
+        come up in the AST.
+    \item \textbf{XML} \texttt{seq\_linter} represents
+        the code in XML and then uses xpath to detect certain patterns.
+    \item \textbf{functions} \texttt{object\_usage\_linter} evaluates
+        code and creates the function objects to pass off the work to
+        the codetools package. It seems strange to be actually evaluating
+        code in the context of static analysis.
+
+\end{enumerate}
+
+This package focuses mainly on style. Of the 18 default linters in version
+1.0.2.9000, 11 deal with cosmetic things such as whitespace and naming.
+The following linters may indicate actual issues in the code:
+\texttt{
+T\_and\_F\_symbol\_linter,
+undesirable\_operator\_linter,
+absolute\_path\_linter,
+nonportable\_path\_linter,
+seq\_linter,
+extraction\_operator\_linter,
+object\_usage\_linter
+}

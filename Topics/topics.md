@@ -6,6 +6,8 @@ Keep the examples simple and manageable.
 
 Aim for December 21st, 2017 to submit this.
 
+TODO: Look at code analysis in alternate R implementations
+
 TODO: Write more about the examples. Why is this cool / interesting? Can we
 explain it in a conversational way? Even before writing code.
 
@@ -20,14 +22,14 @@ Possible Running Examples:
 ### Performance
 
 1. Identify repetitive code, i.e. the same code evaluated in multiple
-   places.  How is this related/different to "redundant expressions".
+   places.
 1. [TOP partially done] [Nick / Duncan] Identify when a variable can be
    rm()'ed (since no longer used) and so garbage collected. See CodeDepends
    for this.
-1. [TOP] [Nick / Duncan] Replace redundant expressions with variables.
-1. [TOP] [Nick / Duncan] Remove expressions which are not used later, unless
-   they contain known functions with side effects. A complete solution would
-   require recursing into called functions to identify possible side effects.
+1. [TOP] [Nick / Duncan] (remove redudant code)
+1. [TOP] [Nick / Duncan] Dead code removal - remove expressions which are
+   not used later; whose result is not used). Recursing into functions to
+   identify possible side effects.
 1. Find use of undefined variables.
    CodeDepends:::freeVariables(readScript(file))
 1. Identify invariants that are recomputed, e.g. within loops, or in
@@ -35,13 +37,11 @@ Possible Running Examples:
 1. Find expressions that differ only by one term and that look like they
    should be in a loop.
 1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks
-   preallocation See explorations/concat/findConcat.R and explorations/concat/concat.R
+   preallocation See explorations/findConcat.R and explorations/concat.R
    example.  Identify and rewrite.
-2. [TOP partially done] [Clark / Duncan] Map code inside for loops into apply() -- simple
+2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple
    examples. Check RLoopFusion.
-1. [TOP done] [Clark] Opportunities for parallelization -- simple examples.
-   See items marked Done here:
-https://github.com/clarkfitzg/phd_research/blob/master/notes/checkpoint.md
+1. [TOP] [Clark] Opportunities for parallelization -- simple examples
 
 ### Data Related
 
@@ -53,20 +53,16 @@ https://github.com/clarkfitzg/phd_research/blob/master/notes/checkpoint.md
 
 ### Functions
 
-1. Refactoring functions to smaller, more modular functions.  Finding blocks that seem logically
-   separate. Can use CodeDepends to block functions. Similar to parallelism.
-1. [Mostly done] [Duncan] Extract functions defined inside functions that do not modify
+1. Refactoring functions to smaller, more modular functions
+1. [LAST] [Nick] Extract functions defined inside functions that do not modify
    the shared variables. To allow testing.
-   See Topics/extractFuns/.
-   (DTL: I needed this for another purpose so implemented it. We had it as LAST, but different considerations arose.)
 1. [basics done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
    single entity and not ::, pkg, fun.
    See explorations/findGlobals.R.  (Nick: also done in rstatic, see
    [here](https://github.com/nick-ulle/rstatic/blob/master/R/collapse_namespaces.R))
    and also recognizes fun in lapply(x, fun)  as  function and not a variable.
-1. Later, grow our findGlobals() to  a) [done] (see getGlobals) descend into nested function definitions and thus handle
-   closures correctly, b) identify variables that are used before being defined.  Issues with
-   conditional evaluation.
+1. Later, grow our findGlobals() to  a) descend into nested function definitions and thus handle
+   closures correctly, b) identify variables that are used before being defined.
 2. Rewrite functions to make explicit dependence on global variables, ie:
 ```{R}
 f = function(x) x + y
@@ -79,20 +75,6 @@ function(x = length(y), y = sum(x))
 ```
 and strict/lazy eval
 1. Identify recursive functions so can change name throughout if change name of top-level function.
-1. Check consistency of signatures and default parameters for S3 / S4
-   methods. In the example below we would like to ensure that both
-    functions include the default parameter `y = 100`.
-```{r}
-foo = function(x, y = 100, ...)
-{
-    UseMethod("foo")
-}
-
-foo.character = function(x, y = 100, ...)
-{
-}
-```
-
 
 ### General & Packaging
 
@@ -101,25 +83,13 @@ foo.character = function(x, y = 100, ...)
    Find minimal example: create graph of scripts for directory?
 1. [MED] Identify checkpoints where intermediate results can be saved to resume
    later (see
-     [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
+   [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
 1. CodeDepends and processing S4 methods.
 1. Ref classes and S6 and validation.
 1. ?Documentation generation?
-2. [TOP partially done] [Clark] Identify code which can be safely evaluated during static
+2. [TOP] [Clark] Identify code which can be safely evaluated during static
    analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
-   of analysis.  This isn't that compelling unless we have real examples.
-   This particular example could expand to take a lot of space.
-1. Identify values that are file names or directories.  This is related to RTypeInference
-   but then inferring that the character vector is being used in a particular way.
-   We can manually identify the primitive functions that work with files and then find those
-   that call these with what arguments.  See FileDirectoryTypes.md.
-
-
-### Existing Work
-
-The covr package detects some non idioms in code. For example,
-[seq_linter](https://github.com/jimhester/lintr/blob/master/R/seq_linter.R)
-checks for `1:length(...), 1:nrow(...)`.
+   of analysis.
 
 ## Meeting
 

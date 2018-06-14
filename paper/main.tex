@@ -1,0 +1,67 @@
+% A simple template for LaTeX documents
+% 
+% To produce pdf run:
+%   $ pdflatex paper.tex 
+%
+
+\documentclass[12pt]{article}
+
+% Allows referencing subsections
+\setcounter{secnumdepth}{2}
+
+% Begin paragraphs with new line
+\usepackage{parskip}  
+
+% Change margin size
+\usepackage[margin=1in]{geometry}   
+
+% Graphics Example:  (PDF's make for good plots)
+\usepackage{graphicx}               
+% \centerline{\includegraphics{figure.pdf}}
+
+% Allows hyperlinks
+\usepackage{hyperref}
+
+% Blocks of code
+\usepackage{courier}
+\usepackage{listings}
+\usepackage{textcomp}
+% From
+% https://tex.stackexchange.com/questions/33685/set-the-font-family-for-lstlisting
+\lstset{basicstyle=\footnotesize\ttfamily, breaklines=true, upquote=true}
+% \lstset{framextopmargin=50pt}
+% Insert code like this. replace `plot.R` with file name.
+% \lstinputlisting{plot.R}
+
+% Monospaced fonts
+%\usepackage{inconsolata}
+% GNU \texttt{make} is a nice tool.
+
+% Framed text
+\usepackage[linewidth=1pt]{mdframed}
+% \begin{mdframed}
+% \end{mdframed}
+
+% Labeled section names
+\usepackage{nameref}
+% \nameref{sec:foo}
+
+% Stretch columns to fill
+\usepackage{tabularx}  
+% \begin{tabularx}{\textwidth}{llX}
+
+\begin{document}
+
+%\include{tex/TODO}
+
+\title{CodeAnalysis}
+\date{\today}
+\author{Duncan Temple Lang, Nick Ulle, Clark Fitzgerald}
+\maketitle
+
+\include{code_analysis_packages}
+
+\bibliography{citations,Rpackages}
+\bibliographystyle{apalike}
+
+\end{document}
