@@ -9,3 +9,4 @@ export(removeConstIf)
 
 export(getGlobals)
 export(substituteDefaultValues)
+export(forLoopToLapply)
