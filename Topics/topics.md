@@ -1,12 +1,20 @@
 # Ideas for Code Analysis
 
+TODO:
+
+- Go over TOP list below to see which tasks fit in the paper / package
+- Matt and Duncan will write the skeleton and decide what features the
+  package should have.
+- Criteria for inclusion: Maximally useful and fit into Nick and Clark's
+  theses.
+- List other static analysis tasks that are common / useful in other
+  languages.
+
 Goals for the paper:
 
 Keep the examples simple and manageable.
 
-Aim for December 21st, 2017 to submit this.
-
-TODO: Look at code analysis in alternate R implementations
+Aim for September 2018 to submit this.
 
 TODO: Write more about the examples. Why is this cool / interesting? Can we
 explain it in a conversational way? Even before writing code.
@@ -19,37 +27,55 @@ Possible Running Examples:
 1. Scott's code (data not available)
 
 
-### Performance
+### TOP
 
-1. Identify repetitive code, i.e. the same code evaluated in multiple
-   places.
-1. [TOP partially done] [Nick / Duncan] Identify when a variable can be
+1. [partially done] [Nick thesis] Identify when a variable can be
    rm()'ed (since no longer used) and so garbage collected. See CodeDepends
    for this.
-1. [TOP] [Nick / Duncan] (remove redudant code)
-1. [TOP] [Nick / Duncan] Dead code removal - remove expressions which are
+1. [Nick thesis] Replace identical calls with variables so you don't
+   compute the same thing multiple times.
+1. [Nick / Duncan] Dead code removal - remove expressions which are
    not used later; whose result is not used). Recursing into functions to
    identify possible side effects.
-1. Find use of undefined variables.
-   CodeDepends:::freeVariables(readScript(file))
-1. Identify invariants that are recomputed, e.g. within loops, or in
-   multiple expressions.
-1. Find expressions that differ only by one term and that look like they
-   should be in a loop.
-1. [TOP partially done] [Clark / Duncan] Loop "correction" that lacks
+1. [partially done] [Clark thesis / Duncan] Loop "correction" that lacks
    preallocation See explorations/findConcat.R and explorations/concat.R
    example.  Identify and rewrite.
 2. [TOP] [Clark / Duncan] Map code inside for loops into apply() -- simple
    examples. Check RLoopFusion.
 1. [TOP] [Clark] Opportunities for parallelization -- simple examples
+1. [TOP] [Matt / Duncan] Identify input/output data files (see CodeDepends).
+1. [TOP] [Matt / Duncan] Summarize code from a project (see RCleanProject).
+   Find minimal example: create graph of scripts for directory?
+2. [TOP] [Clark] Identify code which can be safely evaluated during static
+   analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
+   of analysis.
+
+
+### Improvements
+
+Improve the general well being of the R session, and may improve clarity.
+
+1. Identify repetitive blocks of code, i.e. the same code evaluated in multiple
+   places with just one argument changed.
+1. Find expressions that differ only by one term and that look like they
+   should be in a loop.
+1. Find use of undefined variables.
+   CodeDepends:::freeVariables(readScript(file))
+1. Identify invariants that are recomputed, e.g. within loops, or in
+   multiple expressions.
+1. Check for possible subclass relationships among S3 objects.
+
 
 ### Data Related
 
 1. [DONE] Identify unused columns in a data frame read via
    read.table()/etc. so that we can add colClasses = NULL for these. The
    code for this is now here in the package, see `R/readFaster.R`.
-1. [MED] colClasses and type inference -- `vapply()`
+1. [Nick] Check whether fields in S3 object exist or are defined.
+1. [MED] colClasses and type inference -- `sapply -> vapply()`?
 1. Identify objects that are supposed to have the same length.
+1. [Nick] General object dimension inference
+
 
 ### Functions
 
@@ -78,28 +104,9 @@ and strict/lazy eval
 
 ### General & Packaging
 
-1. [TOP] [Matt / Duncan] Identify input/output data files (see CodeDepends).
-1. [TOP] [Matt / Duncan] Summarize code from a project (see RCleanProject).
-   Find minimal example: create graph of scripts for directory?
 1. [MED] Identify checkpoints where intermediate results can be saved to resume
    later (see
    [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
 1. CodeDepends and processing S4 methods.
 1. Ref classes and S6 and validation.
 1. ?Documentation generation?
-2. [TOP] [Clark] Identify code which can be safely evaluated during static
-   analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
-   of analysis.
-
-## Meeting
-
-To discuss in group meeting this week:
-
-1. Outcomes: paper?, CRAN package?
-2. Focus: Who will take an interest? Package developers? More / less
-   experienced R users? Maybe different for each application
-2. Code analysis package dependencies
-    - It's confusing for an outsider if Duncan, Gabe, Nick, and Clark to
-      each have their own somewhat related R code analysis package
-    - rstatic and CodeDepends are somewhat lower level, perhaps this is an
-      opportunity to make something more user facing.
