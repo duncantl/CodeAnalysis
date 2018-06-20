@@ -1,6 +1,6 @@
 # Ideas for Code Analysis
 
-TODO:
+TODO (20 June 18):
 
 - Go over TOP list below to see which tasks fit in the paper / package
 - Matt and Duncan will write the skeleton and decide what features the
@@ -108,5 +108,8 @@ and strict/lazy eval
    later (see
    [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
 1. CodeDepends and processing S4 methods.
-1. Ref classes and S6 and validation.
+1. Identify probable mistakes in S3/S4 method definitions. For example, a
+   package defines a class "MyWonderfulClass" and then goes on to define a
+   method for "MeWonderfulClass".
+1. Ref classes and R6 and validation.
 1. ?Documentation generation?
