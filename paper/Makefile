@@ -10,3 +10,6 @@ Rpackages.bib: cite.R Rpackages.txt
 %.pdf: %.tex
 	latexmk -pdf $<
 	latexmk -c $<
+
+clean:
+	latexmk -C
