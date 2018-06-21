@@ -3,12 +3,10 @@
 TODO (20 June 18):
 
 - [Clark and Nick] See what Rstudio refactoring tools do.
-- [Matt and Duncan] will write the skeleton and decide what features the
-  package should have.
-- Criteria for inclusion: Maximally useful and fit into Nick and Clark's
-  theses.
-- List other static analysis tasks that are common / useful in other
-  languages.
+- [Matt and Duncan] will write the skeleton and decide initially what features the  paper should include.
+- Criteria for inclusion: Maximally useful and fit into Nick and Clark's theses (to avoid work that
+  doesn't help them finish).
+- List other static analysis tasks that are common / useful in other languages.
 
 Goals for the paper:
 
@@ -93,7 +91,7 @@ Improve the general well being of the R session, and may improve clarity.
 
 ### Functions
 
-1. Refactoring functions to smaller, more modular functions. Detect blocks
+1.  (see functionDivision) Refactoring functions to smaller, more modular functions. Detect blocks
    of expressions that have direct data dependence and make these into
    functions.
 1. [LAST] [Nick] Extract functions defined inside functions that do not modify
