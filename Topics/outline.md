@@ -13,18 +13,26 @@ to develop a more robust set of tools for code analysis.
 * R workflow is interactive. We go through multiple drafts of programs. Often
   the early drafts are not idiomatic or efficient. We can use code analysis to
   make it easier to clean them up.
-* (MORE)
-
+  
+  1. At the most basic level, code analysis can help us understand a package's/project's structure, dependencies, etc.
+  2. Knowing that structure, we can go a step further to clean the existing code, removing redudencies or unused pieces
+  3. But we are not just limited to cleaning the code. We can also refactor the code to be more efficient, or to take advantage of opportunities for increased performance, e.g. parallelization.
+  
 ## Getting Information About Project Structure
 
-* Projects tend to build up a lot of files/functions over time. In long
-  projects or projects worked on by many people, these can be hard to navigate.
+* Projects tend to build up a lot of files/functions over time.  Even
+  well-documented projects can be difficult to understand and navegate
+  function and file dependencies and relationships.  
+  This is especially the case in long-running projects or projects
+  worked on by many people.
 
 1. Identify input/output data files (see CodeDepends).
     * Useful to typical useRs.
-2. Summarize code from a project (see RCleanProject).
+2. Identify function dependencies, entry points, and wrapper functions
+3. Summarize code from a project (see RCleanProject).
    Find minimal example: create graph of scripts for directory?
     * Richer example of what can be done by tool developers.
+4. Aids in creation of build files, e.g. GNU make
 
 ## Cleaning Up Code
 
@@ -33,9 +41,11 @@ more idiomatic forms, and also avoiding unecessary computation. This reduces
 memory use and running time. This also makes the code base smaller and more
 consistent, so it is easier to understand and maintain.
 
-Code formatters have a similar effect on consistency and readability, but here
-were are actually transforming code. This goes beyond what a code formatter can
-do, as it may actually improve performance.
+Code formatters have a similar effect on consistency and readability,
+but here we are actually transforming code. In other words, we are not
+merely concerned with altering the appearance of the code, but
+altering the function.  This goes beyond what a code formatter can do,
+as it may actually improve performance.
 
 ### Loop to parallel apply
 
