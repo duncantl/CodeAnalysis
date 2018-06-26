@@ -1,3 +1,4 @@
+library(CodeAnalysis)
 
 f = function(x) {  y = x + a; z = 2*a ; return(z + y)}
 fn = mkGlobalsLocal(f)
