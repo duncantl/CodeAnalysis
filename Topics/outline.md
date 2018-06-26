@@ -49,6 +49,30 @@ as it may actually improve performance.
 
 ### Making Code Easier to Understand
 
+Generally, as code grows over time it becomes more difficult to
+understand for reasons that are not directly due to an increase in
+functional complexity.  
+The proliferation of unused variables and functions can
+clutter up code, making it difficult to read and understand. Likewise,
+code which is duplicated or redundant impeded our ability to
+understand the code base by obscuring the relevant pieces.  Large
+functions definitions, which often expand over time to include
+functions defined inside of other functions, can make it difficult to
+break down and test individual steps of a process.  Yet correcting
+these issues by hand is tedious, time-consuming, and error-prone.
+Therefore, we would like to be able to programmatically:
+
+1. Remove expressions which are not used
+   later, unless they contain known functions with side effects. A complete
+   solution would require recursing into called functions to identify possible
+   side effects.
+2. Replace redundant expressions with variables.
+3. Extract functions defined inside functions that do not modify
+   the shared variables. To allow testing.
+   See Topics/extractFunctions/.
+   (DTL: I needed this for another purpose so implemented it. We had it as LAST, but different
+   considerations arose.)
+
 * Sometimes we may want to keep our transformations to code in place. In other
   words, the transformation improves the quality of the code so we save it in a
   script. On the other hand, some transformations improve performance but not
@@ -56,32 +80,48 @@ as it may actually improve performance.
   user, but can just be applied before the code runs. This is suggestive of
   compilation or transpilation.
 
-1. Extract functions defined inside functions that do not modify
-   the shared variables. To allow testing.
-   See Topics/extractFunctions/.
-   (DTL: I needed this for another purpose so implemented it. We had it as LAST, but different
-   considerations arose.)
-2. Remove expressions which are not used
-   later, unless they contain known functions with side effects. A complete
-   solution would require recursing into called functions to identify possible
-   side effects.
-3. Replace redundant expressions with variables.
+## Refactoring code
+
+Refactoring code involves changing the implementation of the code to make the code more
+efficient or higher performance without changing the code's purpose.
+This is a step beyond merely understand the structure of a code base or cleaning that
+code base to make it easier to understand and work with.
+
+This can be thought of changing the code's structure without changing its function.
 
 ### Avoid Unnecessary Memory Use
 
-1. Identify when a variable can be
-   rm()'ed (since no longer used) and so garbage collected. See CodeDepends
-   for this.
-2. Identify unused columns in a data frame read via
+It is well known that many R programs or functions can become memory
+limited due to the fact that R holds objects in memory. In some cases,
+the memory requirements can exceed the memory available, which leads
+to a large performance cost as objects are moved into and out of swap
+memory on the disk. Hence, reducing the memory requirements of an R
+script or function can have direct performance benefits.
+
+Broadly, there are three ways that we can reduce the memory requirements of R code:
+
+1. Free up used memory when it is no longer needed: This involves
+   identify where in the process a variable is no longer used and can
+   be safely rm()'ed from the environment. Once the object is removed,
+   garbage collection will free the memory.  See CodeDepends for this.
+2. Avoid using memory in the first place: Identify unused columns in a data frame read via
    read.table()/etc. so that we can add colClasses = NULL for these. The
    code for this is now here in the package, see `R/readFaster.R`.
    * Progress from `d$myvar` to `x = "myvar"; d[[x]]` and beyond. This
      motivates point below.
 3. Identify code which can be safely evaluated during static
-   analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
+   analysis once, ie. `c(1:2, 4:6)`. Example using this information for another part
    of analysis.
-
+   
 ### Loop to parallel apply
+
+In R, `for` loops are easy to understand but computationally
+expensive.  Refactoring a `for` loop into a more efficient call to one
+of the apply family of functions can increase efficiency. Once
+refactored into one of these apply functions, it then becomes
+relatively trivial to call the function across parallel processes for
+increased performance.
+
 
 1. Loop "correction" that lacks
    preallocation See explorations/findConcat.R and explorations/concat.R
