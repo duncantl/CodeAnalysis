@@ -47,19 +47,6 @@ merely concerned with altering the appearance of the code, but
 altering the function.  This goes beyond what a code formatter can do,
 as it may actually improve performance.
 
-### Loop to parallel apply
-
-1. Loop "correction" that lacks
-   preallocation See explorations/findConcat.R and explorations/concat.R
-   example.  Identify and rewrite.
-2. Map code inside for loops into apply() -- simple
-   examples. Check RLoopFusion.
-3. Make `lapply()` run in parallel
-* Parallelism is hard. The functional style of R makes it particularly
-  well-suited to automatically running code in parallel. We can transform code
-  and run it in parallel without users needing to understand the complexities
-  of parallelism, or even needing to learn a new package.
-
 ### Making Code Easier to Understand
 
 * Sometimes we may want to keep our transformations to code in place. In other
@@ -93,3 +80,16 @@ as it may actually improve performance.
 3. Identify code which can be safely evaluated during static
    analysis, ie. `c(1:2, 4:6)`. Example using this information for another part
    of analysis.
+
+### Loop to parallel apply
+
+1. Loop "correction" that lacks
+   preallocation See explorations/findConcat.R and explorations/concat.R
+   example.  Identify and rewrite.
+2. Map code inside for loops into apply() -- simple
+   examples. Check RLoopFusion.
+3. Make `lapply()` run in parallel
+* Parallelism is hard. The functional style of R makes it particularly
+  well-suited to automatically running code in parallel. We can transform code
+  and run it in parallel without users needing to understand the complexities
+  of parallelism, or even needing to learn a new package.
