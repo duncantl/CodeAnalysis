@@ -1,23 +1,54 @@
 ## Abstract
 
-In this paper we demonstrate new opportunities to apply code analysis to the R
-language. Many of these have not been explored before by the R community. These
-analyses can help us both understand our R code better and improve the
-performance.
+In this paper we demonstrate new opportunities to apply code analysis
+to the R language. Many of these have not been explored before by the
+R community. These analyses can help us both understand our R code
+better and improve the performance.
 
-We hope the prototypes we present here will motivate members of the community
-to develop a more robust set of tools for code analysis.
+We hope the prototypes we present here will motivate members of the
+community to develop a more robust set of tools for code analysis.
 
 ## Introduction
 
-* R workflow is interactive. We go through multiple drafts of programs. Often
-  the early drafts are not idiomatic or efficient. We can use code analysis to
-  make it easier to clean them up.
-  
-  1. At the most basic level, code analysis can help us understand a package's/project's structure, dependencies, etc.
-  2. Knowing that structure, we can go a step further to clean the existing code, removing redudencies or unused pieces
-  3. But we are not just limited to cleaning the code. We can also refactor the code to be more efficient, or to take advantage of opportunities for increased performance, e.g. parallelization.
-  
+One of the main benefits of the R programming language is that the R
+workflow is interactive. We are free to experiment iteratively,
+expanding a function or statistical analysis in pieces. We are able to
+develop R programs quickly in this way. Due to this interactive and
+iterative nature, R programs tend to go through multiple drafts. The
+first draft is often an ad hoc, "organically created" script or even
+merely a command history. Early drafts are rarely idiomatic,
+consistent, or efficient and many times the method that we found to
+work through experimentation is a far cry from best solution. Hence,
+R's interactive nature can be a "double-edged sword" when it comes to
+creating code that is easy to understand and maintain, efficient, and
+high-performance.
+
+Experienced R programmers can manually correct many of these first
+drafts, but even for advanced users this process is time-consuming and
+error-prone. Additionally, as code becomes more efficient and
+higher-preformance, it often becomes more difficult for humans to read
+and understand. Ideally, we want like to preserve the interactive and
+iterative process of creating code in R, along with code which is easy
+for humans to read and understand.  We would also like to automate the
+process of cleaning that code and refactoring it to take advantage of
+high-performance and efficiency constructs.
+
+In this paper, we demonstrate how we can use code analysis achieve
+these goals:
+
+  1. At the most basic level, code analysis can help us understand a
+     package's/project's structure, dependencies, etc.
+  2. Knowing that structure, we can go a step further to clean the
+     existing code, removing redudencies or unused pieces
+  3. But we are not just limited to cleaning the code. We can also
+     refactor the code to be more efficient, or to take advantage of
+     opportunities for increased performance, e.g. parallelization.
+
+To allow others to quickly and easily utilize the techniques
+demonstrated here, we have also created an R package. We hope that
+this paper and package will serve as motivation for others to explore
+the potential code analysis has.
+
 ## Getting Information About Project Structure
 
 * Projects tend to build up a lot of files/functions over time.  Even
@@ -115,13 +146,14 @@ Broadly, there are three ways that we can reduce the memory requirements of R co
    
 ### Loop to parallel apply
 
-In R, `for` loops are easy to understand but computationally
-expensive.  Refactoring a `for` loop into a more efficient call to one
-of the apply family of functions can increase efficiency. Once
+In R, `for` loops are easy to understand but, unlike most compiled
+languages, computationally expensive. Ideally, we would be able to
+write a function using the simple `for` construct, but then convert
+this into a more efficient implementation utilizing R's built-in apply
+family of functions.  Not only can this increase efficiency, once
 refactored into one of these apply functions, it then becomes
-relatively trivial to call the function across parallel processes for
-increased performance.
-
+relatively trivial to convert the function to be run across parallel
+processes for increased performance.
 
 1. Loop "correction" that lacks
    preallocation See explorations/findConcat.R and explorations/concat.R
