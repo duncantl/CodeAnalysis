@@ -37,9 +37,10 @@ forLoopToLapply = function(forloop)
 # Easy case: loop doesn't change anything
 forLoopNoUpdates = function(forloop)
 {
-    out = substitute(lapply(iterator, function(ivar) body)
-        , as.list(forloop)
-        )
+    out = substitute(lapply(iterator, FUN = function(ivar) body
+                            , USE.NAMES = FALSE)
+        , as.list(forloop))
+
     # The names of the function arguments are special.
     names(out[[c(3, 2)]]) = as.character(forloop$ivar)
 
@@ -98,7 +99,8 @@ forLoopWithUpdates = function(forloop, deps)
     rhs_of_lastline = body[[c(ll, 3)]]
     body[[ll]] = rhs_of_lastline
 
-    out = substitute(output[iterator] <- lapply(iterator, function(ivar) body)
+    out = substitute(output[iterator] <- lapply(iterator, FUN = function(ivar) body
+                            , USE.NAMES = FALSE)
         , list(output = as.symbol(global_update)
                , iterator = forloop$iterator
                , ivar = forloop$ivar
