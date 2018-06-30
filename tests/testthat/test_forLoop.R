@@ -2,7 +2,7 @@ test_that("for loop to lapply", {
 
     loop1 = quote(for(i in x){f(i)})
     actual = forLoopToLapply(loop1)
-    expected = quote(lapply(x, FUN = function(i){f(i)}, USE.NAMES = FALSE))
+    expected = quote(lapply(x, function(i){f(i)}))
 
     expect_equal(actual, expected)
 
@@ -18,10 +18,10 @@ test_that("for loop to lapply", {
         f(tmp, i)
     })
     actual = forLoopToLapply(loop3)
-    expected = quote(lapply(x, FUN = function(i){
+    expected = quote(lapply(x, function(i){
         tmp = foo()
         f(tmp, i)
-    }, USE.NAMES = FALSE))
+    }))
 
     expect_equal(actual, expected)
 
@@ -32,7 +32,6 @@ test_that("for loop to lapply", {
 #forLoopToLapply = autoparallel:::forLoopToLapply
 #debug(autoparallel:::forloop_with_updates)
 
-
 test_that("assignment inside for loop", {
 
     loop1 = quote(
@@ -42,10 +41,10 @@ test_that("assignment inside for loop", {
     })
 
     expected = quote(
-    output[1:500] <- lapply(1:500, FUN = function(i) {
+    output[1:500] <- lapply(1:500, function(i) {
         tmp = g() 
         tmp
-    }, USE.NAMES = FALSE))
+    }))
 
     actual = forLoopToLapply(loop1)
 
