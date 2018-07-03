@@ -1,6 +1,6 @@
 ## Introduction
 
-One of the main benefits of the R programming language is that the R
+One of the main benefits of the R programming language [@R] is that the R
 workflow is interactive. We are free to experiment iteratively,
 expanding a function or statistical analysis in pieces. We are able to
 develop R programs quickly in this way. For example, when analyzing
@@ -108,46 +108,46 @@ simplify it, and to improve the performance.
 
 ## Related Work
 
-Bengtsson's packages, __globals__ and __futures__, use static code analysis
+Bengtsson's packages, __globals__ [@globals] and __future__ [@future], use static code analysis
 to identify global variables to send to another R session for asynchronous
 parallel evaluation.
 
-Bohringer's __parallelize.dynamic__ dynamically decides where to
+Bohringer's __parallelize.dynamic__ [@parallelize_dynamic] dynamically decides where to
 parallelize code based on the use of potentially nested `Apply()` functions.
 
-Hester's __lintr__ accounts for the most popular use of code analysis
+Hester's __lintr__ [@lintr] accounts for the most popular use of code analysis
 currently in the community. It checks for stylistic consistency. More
 relevant to this paper, it identifies unused local variables and probably
 mistaken use of global variables.
 
-The __covr__ package checks which fraction package code the unit tests
+The __covr__ [@covr] package checks which fraction package code the unit tests
 exercise. It works by walking the AST and inserting tracing code.
 
-Landau's __drake__ offers reproducible computatation on R objects similar to
+Landau's __drake__ [@drake] offers reproducible computatation on R objects similar to
 GNU Make. It detects when variables are updated, and hence trigger more
 computations.
 
-Several packages in the __Tidyverse__ family use non-standard evaluation to
+Several packages in the __tidyverse__ [@tidyverse] family use non-standard evaluation to
 build a language within the language. Non-standard evaluation means that code
 is captured and possibly modified before it is evaluated. The uses of
 non-standard evaluation in these packages are relatively simple cases of
 metaprogramming.
 
-The __trackr__ package is designed to record information about the artifacts
+The __trackr__ [@trackr] package is designed to record information about the artifacts
 (data, plots, etc) of a computation so that they can be organized and easily
 discovered later. In addition to collecting metadata from other sources,
 __trackr__ collects metadata about the computation from the code itself. This
 is an example of using metaprogramming to gather information from code about a
 project.
 
-The __compiler__ package is perhaps the best example of how metaprogramming can
+The __compiler__ [@R] package is perhaps the best example of how metaprogramming can
 be used to radically improve the performance of R code. The package takes R
 code and translates it into bytecode, a machine-readable code that can be
 interpreted faster than R code. Since the translation from R expressions to
 bytecode instructions is not one-to-one, the __compiler__ package has to
 implement some logic (or intelligence about R code).
 
-The __roxygen2__ package generates R documentation files based on comments in
+The __roxygen2__ [@roxygen2] package generates R documentation files based on comments in
 the code, but doesn't examine the code itself. While __roxygen2__ is not an
 example of code analysis, the package does analyze structured comments created
 by the programmer. We point it out because code analysis could potentially be

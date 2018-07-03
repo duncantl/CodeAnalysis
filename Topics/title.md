@@ -6,4 +6,5 @@ author:
 	- Matthew B. Espe
 	- Duncan Temple Lang
 geometry: margin=1in
+bibliography: code_analysis.bib
 ---
