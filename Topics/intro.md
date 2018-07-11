@@ -105,7 +105,6 @@ might misuse R's computational model, but we can detect and improve some of
 the common ones. We can use these techniques to understand our code, to
 simplify it, and to improve the performance.
 
-
 ## Related Work
 
 Bengtsson's packages, __globals__ [@globals] and __future__ [@future], use static code analysis

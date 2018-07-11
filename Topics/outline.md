@@ -26,7 +26,7 @@ high-performance.
 Experienced R programmers can manually correct many of these first
 drafts, but even for advanced users this process is time-consuming and
 error-prone. Additionally, as code becomes more efficient and
-higher-preformance, it often becomes more difficult for humans to read
+higher-performance, it often becomes more difficult for humans to read
 and understand. Ideally, we want like to preserve the interactive and
 iterative process of creating code in R, along with code which is easy
 for humans to read and understand.  We would also like to automate the
@@ -39,7 +39,7 @@ these goals:
   1. At the most basic level, code analysis can help us understand a
      package's/project's structure, dependencies, etc.
   2. Knowing that structure, we can go a step further to clean the
-     existing code, removing redudencies or unused pieces
+     existing code, removing redundancies or unused pieces
   3. But we are not just limited to cleaning the code. We can also
      refactor the code to be more efficient, or to take advantage of
      opportunities for increased performance, e.g. parallelization.
@@ -52,7 +52,7 @@ the potential code analysis has.
 ## Getting Information About Project Structure
 
 * Projects tend to build up a lot of files/functions over time.  Even
-  well-documented projects can be difficult to understand and navegate
+  well-documented projects can be difficult to understand and navigate
   function and file dependencies and relationships.  
   This is especially the case in long-running projects or projects
   worked on by many people.
@@ -68,7 +68,7 @@ the potential code analysis has.
 ## Cleaning Up Code
 
 By cleaning up code we mean removing code that is not needed, putting code in
-more idiomatic forms, and also avoiding unecessary computation. This reduces
+more idiomatic forms, and also avoiding unnecessary computation. This reduces
 memory use and running time. This also makes the code base smaller and more
 consistent, so it is easier to understand and maintain.
 
@@ -156,7 +156,7 @@ relatively trivial to convert the function to be run across parallel
 processes for increased performance.
 
 1. Loop "correction" that lacks
-   preallocation See explorations/findConcat.R and explorations/concat.R
+   pre-allocation See explorations/findConcat.R and explorations/concat.R
    example.  Identify and rewrite.
 2. Map code inside for loops into apply() -- simple
    examples. Check RLoopFusion.
