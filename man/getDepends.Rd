@@ -1,11 +1,11 @@
 \name{getDepends}
 \alias{getDepends}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+Get dependent input, output and data files for an R script.
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+  This function takes an R script, and identifies the files which are
+  read (input and/or data) and written (output).
 }
 \usage{
 getDepends(file, info = as(readScript(file), "ScriptInfo"), fileFunctionNames = FileFunctionNames(), prev = info, loadPackages = TRUE, addExpressionNum = TRUE)
@@ -13,49 +13,49 @@ getDepends(file, info = as(readScript(file), "ScriptInfo"), fileFunctionNames = 
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{file}{
-%%     ~~Describe \code{file} here~~
+An *.R file to analyze.
 }
   \item{info}{
-%%     ~~Describe \code{info} here~~
+An object of class \code{ScriptInfo}, created by \code{readScript()}
+containing the script information.
 }
   \item{fileFunctionNames}{
-%%     ~~Describe \code{fileFunctionNames} here~~
+The names of functions which can read or write files. Default functions
+are provided by \code{FileFunctionNames()}
 }
   \item{prev}{
-%%     ~~Describe \code{prev} here~~
+	
 }
   \item{loadPackages}{
-%%     ~~Describe \code{loadPackages} here~~
+logical, should the packages required by the script be loaded? 
 }
   \item{addExpressionNum}{
-%%     ~~Describe \code{addExpressionNum} here~~
+	logical, should the expressions be numbered.
 }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+  Returns a \code{data.frame} consisting of,
+  \item{filename}{The name of the file which is being read/loaded or
+	written/saved}
+  \item{operation}{The operation being conducted on that file name}
+  \item{expressionNum}{optional, if \code{addExpressionNum = TRUE}, adds
+	the expression number}
 }
 \references{
-%% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+Duncan Temple Lang
 }
 \note{
-%%  ~~further notes~~
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
+
 \examples{
 ##---- Should be DIRECTLY executable !! ----
 ##-- ==>  Define data, use random,
