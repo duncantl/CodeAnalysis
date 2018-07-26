@@ -28,6 +28,25 @@ test_that("for loop to lapply", {
 })
 
 
+test_that("for loops without braces", {
+
+	loop = quote(for(i in 1:5) print(i))
+    actual = forLoopToLapply(loop)
+    expected = quote(lapply(1:5, function(i) print(i)))
+
+    expect_equal(actual, expected)
+
+    loop = quote(for(i in 1:5) z[[i]] = foo(i))
+    actual = forLoopToLapply(loop)
+    expected = quote(
+	    z[1:5] <- lapply(1:5, function(i) foo(i))
+    )
+
+    expect_equal(actual, expected)
+
+})
+
+
 # For testing interactively
 #forLoopToLapply = autoparallel:::forLoopToLapply
 #debug(autoparallel:::forloop_with_updates)
