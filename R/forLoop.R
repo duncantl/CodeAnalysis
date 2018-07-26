@@ -86,7 +86,9 @@ forLoopWithUpdates = function(forloop, deps)
         return(forloop)
     }
 
-    lastline = forloop$body[[length(forloop$body)]]
+    braces = class(body) == "{"
+    lastline = if(braces) body[[length(body)]] else body
+
     if(!isSimpleIndexAssign(lastline, global_update, ivar)){
         return(forloop)
     }
@@ -94,9 +96,14 @@ forLoopWithUpdates = function(forloop, deps)
     # All the checks have passed, we can make the change.
 
     # Transform the for loop body into the function body
-    ll = length(body)
-    rhs_of_lastline = body[[c(ll, 3)]]
-    body[[ll]] = rhs_of_lastline
+    rhs_index = 3
+    if(braces){
+        ll = length(body)
+        rhs_of_lastline = body[[c(ll, rhs_index)]]
+        body[[ll]] = rhs_of_lastline
+    } else {
+        body = lastline[[rhs_index]]
+    }
 
     out = substitute(output[iterator] <- lapply(iterator, function(ivar) body)
         , list(output = as.symbol(global_update)
