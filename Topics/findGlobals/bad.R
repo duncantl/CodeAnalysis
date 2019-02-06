@@ -11,3 +11,13 @@ function(x)
 {
    stats::quantile(x)
 }
+
+
+o =
+function(a)
+{
+    set = function(val)
+        a <<- val
+
+    list(set = set, get = function() a)
+}
