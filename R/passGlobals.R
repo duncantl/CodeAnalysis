@@ -16,22 +16,19 @@
 # z = mkGlobalsLocal(f, g, main)
 
 mkGlobalsLocal =
-function(..., .funs = list(...))
+function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)))
 {
-      #XXX similar code in both clauses (last 2 lines)
   if(missing(.funs) && length(names(.funs)) == 0) {
         # Caller gave functions via ... but no names.
       k = sys.call()
       syms = k[-1]
-      nm = sapply(syms, is.name)
-      names(.funs)[nm] = sapply(syms[nm], as.character)
   } else if(length(names(.funs)) == 0) {
       # Handle names if .funs is passed as .funs = list(f, g, main)        
       k = sys.call()
       syms = k[[2]][-1]
-      nm = sapply(syms, is.name)
-      names(.funs)[nm] = sapply(syms[nm], as.character)
   }
+  nm = sapply(syms, is.name)
+  names(.funs)[nm] = sapply(syms[nm], as.character)    
   
   g = lapply(.funs, codetools::findGlobals, FALSE)
   gvars = lapply(g, `[[`, "variables")
@@ -185,7 +182,8 @@ function(map)
         if(is(node, "Symbol")) {
             i = match(node$name, map)
             if(!is.na(i)) {
-                node$set_basename(names(map)[i])
+                #node$set_basename(names(map)[i])
+                node$basename = names(map)[i]
             }
         }
     }

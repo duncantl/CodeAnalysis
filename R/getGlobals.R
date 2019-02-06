@@ -143,7 +143,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
   varsByFun = varsByFun[ setdiff(names(varsByFun), c("for", "if", "{"))]
 
-    # This doesn't catch the case that a function is defined and called before the variable it references in the parent function
+    #XXX This doesn't catch the case that a function is defined and called before the variable it references in the parent function
     # is defined.
 
   gvs = unlist(sapply(subFunInfo, `[[`, "variables"))

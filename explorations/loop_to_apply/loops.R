@@ -68,3 +68,29 @@ ans[1] = 1
 for(i in seq_along(x)[-1L]) {
     ans[i] = f(ans[i - 1])
 }
+
+
+# Example 4 - I actually wrote this code (inside the function
+# removeDescendants) because it was more clear to me to express it in a
+# loop. It conditionally updates a variable based on the value computed
+# inside a loop.
+############################################################
+for(i in seq(N)){
+    child = strings[i]
+    matches = startsWith(child, strings)
+    # Always matches itself, so we need more than 1
+    if(sum(matches) > 1){
+        ancestors[i] = FALSE
+    }
+}
+
+# We could transform it into an apply style statement in the following way:
+condition = sapply(seq(N), function(i){
+    child = strings[i]
+    matches = startsWith(child, strings)
+    sum(matches) > 1
+})
+ancestors = ifelse(condition, FALSE, ancestors)
+
+# But this code pattern and transformation seems pretty specialized, and it
+# isn't clear that this is worth doing.

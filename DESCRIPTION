@@ -1,5 +1,5 @@
 Package: CodeAnalysis
-Title: Tools for static analysis of R code
+Title: Tools for Static Analysis of R code
 Version: 0.1-1
 Description: This package provides a (growing) collection of 
  functions that analyze R code and identify particular idioms
@@ -20,7 +20,7 @@ Description: This package provides a (growing) collection of
    *  detect vector concatenation in loops
    *  identify & remove dead code (after a call to return())
    *  remove dead if/else code blocks (i.e. where we are certain the condition is TRUE or FALSE)
-Author: Duncan Temple Lang
+Author: Duncan Temple Lang, Nick Ulle, Clark Fitzgerald
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
 Imports: CodeDepends

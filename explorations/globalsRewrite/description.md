@@ -8,7 +8,7 @@ from the enclosing function, we have to identify non-local variables and define 
 parameters for each of these functions and then change the calls to these functions to include the
 non-local variables.
 
-The function `mkGlobalsLocal()` takes a collection of functions
+The function `mkGlobalsLocal()` analyses one or more functions
 and 
 + identifies the non-local variables used in each function;
 + adds parameters to each of these functions, with the global variable as the default value for the parameter;
