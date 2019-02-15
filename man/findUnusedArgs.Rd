@@ -1,5 +1,6 @@
 \name{findUnusedArgs}
 \alias{findUnusedArgs}
+\alias{findUnusedParams}
 \alias{findUnusedAssignments}
 \title{Find unused parameters and local variables}
 \description{
