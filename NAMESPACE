@@ -1,7 +1,7 @@
 import(CodeDepends)
 
 export(findLoopConcat)
-export(findUnusedArgs, findUnusedAssignments)
+export(findUnusedArgs, findUnusedParams, findUnusedAssignments)
 export(constInputs)
 export(removeAfterReturn)
 
@@ -13,3 +13,11 @@ export(forLoopToLapply)
 export(mkGlobalsLocal)
 
 export(getDepends)
+
+
+export(loadCode)
+
+
+export(getFilesRead, findNSE, S3Assignments, mkClassGraph, findUsedOptions)
+
+
