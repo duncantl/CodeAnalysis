@@ -1,4 +1,4 @@
-findUnusedArgs =
+findUnusedArgs = findUnusedParams =
     #
     # Determine if any of the  formal arguments are NOT used in the body of the code.
     # This is a simple test to see if a formal argument is not referenced in the code.
