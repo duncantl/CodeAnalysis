@@ -10,12 +10,19 @@
 # and
 # invisible(return(ans))
 #
+# see assignReturn_eg.R
+#
+#
 
 setGeneric("isAssignReturn",
            function(code, ...)
              standardGeneric("isAssignReturn")
            )
 
+setMethod("isAssignReturn", "function",
+          function(code, ...) {
+              isAssignReturn(body(code), ...)
+          })
 
 setMethod("isAssignReturn", "{",
           function(code, ...) {

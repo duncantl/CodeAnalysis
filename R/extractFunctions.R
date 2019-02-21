@@ -29,12 +29,40 @@ function(fun)
 {
     b = to_ast(body(fun))
     col = collectRemoveFun(b)
-
-    # Note we go from last for first so that if we remove an element
+browser()
+    # Note we go from last to first so that if we remove an element
     # this doesn't change the index of the next element.
-    invisible(mapply(col, b$body, rev(seq(along = b$body))))
+    mapply(col, b, rev(seq(along = b$body)))
 
     funcs = lapply(environment(col)$funcs, to_r)
     body(fun) = to_r(b)
     list(fun = fun, externalFunctions = funcs)
+}
+
+
+
+findFunctions =
+    #
+    # Find the functions defined in the body of the given function
+    #
+function(fun)
+{
+    if(is.function(fun)) #!!! deal with default values for parameter
+        fun = body(fun)
+
+    fun = to_ast(fun)
+    i = find_nodes(fun, is, "Function")
+    lapply(i, function(x) fun[[x]])
+}
+
+
+findSuperAssignments =
+    #
+    #  Within a function find non-local assignments, i.e. <<- 
+    #
+function(fun)
+{
+    fun =  to_ast(fun)
+    i = find_nodes(fun, is, "SuperAssign")
+    lapply(i, function(x) fun[[x]])
 }
