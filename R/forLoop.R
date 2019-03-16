@@ -1,21 +1,10 @@
 #' Transfrom For Loop To Lapply
 #'
 #' Determine if a for loop can be parallelized, and if so transform it into
-#' a call to \code{lapply}. This first version will modify loops if and
-#' only if the body of the loop does not do any assignments at all.
-#' 
-#' Recommended use case:
-#'
-#' The functions in the body of the loop write to different files on each
-#' loop iteration.
-#' 
-#' The generated code WILL FAIL if:
-#' 
-#' Code in the body of the loop is truly iterative. Functions update global
-#' state in any way other than direct assignment.
+#' a call to \code{lapply}. 
 #' 
 #' @param forloop R language object with class \code{for}.
-#' @return call R call to \code{parallel::mclapply} if successful,
+#' @return call R call to \code{lapply} if successful,
 #'  otherwise the original forloop.
 forLoopToLapply = function(forloop)
 {
@@ -64,8 +53,9 @@ forLoopWithUpdates = function(forloop, deps)
 
     # Case of loop such as: 
     # for(i in ...){
-    #   x[i] = ...
-    #   y[i] = ...
+    #   x[[i]] = ...
+    #   y[[i]] = ...
+    # }
     # We can potentially work with this, but it isn't a priority, so just
     # give up and return the for loop.
 
@@ -75,8 +65,8 @@ forLoopWithUpdates = function(forloop, deps)
 
     # Verify loop has the form:
     # for(i in ...){
-    #   ... g(x[i]) # It's ok if this kind of thing happens
-    #   x[i] = ...
+    #   ... g(x[[i]]) # It's ok if this kind of thing happens
+    #   x[[i]] = ...
     # }
 
     ivar = as.character(forloop$ivar)
