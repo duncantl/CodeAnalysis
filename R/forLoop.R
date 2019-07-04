@@ -11,12 +11,18 @@ standardizeLoop = function(forloop)
 }
 
 
+find_var2 = function(node, varname){
+    rstatic::find_nodes(node, function(x)
+                        is(x, "Symbol") && x$value == varname)
+}
+
+
 #' Determine If a Loop Can Be Made Parallel
 #'
-#' A loop can be made parallel if the order of the iterations does not matter.
+#' A loop can be made parallel if the order of the iterations do not matter.
 #'
 #' @return logical can the for loop be parallel?
-parallelForLoop = function(forloop)
+parLoop = function(forloop)
 {
     forloop = standardizeLoop(forloop)
 
@@ -28,12 +34,12 @@ parallelForLoop = function(forloop)
         return(TRUE)
     }
 
-    read_and_write = intersect(deps@inputs, deps@outputs)
-    if(0 < length(read_and_write)){
-        message(sprintf("Read after write (RAW) loop dependency in variables %s", 
-                        paste(read_and_write, collapse = ", ")))
-        return(FALSE)
-    }
+#    read_and_write = intersect(deps@inputs, deps@outputs)
+#    if(0 < length(read_and_write)){
+#        message(sprintf("Read after write (RAW) loop dependency in variables %s", 
+#                        paste(read_and_write, collapse = ", ")))
+#        return(FALSE)
+#    }
 
     global_updates = intersect(deps@inputs, deps@updates)
 
@@ -88,7 +94,7 @@ parallelForLoop = function(forloop)
 forLoopToLapply = function(forloop)
 {
 
-    if(parallelForLoop(forloop))
+    #if(parLoop(forloop))
 
 }
 
@@ -185,6 +191,34 @@ if(FALSE){
 # Scratch
 library(rstatic)
 library(CodeDepends)
+library(testthat)
+source("forLoop.R")
+
+l0 = quote(
+    for(i in 1:n){
+        foo(i)
+    }
+)
+expect_true(parLoop(l0))
+
+
+l1 = quote(
+    for(i in 1:n){
+        x = foo(x)
+    }
+)
+expect_false(parLoop(l1))
+
+
+l2 = quote(
+    for(i in 1:n){
+        names(x)[i] = names(y)[i]
+    }
+)
+expect_true(parLoop(l2))
+
+
+
 
 # Not working to allow getInputs to dispatch
 #setOldClass("ASTNode")
@@ -199,8 +233,8 @@ l0 = quote(for(i in seq(n)){
                x[i] = foo(y[i])
                bar(z[i])
     })
-
 l = standardizeLoop(l0)
+
 
 # Check when y is considered both an input and an output
 getInputs(quote({
