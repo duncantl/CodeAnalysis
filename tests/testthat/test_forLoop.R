@@ -1,3 +1,5 @@
+library(CodeAnalysis)
+
 test_that("for loop to lapply", {
 
     loop1 = quote(for(i in x){f(i)})

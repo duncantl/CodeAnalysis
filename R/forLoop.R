@@ -1,50 +1,41 @@
-#' Transfrom For Loop To Lapply
-#'
-#' Determine if a for loop can be parallelized, and if so transform it into
-#' a call to \code{lapply}. 
-#' 
-#' @param forloop R language object with class \code{for}.
-#' @return call R call to \code{lapply} if successful,
-#'  otherwise the original forloop.
-forLoopToLapply = function(forloop)
+# Check loop and convert to rstatic
+standardizeLoop = function(forloop)
 {
+    forloop = rstatic::to_ast(forloop)
 
-    names(forloop) = c("for", "ivar", "iterator", "body")
+    if(!is(forloop, "For")){
+        stop("Not a for loop")
+    }
 
-    deps = CodeDepends::getInputs(forloop$body)
+    forloop
+}
+
+
+#' Determine If a Loop Can Be Made Parallel
+#'
+#' A loop can be made parallel if the order of the iterations does not matter.
+#'
+#' @return logical can the for loop be parallel?
+parallelForLoop = function(forloop)
+{
+    forloop = standardizeLoop(forloop)
+
+    deps = CodeDepends::getInputs(as_language(forloop$body))
 
     changed = c(deps@outputs, deps@updates)
-
-    if(length(changed) > 0){
-        forLoopWithUpdates(forloop, deps)
-    } else {
-        forLoopNoUpdates(forloop)
-    }
-}
-
-
-# Easy case: loop doesn't change anything
-forLoopNoUpdates = function(forloop)
-{
-    out = substitute(lapply(iterator, function(ivar) body)
-        , as.list(forloop)
-        )
-    # The names of the function arguments are special.
-    names(out[[c(3, 2)]]) = as.character(forloop$ivar)
-
-    out
-}
-
-
-# Harder case: loop does change things
-forLoopWithUpdates = function(forloop, deps)
-{
-    # read after write (RAW) loop dependency
-    if(length(intersect(deps@inputs, deps@outputs) > 0)){
-        return(forloop)
+    if(length(changed) == 0){
+        message("Loop does not change any variables.")
+        return(TRUE)
     }
 
-    global_update = deps@updates
+    read_and_write = intersect(deps@inputs, deps@outputs)
+    if(0 < length(read_and_write)){
+        message(sprintf("Read after write (RAW) loop dependency in variables %s", 
+                        paste(read_and_write, collapse = ", ")))
+        return(FALSE)
+    }
+
+    global_updates = intersect(deps@inputs, deps@updates)
 
     # The code doesn't update global variables, so it can be parallelized.
     if(length(global_update) == 0){
@@ -69,19 +60,55 @@ forLoopWithUpdates = function(forloop, deps)
     #   x[[i]] = ...
     # }
 
-    ivar = as.character(forloop$ivar)
+    variable = as.character(forloop$variable)
     body = forloop$body
 
-    if(!onlyUseSimpleIndex(body, global_update, ivar)){
+    if(!onlyUseSimpleIndex(body, global_update, variable)){
         return(forloop)
     }
 
     braces = class(body) == "{"
     lastline = if(braces) body[[length(body)]] else body
 
-    if(!isSimpleIndexAssign(lastline, global_update, ivar)){
+    if(!isSimpleIndexAssign(lastline, global_update, variable)){
         return(forloop)
     }
+
+}
+
+
+#' Transfrom For Loop To Lapply
+#'
+#' Determine if a for loop can be parallelized, and if so transform it into
+#' a call to \code{lapply}. 
+#' 
+#' @param forloop R language object with class \code{for}.
+#' @return call R call to \code{lapply} if successful,
+#'  otherwise the original forloop.
+forLoopToLapply = function(forloop)
+{
+
+    if(parallelForLoop(forloop))
+
+}
+
+
+# Easy case: loop doesn't change anything
+forLoopNoUpdates = function(forloop)
+{
+    out = substitute(lapply(iterator, function(variable) body)
+        , as.list(forloop)
+        )
+    # The names of the function arguments are special.
+    names(out[[c(3, 2)]]) = as.character(forloop$variable)
+
+    out
+}
+
+
+# Harder case: loop does change things
+forLoopWithUpdates = function(forloop, deps)
+{
 
     # All the checks have passed, we can make the change.
 
@@ -95,30 +122,30 @@ forLoopWithUpdates = function(forloop, deps)
         body = lastline[[rhs_index]]
     }
 
-    out = substitute(output[iterator] <- lapply(iterator, function(ivar) body)
+    out = substitute(output[iterator] <- lapply(iterator, function(variable) body)
         , list(output = as.symbol(global_update)
                , iterator = forloop$iterator
-               , ivar = forloop$ivar
+               , variable = forloop$variable
                , body = body
         ))
     # The names of the function arguments are special.
-    names(out[[c(3, 3, 2)]]) = as.character(forloop$ivar)
+    names(out[[c(3, 3, 2)]]) = as.character(forloop$variable)
 
     out
 }
 
 
 # Verify that the only usage of avar in expr is of the form
-# avar[[ivar]]
+# avar[[variable]]
 # @param avar character assignment variable
-# @param ivar character index variable
-onlyUseSimpleIndex = function(expr, avar, ivar)
+# @param variable character index variable
+onlyUseSimpleIndex = function(expr, avar, variable)
 {
     locs = find_var(expr, avar)
 
     for(loc in locs){
         lo = loc[-length(loc)]
-        if(!isSimpleIndex(expr[[lo]], avar, ivar)){
+        if(!isSimpleIndex(expr[[lo]], avar, variable)){
             return(FALSE)
         }
     }
@@ -127,20 +154,20 @@ onlyUseSimpleIndex = function(expr, avar, ivar)
 
 
 # Verify that expr has the form
-# avar[[ivar]]
-isSimpleIndex = function(expr, avar, ivar, subset_fun = "[[")
+# avar[[variable]]
+isSimpleIndex = function(expr, avar, variable, subset_fun = "[[")
 {
     if((length(expr) == 3)
         && (expr[[1]] == subset_fun)
         && (expr[[2]] == avar)
-        && (expr[[3]] == ivar)
+        && (expr[[3]] == variable)
     ) TRUE else FALSE
 }
 
 
 # Verify that expr has the form
-# avar[[ivar]] = ...
-isSimpleIndexAssign = function(expr, avar, ivar
+# avar[[variable]] = ...
+isSimpleIndexAssign = function(expr, avar, variable
     , assign_funs = c("=", "<-"))
 {
     f = as.character(expr[[1]])
@@ -149,5 +176,45 @@ isSimpleIndexAssign = function(expr, avar, ivar
     }
 
     lhs = expr[[2]]
-    isSimpleIndex(lhs, avar, ivar)
+    isSimpleIndex(lhs, avar, variable)
+}
+
+
+if(FALSE){
+
+# Scratch
+library(rstatic)
+library(CodeDepends)
+
+# Not working to allow getInputs to dispatch
+#setOldClass("ASTNode")
+#setMethod("getInputs", "ASTNode", function(e, ...){
+#    callGeneric(as_language(e), ...)
+#})
+# Maybe relevant: https://github.com/r-lib/R6/issues/36
+
+
+
+l0 = quote(for(i in seq(n)){
+               x[i] = foo(y[i])
+               bar(z[i])
+    })
+
+l = standardizeLoop(l0)
+
+# Check when y is considered both an input and an output
+getInputs(quote({
+    z[i] = 5
+    y = bar(y)
+}))
+
+# An update for CodeDepends can be from x[i] = ... or x = ... if it sees that x is defined
+getInputs(quote({
+    foo(y)
+    y = bar(z)
+    a = 100
+    b[i] = 200
+}))
+
+
 }
