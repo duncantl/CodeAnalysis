@@ -1,37 +1,39 @@
-# Check loop and convert to rstatic
-standardizeLoop = function(forloop)
-{
-    forloop = rstatic::to_ast(forloop)
-
-    if(!is(forloop, "For")){
-        stop("Not a for loop")
-    }
-
-    forloop
-}
-
-
 find_var2 = function(node, varname){
     rstatic::find_nodes(node, function(x)
                         is(x, "Symbol") && x$value == varname)
 }
 
 
+
 #' Determine If a Loop Can Be Made Parallel
 #'
-#' A loop can be made parallel if the order of the iterations do not matter.
+#' and tell the user why the loop is parallel or not.
 #'
-#' @return logical can the for loop be parallel?
+#' A loop can be made parallel if the order of the iterations do not matter.
+#' This function errs on the side of being conservative; if it's not clear whether a loop is parallel or not, it will say that it is not.
+#'
+#' @return list with the following elements:
+#'      - parallel (logical) can the for loop be parallel?
+#'      - reason (character) human readable message for why the loop is or is not parallel
+#'      - reason_code (character) short version of reason, for programming
 parLoop = function(forloop)
 {
-    forloop = standardizeLoop(forloop)
+
+    forloop = rstatic::to_ast(forloop)
+
+    if(!is(l, "For")){
+        stop("Not a for loop.")
+    }
 
     deps = CodeDepends::getInputs(as_language(forloop$body))
 
     changed = c(deps@outputs, deps@updates)
     if(length(changed) == 0){
-        message("Loop does not change any variables.")
-        return(TRUE)
+        return(list(
+            parallel = TRUE,
+            reason = "Loop does not change any variables.",
+            reason_code = "NO_CHANGE"
+            ))
     }
 
 #    read_and_write = intersect(deps@inputs, deps@outputs)
@@ -43,9 +45,8 @@ parLoop = function(forloop)
 
     global_updates = intersect(deps@inputs, deps@updates)
 
-    # The code doesn't update global variables, so it can be parallelized.
-    if(length(global_update) == 0){
-        return(forLoopNoUpdates(forloop))
+    if(length(global_updates) == 0){
+        return(FALSE)
     }
 
     # Case of loop such as: 
