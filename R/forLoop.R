@@ -3,15 +3,44 @@ find_var2 = function(node, varname){
                         is(x, "Symbol") && x$value == varname)
 }
 
-assigns_into_var = function(node, varname){
-    finds = rstatic::find_nodes(node, function(x)
-                        is(x, "Assign") && 
-                        is(x$write, "Symbol") &&
-                        x$write$value == varname
+# TODO: Use rstatic's symbols rather than checking values directly here, it will simplify code
+
+find_all_updates = function(node, varname){
+    rstatic::find_nodes(node, function(x)
+                        is(x, "Replacement")
+                        && is(x$write, "Symbol")
+                        && x$write$value == varname
                     )
-    0 < length(finds)
 }
 
+
+find_assigns_over_var = function(node, varname){
+    rstatic::find_nodes(node, function(x)
+                        is(x, "Assign")
+                        && !is(x, "Replacement")
+                        && is(x$write, "Symbol")
+                        && x$write$value == varname
+                    )
+}
+
+
+find_updates_var_with_loop_index = function(node, varname, loop_index){
+    rstatic::find_nodes(node, function(x){
+        if(is(x, "Replacement")
+            && is(x$write, "Symbol")
+            && x$write$value == varname
+        ){
+            # TODO: Write tests and generalize this to matrices and higher dimensional arrays, x[, i] = ...
+
+            # This is the subset argument i as in x[i] = ...
+            i = x$read$args$contents[[2L]]
+            if(i == loop_index){
+                return(TRUE)
+            }
+        }
+        FALSE
+    })
+}
 
 
 #' Determine If a Loop Can Be Made Parallel
@@ -37,6 +66,7 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
 
     forloop = rstatic::to_ast(forloop)
     body = forloop$body
+    var = forloop$variable
 
     if(!is(forloop, "For")){
         stop("Not a for loop.")
@@ -54,15 +84,31 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
     }
 
     global_updates = intersect(deps@inputs, deps@updates)
+
     for(v in global_updates){
-        if(assigns_into_var(body, v)){
+        assigns_over_var = find_assigns_over_var(body, v)
+        if(0 < length(assigns_over_var)){
             return(list(
                 parallel = FALSE,
                 reason = sprintf("read after write dependency on variable `%s`", v),
                 reasonCode = "RAW"
             ))
         }
+
+        all_updates = find_all_updates(body, v)
+        ok_updates = find_updates_var_with_loop_index(body, v, var)
+        bad_updates = setdiff(all_updates, ok_updates)
+        if(0 < length(bad_updates)){
+            bad_up = body[[bad_updates[[1L]]]]
+            return(list(
+                parallel = FALSE,
+                reason = sprintf("variable `%s` is assigned to in a complex way: %s", v, bad_up),
+                reasonCode = "COMPLEX_UPDATE"
+            ))
+
+        }
     }
+
 
 }
 
@@ -70,10 +116,10 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
 
 if(FALSE){
 
-# Scratch
+# Testing code
+
 library(rstatic)
 library(CodeDepends)
-library(testthat)
 source("forLoop.R")
 
 l0 = quote(
@@ -82,7 +128,8 @@ l0 = quote(
     }
 )
 p0 = parLoop(l0)
-expect_true(p0[["parallel"]])
+
+stopifnot(p0[["parallel"]])
 
 
 l1 = quote(
@@ -141,6 +188,16 @@ l6 = quote(
 )
 p6 = parLoop(l6)
 expect_false(p6[["parallel"]])
+
+
+l7 = quote(
+    for(i in x){
+        y[i %% k] = foo(y[i %% k])
+    }
+)
+p7 = parLoop(l7)
+expect_false(p7[["parallel"]])
+
 
 }
 
