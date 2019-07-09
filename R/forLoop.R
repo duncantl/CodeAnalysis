@@ -1,30 +1,27 @@
+# TODO: Use rstatic's symbols rather than checking values directly here, it will simplify code
 find_var2 = function(node, varname){
     rstatic::find_nodes(node, function(x)
                         is(x, "Symbol") && x$value == varname)
 }
 
-# TODO: Use rstatic's symbols rather than checking values directly here, it will simplify code
 
-find_all_updates = function(node, varname){
-    rstatic::find_nodes(node, function(x)
-                        is(x, "Replacement")
-                        && is(x$write, "Symbol")
-                        && x$write$value == varname
-                    )
+# @param node see rstatic::find_nodes
+# @param vs rstatic Symbol to search for
+find_all_updates = function(node, vs){
+    rstatic::find_nodes(node, function(x) is(x, "Replacement") && x == vs)
 }
 
 
-find_assigns_over_var = function(node, varname){
+# @param node see rstatic::find_nodes
+# @param vs rstatic Symbol to search for
+find_assigns_over_var = function(node, vs){
     rstatic::find_nodes(node, function(x)
-                        is(x, "Assign")
-                        && !is(x, "Replacement")
-                        && is(x$write, "Symbol")
-                        && x$write$value == varname
-                    )
+        is(x, "Assign") && !is(x, "Replacement") && x$write == vs)
 }
 
 
-find_updates_var_with_loop_index = function(node, varname, loop_index){
+# @param vs rstatic Symbol to search for
+find_updates_var_with_iter_var = function(node, vs, iter_var){
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement")
             && is(x$write, "Symbol")
@@ -34,7 +31,7 @@ find_updates_var_with_loop_index = function(node, varname, loop_index){
 
             # This is the subset argument i as in x[i] = ...
             i = x$read$args$contents[[2L]]
-            if(i == loop_index){
+            if(i == iter_var){
                 return(TRUE)
             }
         }
@@ -86,7 +83,8 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
     global_updates = intersect(deps@inputs, deps@updates)
 
     for(v in global_updates){
-        assigns_over_var = find_assigns_over_var(body, v)
+        vs = rstatic::Symbol$new(v)
+        assigns_over_var = find_assigns_over_var(body, vs)
         if(0 < length(assigns_over_var)){
             return(list(
                 parallel = FALSE,
@@ -95,8 +93,8 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
             ))
         }
 
-        all_updates = find_all_updates(body, v)
-        ok_updates = find_updates_var_with_loop_index(body, v, var)
+        all_updates = find_all_updates(body, vs)
+        ok_updates = find_updates_var_with_iter_var(body, vs, var)
         bad_updates = setdiff(all_updates, ok_updates)
         if(0 < length(bad_updates)){
             bad_up = body[[bad_updates[[1L]]]]
