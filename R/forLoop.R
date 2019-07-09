@@ -96,12 +96,12 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         bad_updates = setdiff(all_updates, ok_updates)
         if(0 < length(bad_updates)){
             bad_up = body[[bad_updates[[1L]]]]
+            bad_up_msg = deparse(as_language(bad_up))
             return(list(
                 parallel = FALSE
-                , reason = sprintf("variable `%s` is assigned to in a complex way: %s", v, bad_up)
+                , reason = sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop: %s", v, bad_up_msg)
                 , reasonCode = "COMPLEX_UPDATE"
             ))
-
         }
     }
 
@@ -165,6 +165,7 @@ p3 = parLoop(l3)
 expect_true(p3[["parallel"]])
 
 
+# Passing
 l4 = quote(
     for(i in x){
         tmp = foo()
@@ -172,9 +173,10 @@ l4 = quote(
     }
 )
 p4 = parLoop(l4)
-expect_false(p4[["parallel"]])
+expect_true(p4[["parallel"]])
 
 
+# Passing
 l5 = quote(
     for(i in x){
         tmp = y[i]
