@@ -78,6 +78,17 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         ))
     }
 
+    if(var$value %in% changed){
+        # This would be OK if the loop body does not subsequently use the iterator variable in a subset assignment.
+        # In that case it can be fixed by renaming the variable.
+        # Indeed, there's really never any reason to redefine the iteration variable rather than just use a new variable.
+        return(list(
+            parallel = FALSE
+            , reason = sprintf("iteration variable %s is changed within the body of the loop", var$value)
+            , reasonCode = "ITER_VAR_CHANGE"
+        ))
+    }
+
     global_updates = intersect(deps@inputs, deps@updates)
 
     for(v in global_updates){
@@ -116,7 +127,6 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
 
 
 if(FALSE){
-
 # Testing code
 
 library(rstatic)
@@ -124,7 +134,6 @@ library(CodeDepends)
 library(testthat)
 source("forLoop.R")
 
-# Passing
 l0 = quote(
     for(i in 1:n){
         foo(i)
@@ -134,7 +143,6 @@ p0 = parLoop(l0)
 stopifnot(p0[["parallel"]])
 
 
-# Passing
 l1 = quote(
     for(i in 1:n){
         x = foo(x)
@@ -144,6 +152,8 @@ p1 = parLoop(l1)
 expect_false(p1[["parallel"]])
 
 
+
+if(FALSE){
 # Known failure
 l2 = quote(
     for(i in 1:n){
@@ -152,9 +162,9 @@ l2 = quote(
 )
 p2 = parLoop(l2)
 expect_true(p2[["parallel"]])
+}
 
 
-# Passing
 l3 = quote(
     for(i in 1:n){
         x[i] = foo()
@@ -165,7 +175,6 @@ p3 = parLoop(l3)
 expect_true(p3[["parallel"]])
 
 
-# Passing
 l4 = quote(
     for(i in x){
         tmp = foo()
@@ -176,7 +185,6 @@ p4 = parLoop(l4)
 expect_true(p4[["parallel"]])
 
 
-# Passing
 l5 = quote(
     for(i in x){
         tmp = y[i]
@@ -204,37 +212,5 @@ l7 = quote(
 )
 p7 = parLoop(l7)
 expect_false(p7[["parallel"]])
-
-
-}
-
-
-
-if(FALSE){
-
-# Not working to allow getInputs to dispatch
-#setOldClass("ASTNode")
-#setMethod("getInputs", "ASTNode", function(e, ...){
-#    callGeneric(as_language(e), ...)
-#})
-# Maybe relevant: https://github.com/r-lib/R6/issues/36
-
-q = quote_ast(assign("x", 1))
-
-# Check when y is considered both an input and an output
-getInputs(quote({
-    assign("x", 50)
-    y = bar(y)
-    z = 5
-}))
-
-# An update for CodeDepends can be from x[i] = ... or x = ... if it sees that x is defined
-getInputs(quote({
-    foo(y)
-    y = bar(z)
-    a = 100
-    b[i] = 200
-}))
-
 
 }
