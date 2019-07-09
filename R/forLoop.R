@@ -1,10 +1,3 @@
-# TODO: Use rstatic's symbols rather than checking values directly here, it will simplify code
-find_var2 = function(node, varname){
-    rstatic::find_nodes(node, function(x)
-                        is(x, "Symbol") && x$value == varname)
-}
-
-
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
 find_all_updates = function(node, vs){
@@ -167,12 +160,15 @@ expect_true(p2[["parallel"]])
 
 l3 = quote(
     for(i in 1:n){
-        x[i] = foo()
+        x[i] = foo(x[i])
         y[i] = bar()
     }
 )
 p3 = parLoop(l3)
 expect_true(p3[["parallel"]])
+
+p3b = parLoop(l3, checkIterator = TRUE)
+expect_true(p3b[["parallel"]])
 
 
 l4 = quote(
@@ -182,6 +178,9 @@ l4 = quote(
     }
 )
 p4 = parLoop(l4)
+expect_true(p4[["parallel"]])
+
+p4b = parLoop(l4, checkIterator = TRUE)
 expect_true(p4[["parallel"]])
 
 
@@ -212,5 +211,18 @@ l7 = quote(
 )
 p7 = parLoop(l7)
 expect_false(p7[["parallel"]])
+
+l8 = quote(
+    for(i in x){
+        y[i] = foo(y[i])
+    }
+)
+p8 = parLoop(l8)
+expect_true(p8[["parallel"]])
+
+p8b = parLoop(l8, checkIterator = TRUE)
+expect_false(p8b[["parallel"]])
+
+
 
 }
