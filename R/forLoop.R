@@ -8,7 +8,7 @@ find_var2 = function(node, varname){
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
 find_all_updates = function(node, vs){
-    rstatic::find_nodes(node, function(x) is(x, "Replacement") && x == vs)
+    rstatic::find_nodes(node, function(x) is(x, "Replacement") && x$write == vs)
 }
 
 
@@ -21,12 +21,10 @@ find_assigns_over_var = function(node, vs){
 
 
 # @param vs rstatic Symbol to search for
+# @param iter_var rstatic Symbol iterator variable: the j in for(j in ...)
 find_updates_var_with_iter_var = function(node, vs, iter_var){
     rstatic::find_nodes(node, function(x){
-        if(is(x, "Replacement")
-            && is(x$write, "Symbol")
-            && x$write$value == varname
-        ){
+        if(is(x, "Replacement") && x$write == vs){
             # TODO: Write tests and generalize this to matrices and higher dimensional arrays, x[, i] = ...
 
             # This is the subset argument i as in x[i] = ...
@@ -74,9 +72,9 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
 
     if(length(changed) == 0){
         return(list(
-            parallel = TRUE,
-            reason = "loop does not define or update any variables",
-            reasonCode = "NO_CHANGE"
+            parallel = TRUE
+            , reason = "loop does not define or update any variables"
+            , reasonCode = "NO_CHANGE"
         ))
     }
 
@@ -87,9 +85,9 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         assigns_over_var = find_assigns_over_var(body, vs)
         if(0 < length(assigns_over_var)){
             return(list(
-                parallel = FALSE,
-                reason = sprintf("read after write dependency on variable `%s`", v),
-                reasonCode = "RAW"
+                parallel = FALSE
+                , reason = sprintf("read after write dependency on variable `%s`", v)
+                , reasonCode = "RAW"
             ))
         }
 
@@ -99,14 +97,19 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         if(0 < length(bad_updates)){
             bad_up = body[[bad_updates[[1L]]]]
             return(list(
-                parallel = FALSE,
-                reason = sprintf("variable `%s` is assigned to in a complex way: %s", v, bad_up),
-                reasonCode = "COMPLEX_UPDATE"
+                parallel = FALSE
+                , reason = sprintf("variable `%s` is assigned to in a complex way: %s", v, bad_up)
+                , reasonCode = "COMPLEX_UPDATE"
             ))
 
         }
     }
 
+    return(list(
+        parallel = TRUE
+        , reason = "passed all tests for loop carried dependencies"
+        , reasonCode = "PASS_TEST"
+    ))
 
 }
 
@@ -118,18 +121,20 @@ if(FALSE){
 
 library(rstatic)
 library(CodeDepends)
+library(testthat)
 source("forLoop.R")
 
+# Passing
 l0 = quote(
     for(i in 1:n){
         foo(i)
     }
 )
 p0 = parLoop(l0)
-
 stopifnot(p0[["parallel"]])
 
 
+# Passing
 l1 = quote(
     for(i in 1:n){
         x = foo(x)
@@ -139,6 +144,7 @@ p1 = parLoop(l1)
 expect_false(p1[["parallel"]])
 
 
+# Known failure
 l2 = quote(
     for(i in 1:n){
         names(x)[i] = names(y)[i]
@@ -148,6 +154,7 @@ p2 = parLoop(l2)
 expect_true(p2[["parallel"]])
 
 
+# Passing
 l3 = quote(
     for(i in 1:n){
         x[i] = foo()
