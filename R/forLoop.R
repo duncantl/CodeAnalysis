@@ -63,6 +63,7 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
     deps = CodeDepends::getInputs(as_language(body))
     changed = c(deps@outputs, deps@updates)
 
+    # The easy way out.
     if(length(changed) == 0){
         return(list(
             parallel = TRUE
@@ -78,7 +79,7 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         return(list(
             parallel = FALSE
             , reason = sprintf("iteration variable %s is changed within the body of the loop", var$value)
-            , reasonCode = "ITER_VAR_CHANGE"
+            , reasonCode = "ITERATION_VAR_CHANGE"
         ))
     }
 
@@ -105,6 +106,32 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
                 parallel = FALSE
                 , reason = sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop: %s", v, bad_up_msg)
                 , reasonCode = "COMPLEX_UPDATE"
+            ))
+        }
+    }
+
+    if(checkIterator && 0 < length(global_updates)){
+        iterator = forloop$iterator
+        if(is("Symbol", iterator)){
+            return(list(
+                parallel = FALSE
+                , reason = sprintf("cannot be sure that the variable `%s` being looped over contains unique values", iterator$value)
+                , reasonCode = "ITERATOR_FREE_VAR"
+            ))
+        } else if(is("Call", iterator)) {
+            if(!(iterator$fn$value %in% uniqueFuncs)){
+            return(list(
+                parallel = FALSE
+                , reason = sprintf("the iterator is a call to the function `%s`, which may not produce unique values", iterator$fn$value)
+                , reasonCode = "ITERATOR_UNKNOWN_FUNC"
+            ))
+            }
+        } else {
+            iter_msg = deparse(as_language(iterator))
+            return(list(
+                parallel = FALSE
+                , reason = sprintf("iterator `%s` is not a symbol or a call", iter_msg)
+                , reasonCode = "ITERATOR_UNKNOWN"
             ))
         }
     }
