@@ -118,28 +118,11 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
     }
 
     if(checkIterator && 0 < length(global_updates)){
-        iterator = forloop$iterator
-        if(is(iterator, "Symbol")){
-            return(list(
-                parallel = FALSE
-                , reason = sprintf("cannot be sure that the variable `%s` being looped over contains unique values", iterator$value)
-                , reasonCode = "ITERATOR_FREE_VAR"
-            ))
-        } else if(is(iterator, "Call")) {
-            if(!(iterator$fn$value %in% uniqueFuncs)){
-            return(list(
-                parallel = FALSE
-                , reason = sprintf("the iterator is a call to the function `%s`, which may not produce unique values", iterator$fn$value)
-                , reasonCode = "ITERATOR_UNKNOWN_FUNC"
-            ))
-            }
-        } else {
-            iter_msg = deparse(as_language(iterator))
-            return(list(
-                parallel = FALSE
-                , reason = sprintf("iterator `%s` is not a symbol or a call", iter_msg)
-                , reasonCode = "ITERATOR_UNKNOWN"
-            ))
+        uniqueStatus = checkUnique(forloop$iterator, uniqueFuncs)
+        if(!uniqueStatus[["unique"]]){
+            # uniqueStatus has the same return value structure, so reuse it.
+            names(uniqueStatus)[names(uniqueStatus) == "unique"] = "parallel"
+            return(uniqueStatus)
         }
     }
 
@@ -148,4 +131,37 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         , reason = "passed all tests for loop carried dependencies"
         , reasonCode = "PASS_TEST"
     ))
+}
+
+
+# Check that an iterator is guaranteed to contain unique objects when evaluated.
+checkUnique = function(iterator, uniqueFuncs)
+{
+    if(is(iterator, "Symbol")){
+        return(list(
+            unique = FALSE
+            , reason = sprintf("cannot be sure that the variable `%s` being looped over contains unique values", iterator$value)
+            , reasonCode = "ITERATOR_FREE_VAR"
+        ))
+    } else if(is(iterator, "Call")) {
+        if(!(iterator$fn$value %in% uniqueFuncs)){
+        return(list(
+            unique = FALSE
+            , reason = sprintf("the iterator is a call to the function `%s`, which may not produce unique values", iterator$fn$value)
+            , reasonCode = "ITERATOR_UNKNOWN_FUNC"
+        ))
+        }
+    } else {
+        iter_msg = deparse(as_language(iterator))
+        return(list(
+            unique = FALSE
+            , reason = sprintf("iterator `%s` is not a symbol or a call", iter_msg)
+            , reasonCode = "ITERATOR_UNKNOWN"
+        ))
+    }
+    list(
+        unique = TRUE
+        , reason = "passed tests for uniqueness"
+        , reasonCode = "PASS_TEST"
+    )
 }
