@@ -13,23 +13,35 @@
 
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
-findAllUpdates = function(node, vs){
+findAllUpdates = function(node, vs)
+{
     rstatic::find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
 }
 
 
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
-findAssignsOverVar = function(node, vs){
+findAssignsOverVar = function(node, vs)
+{
     rstatic::find_nodes(node, function(x)
         is(x, "Assign") && !is(x, "Replacement") && x$write == vs)
 }
 
 
 # Search starting from node for a usage of var
-varAppears = function(node, var){
-    finds = rstatic::find_nodes(node, `==`, var)
-    0 < length(finds)
+varAppears = function(node, var)
+{
+    # Nick might be interested in this.
+    # I'm using findNodes within another findNodes, and it seems to work fine.
+    # It doesn't make any sense for find_nodes to return value for leaf nodes of the AST, i.e. symbols and literals, because we cannot index into them.
+    # It would be nice to check whether we're at a leaf here.
+    # As it currently stands, I think I wrote a hidden bug because I'm not checking for literals (can anything else can be a leaf?)
+    if(is(node, "Symbol")){
+        node == var
+    } else {
+        finds = rstatic::find_nodes(node, `==`, var)
+        0 < length(finds)
+    }
 }
 
 
@@ -37,7 +49,8 @@ varAppears = function(node, var){
 #
 # @param vs rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
-findUpdatesVarWithIterVar = function(node, vs, ivar){
+findUpdatesVarWithIterVar = function(node, vs, ivar)
+{
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement") && varAppears(x$write, vs)){
             index_args = rstatic::get_index(x)

@@ -1,9 +1,16 @@
 # Testing code for forLoop.R
 
-library(rstatic)
-library(CodeDepends)
-library(testthat)
-source("../R/forLoop.R")
+
+if(FALSE)
+{
+
+    # For development
+    library(rstatic)
+    library(CodeDepends)
+    library(testthat)
+    source("../R/forLoop.R")
+
+}
 
 l0 = quote(
     for(i in 1:n){
