@@ -112,13 +112,13 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
 
     if(checkIterator && 0 < length(global_updates)){
         iterator = forloop$iterator
-        if(is("Symbol", iterator)){
+        if(is(iterator, "Symbol")){
             return(list(
                 parallel = FALSE
                 , reason = sprintf("cannot be sure that the variable `%s` being looped over contains unique values", iterator$value)
                 , reasonCode = "ITERATOR_FREE_VAR"
             ))
-        } else if(is("Call", iterator)) {
+        } else if(is(iterator, "Call")) {
             if(!(iterator$fn$value %in% uniqueFuncs)){
             return(list(
                 parallel = FALSE
