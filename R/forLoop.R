@@ -251,5 +251,36 @@ p8b = parLoop(l8, checkIterator = TRUE)
 expect_false(p8b[["parallel"]])
 
 
+l9 = quote(
+    for(i in x){
+        y[, i] = foo()
+    }
+)
+p9 = parLoop(l9)
+expect_true(p9[["parallel"]])
+
+
+l10 = quote(
+    for(i in x){
+        y[i, i] = foo()
+    }
+)
+p10 = parLoop(l10)
+expect_true(p10[["parallel"]])
+
+
+# This case is more subtle.
+# We know it can be parallelized because the ith iteration of the loop can only write into the ith row.
+# Therefore it does not matter what the remaining indices are.
+l11 = quote(
+    for(i in x){
+        y[i, foo(i)] = bar()
+    }
+)
+p11 = parLoop(l11)
+expect_true(p11[["parallel"]])
+
+
+
 
 }
