@@ -29,15 +29,15 @@ findAssignsOverVar = function(node, vs){
 # Find those nodes that update based strictly on the value of the iterator variable
 #
 # @param vs rstatic Symbol to search for
-# @param iter_var rstatic Symbol iterator variable: the j in for(j in ...)
-findUpdatesVarWithIterVar = function(node, vs, iter_var){
+# @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
+findUpdatesVarWithIterVar = function(node, vs, ivar){
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement") && x$write == vs){
             index_args = rstatic::get_index(x)
-            index_same_as_iter_var = sapply(index_args, `==`, iter_var)
+            index_same_as_ivar = sapply(index_args, `==`, ivar)
 
             # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
-            if(any(index_same_as_iter_var)){
+            if(any(index_same_as_ivar)){
                 return(TRUE)
             }
         }
@@ -69,7 +69,7 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
 
     forloop = rstatic::to_ast(forloop)
     body = forloop$body
-    var = forloop$variable
+    ivar = forloop$variable
 
     if(!is(forloop, "For")){
         stop("Not a for loop.")
@@ -87,10 +87,10 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
         ))
     }
 
-    if(var$value %in% changed){
+    if(ivar$value %in% changed){
         return(list(
             result = FALSE
-            , reason = sprintf("iteration variable %s is changed within the body of the loop", var$value)
+            , reason = sprintf("iteration variable %s is changed within the body of the loop", ivar$value)
             , reasonCode = "ITERATION_VAR_CHANGE"
         ))
         # This would be OK if the loop body does not subsequently use the iterator variable in a subset assignment.
@@ -101,7 +101,7 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
     global_updates = intersect(deps@inputs, deps@updates)
 
     for(v in global_updates){
-        tmp = checkVariableDependency(v, body)
+        tmp = checkVariableDependency(v, body, ivar)
         if(!tmp[["result"]]){
             return(tmp)
         }
@@ -155,7 +155,7 @@ checkUnique = function(iterator, uniqueFuncs)
 }
 
 
-checkVariableDependency = function(v, body)
+checkVariableDependency = function(v, body, ivar)
 {
     vs = rstatic::Symbol$new(v)
     assigns_over_var = findAssignsOverVar(body, vs)
@@ -168,7 +168,7 @@ checkVariableDependency = function(v, body)
     }
 
     all_updates = findAllUpdates(body, vs)
-    ok_updates = findUpdatesVarWithIterVar(body, vs, var)
+    ok_updates = findUpdatesVarWithIterVar(body, vs, ivar)
     bad_updates = setdiff(all_updates, ok_updates)
     if(0 < length(bad_updates)){
         bad_up = body[[bad_updates[[1L]]]]
