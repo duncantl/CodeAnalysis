@@ -23,9 +23,6 @@ p1 = checkParLoop(l1)
 expect_false(p1[["result"]])
 
 
-
-if(FALSE){
-# Known failure
 l2 = quote(
     for(i in 1:n){
         names(x)[i] = names(y)[i]
@@ -33,7 +30,15 @@ l2 = quote(
 )
 p2 = checkParLoop(l2)
 expect_true(p2[["result"]])
-}
+
+
+l2b = quote(
+    for(i in 1:n){
+        names(x)[foo(i)] = bar()
+    }
+)
+p2b = checkParLoop(l2b)
+expect_false(p2b[["result"]])
 
 
 l3 = quote(

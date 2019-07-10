@@ -14,7 +14,7 @@
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
 findAllUpdates = function(node, vs){
-    rstatic::find_nodes(node, function(x) is(x, "Replacement") && x$write == vs)
+    rstatic::find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
 }
 
 
@@ -26,13 +26,20 @@ findAssignsOverVar = function(node, vs){
 }
 
 
+# Search starting from node for a usage of var
+varAppears = function(node, var){
+    finds = rstatic::find_nodes(node, `==`, var)
+    0 < length(finds)
+}
+
+
 # Find those nodes that update based strictly on the value of the iterator variable
 #
 # @param vs rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
 findUpdatesVarWithIterVar = function(node, vs, ivar){
     rstatic::find_nodes(node, function(x){
-        if(is(x, "Replacement") && x$write == vs){
+        if(is(x, "Replacement") && varAppears(x$write, vs)){
             index_args = rstatic::get_index(x)
             index_same_as_ivar = sapply(index_args, `==`, ivar)
 
@@ -52,7 +59,7 @@ findUpdatesVarWithIterVar = function(node, vs, ivar){
 #'
 #' A loop can be made parallel if the order of the iterations do not matter.
 #' A loop is not parallel if it has a true dependency on loop iterations.
-#' There might be many things that stop a loop from being parallel.
+#' There are several possible ways for a dependency to come up.
 #' This functions stops and returns as soon as it finds one reason.
 #' The design errs on the side of being conservative; if it's not clear whether a loop is parallel or not, it will say that it is not.
 #'
