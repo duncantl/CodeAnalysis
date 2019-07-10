@@ -1,3 +1,6 @@
+# Testing code is in tests/test_forLoop.R
+
+
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
 find_all_updates = function(node, vs){
@@ -13,16 +16,20 @@ find_assigns_over_var = function(node, vs){
 }
 
 
+# Find those nodes that update based strictly on the value of the iterator variable
+#
 # @param vs rstatic Symbol to search for
 # @param iter_var rstatic Symbol iterator variable: the j in for(j in ...)
 find_updates_var_with_iter_var = function(node, vs, iter_var){
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement") && x$write == vs){
-            # TODO: Write tests and generalize this to matrices and higher dimensional arrays, x[, i] = ...
+            # If it's a multidimensional array and any of the subscripts are the same as the iteration variable then it doesn't matter what the rest of the subscripts are.
 
-            # This is the subset argument i as in x[i] = ...
-            i = x$read$args$contents[[2L]]
-            if(i == iter_var){
+            args = x$read$args$contents
+            index_args = args[-c(1L, length(args))]
+            index_same_as_iter_var = sapply(index_args, `==`, iter_var)
+
+            if(any(index_same_as_iter_var)){
                 return(TRUE)
             }
         }
@@ -73,14 +80,14 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
     }
 
     if(var$value %in% changed){
-        # This would be OK if the loop body does not subsequently use the iterator variable in a subset assignment.
-        # In that case it can be fixed by renaming the variable.
-        # Indeed, there's really never any reason to redefine the iteration variable rather than just use a new variable.
         return(list(
             parallel = FALSE
             , reason = sprintf("iteration variable %s is changed within the body of the loop", var$value)
             , reasonCode = "ITERATION_VAR_CHANGE"
         ))
+        # This would be OK if the loop body does not subsequently use the iterator variable in a subset assignment.
+        # In that case it can be fixed by renaming the variable.
+        # Indeed, there's really never any reason to redefine the iteration variable rather than just use a new variable.
     }
 
     global_updates = intersect(deps@inputs, deps@updates)
@@ -141,146 +148,4 @@ parLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "
         , reason = "passed all tests for loop carried dependencies"
         , reasonCode = "PASS_TEST"
     ))
-
-}
-
-
-
-if(FALSE){
-# Testing code
-
-library(rstatic)
-library(CodeDepends)
-library(testthat)
-source("forLoop.R")
-
-l0 = quote(
-    for(i in 1:n){
-        foo(i)
-    }
-)
-p0 = parLoop(l0)
-stopifnot(p0[["parallel"]])
-
-
-l1 = quote(
-    for(i in 1:n){
-        x = foo(x)
-    }
-)
-p1 = parLoop(l1)
-expect_false(p1[["parallel"]])
-
-
-
-if(FALSE){
-# Known failure
-l2 = quote(
-    for(i in 1:n){
-        names(x)[i] = names(y)[i]
-    }
-)
-p2 = parLoop(l2)
-expect_true(p2[["parallel"]])
-}
-
-
-l3 = quote(
-    for(i in 1:n){
-        x[i] = foo(x[i])
-        y[i] = bar()
-    }
-)
-p3 = parLoop(l3)
-expect_true(p3[["parallel"]])
-
-p3b = parLoop(l3, checkIterator = TRUE)
-expect_true(p3b[["parallel"]])
-
-
-l4 = quote(
-    for(i in x){
-        tmp = foo()
-        f(tmp, i)
-    }
-)
-p4 = parLoop(l4)
-expect_true(p4[["parallel"]])
-
-p4b = parLoop(l4, checkIterator = TRUE)
-expect_true(p4[["parallel"]])
-
-
-l5 = quote(
-    for(i in x){
-        tmp = y[i]
-        z[tmp] = foo()
-    }
-)
-p5 = parLoop(l5)
-expect_false(p5[["parallel"]])
-
-
-l6 = quote(
-    for(i in x){
-        i = 1
-        y[i] = foo()
-    }
-)
-p6 = parLoop(l6)
-expect_false(p6[["parallel"]])
-
-
-l7 = quote(
-    for(i in x){
-        y[i %% k] = foo(y[i %% k])
-    }
-)
-p7 = parLoop(l7)
-expect_false(p7[["parallel"]])
-
-l8 = quote(
-    for(i in x){
-        y[i] = foo(y[i])
-    }
-)
-p8 = parLoop(l8)
-expect_true(p8[["parallel"]])
-
-p8b = parLoop(l8, checkIterator = TRUE)
-expect_false(p8b[["parallel"]])
-
-
-l9 = quote(
-    for(i in x){
-        y[, i] = foo()
-    }
-)
-p9 = parLoop(l9)
-expect_true(p9[["parallel"]])
-
-
-l10 = quote(
-    for(i in x){
-        y[i, i] = foo()
-    }
-)
-p10 = parLoop(l10)
-expect_true(p10[["parallel"]])
-
-
-# This case is more subtle.
-# We know it can be parallelized because the ith iteration of the loop can only write into the ith row.
-# Therefore it does not matter what the remaining indices are.
-l11 = quote(
-    for(i in x){
-        y[i, foo(i)] = bar()
-    }
-)
-p11 = parLoop(l11)
-expect_true(p11[["parallel"]])
-
-
-
-
 }
