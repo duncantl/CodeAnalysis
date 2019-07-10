@@ -5,7 +5,7 @@
 # find* returns a list of rstatic nodes that match a particular condition, following the convention of rstatic::find_nodes
 #
 # check* returns a list with the following elements:
-#'      - pass (logical) did the check pass?
+#'      - result (logical) did the check pass?
 #'      - reason (character) human readable message for why the code did or did not pass
 #'      - reasonCode (character) short version of reason, for programming
 
@@ -33,7 +33,7 @@ findAssignsOverVar = function(node, vs){
 findUpdatesVarWithIterVar = function(node, vs, iter_var){
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement") && x$write == vs){
-            index_args = get_index(x)
+            index_args = rstatic::get_index(x)
             index_same_as_iter_var = sapply(index_args, `==`, iter_var)
 
             # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
@@ -61,7 +61,7 @@ findUpdatesVarWithIterVar = function(node, vs, iter_var){
 #'      This should be TRUE if you really want to be sure that the loop is parallelizable.
 #' @param uniqueFuncs names of functions that will produce unique values.
 #' @return list with the following elements:
-#'      - pass (logical) can the for loop be parallel?
+#'      - result (logical) can the for loop be parallel?
 #'      - reason (character) human readable message for why the loop is or is not parallel
 #'      - reasonCode (character) short version of reason, for programming
 checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
@@ -78,10 +78,10 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
     deps = CodeDepends::getInputs(as_language(body))
     changed = c(deps@outputs, deps@updates)
 
-    # The easy way out.
+    # The easy way out
     if(length(changed) == 0){
         return(list(
-            pass = TRUE
+            result = TRUE
             , reason = "loop does not define or update any variables"
             , reasonCode = "NO_CHANGE"
         ))
@@ -89,7 +89,7 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
 
     if(var$value %in% changed){
         return(list(
-            pass = FALSE
+            result = FALSE
             , reason = sprintf("iteration variable %s is changed within the body of the loop", var$value)
             , reasonCode = "ITERATION_VAR_CHANGE"
         ))
@@ -102,20 +102,20 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
 
     for(v in global_updates){
         tmp = checkVariableDependency(v, body)
-        if(!tmp[["pass"]]){
+        if(!tmp[["result"]]){
             return(tmp)
         }
     }
 
     if(checkIterator && 0 < length(global_updates)){
         tmp = checkUnique(forloop$iterator, uniqueFuncs)
-        if(!tmp[["pass"]]){
+        if(!tmp[["result"]]){
             return(tmp)
         }
     }
 
     return(list(
-        pass = TRUE
+        result = TRUE
         , reason = "passed all tests for loop carried dependencies / parallel loop iterations"
         , reasonCode = "PASS_PARALLEL"
     ))
@@ -127,14 +127,14 @@ checkUnique = function(iterator, uniqueFuncs)
 {
     if(is(iterator, "Symbol")){
         return(list(
-            pass = FALSE
+            result = FALSE
             , reason = sprintf("cannot be sure that the variable `%s` being looped over contains unique values", iterator$value)
             , reasonCode = "ITERATOR_FREE_VAR"
         ))
     } else if(is(iterator, "Call")) {
         if(!(iterator$fn$value %in% uniqueFuncs)){
         return(list(
-            pass = FALSE
+            result = FALSE
             , reason = sprintf("the iterator is a call to the function `%s`, which may not produce unique values", iterator$fn$value)
             , reasonCode = "ITERATOR_UNKNOWN_FUNC"
         ))
@@ -142,13 +142,13 @@ checkUnique = function(iterator, uniqueFuncs)
     } else {
         iter_msg = deparse(as_language(iterator))
         return(list(
-            pass = FALSE
+            result = FALSE
             , reason = sprintf("iterator `%s` is not a symbol or a call", iter_msg)
             , reasonCode = "ITERATOR_UNKNOWN"
         ))
     }
     list(
-        pass = TRUE
+        result = TRUE
         , reason = "passed tests for uniqueness"
         , reasonCode = "PASS_UNIQUE"
     )
@@ -161,7 +161,7 @@ checkVariableDependency = function(v, body)
     assigns_over_var = findAssignsOverVar(body, vs)
     if(0 < length(assigns_over_var)){
         return(list(
-            pass = FALSE
+            result = FALSE
             , reason = sprintf("read after write dependency on variable `%s`", v)
             , reasonCode = "RAW"
         ))
@@ -174,13 +174,13 @@ checkVariableDependency = function(v, body)
         bad_up = body[[bad_updates[[1L]]]]
         bad_up_msg = deparse(as_language(bad_up))
         return(list(
-            pass = FALSE
+            result = FALSE
             , reason = sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop: %s", v, bad_up_msg)
             , reasonCode = "COMPLEX_UPDATE"
         ))
     }
     list(
-        pass = TRUE
+        result = TRUE
         , reason = "passed variable dependency tests"
         , reasonCode = "PASS_DEPENDENCY"
     )

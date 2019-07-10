@@ -3,15 +3,15 @@
 library(rstatic)
 library(CodeDepends)
 library(testthat)
-source("forLoop.R")
+source("../R/forLoop.R")
 
 l0 = quote(
     for(i in 1:n){
         foo(i)
     }
 )
-p0 = parLoop(l0)
-stopifnot(p0[["parallel"]])
+p0 = checkParLoop(l0)
+stopifnot(p0[["result"]])
 
 
 l1 = quote(
@@ -19,8 +19,8 @@ l1 = quote(
         x = foo(x)
     }
 )
-p1 = parLoop(l1)
-expect_false(p1[["parallel"]])
+p1 = checkParLoop(l1)
+expect_false(p1[["result"]])
 
 
 
@@ -31,8 +31,8 @@ l2 = quote(
         names(x)[i] = names(y)[i]
     }
 )
-p2 = parLoop(l2)
-expect_true(p2[["parallel"]])
+p2 = checkParLoop(l2)
+expect_true(p2[["result"]])
 }
 
 
@@ -42,11 +42,11 @@ l3 = quote(
         y[i] = bar()
     }
 )
-p3 = parLoop(l3)
-expect_true(p3[["parallel"]])
+p3 = checkParLoop(l3)
+expect_true(p3[["result"]])
 
-p3b = parLoop(l3, checkIterator = TRUE)
-expect_true(p3b[["parallel"]])
+p3b = checkParLoop(l3, checkIterator = TRUE)
+expect_true(p3b[["result"]])
 
 
 l4 = quote(
@@ -55,11 +55,11 @@ l4 = quote(
         f(tmp, i)
     }
 )
-p4 = parLoop(l4)
-expect_true(p4[["parallel"]])
+p4 = checkParLoop(l4)
+expect_true(p4[["result"]])
 
-p4b = parLoop(l4, checkIterator = TRUE)
-expect_true(p4[["parallel"]])
+p4b = checkParLoop(l4, checkIterator = TRUE)
+expect_true(p4[["result"]])
 
 
 l5 = quote(
@@ -68,8 +68,8 @@ l5 = quote(
         z[tmp] = foo()
     }
 )
-p5 = parLoop(l5)
-expect_false(p5[["parallel"]])
+p5 = checkParLoop(l5)
+expect_false(p5[["result"]])
 
 
 l6 = quote(
@@ -78,8 +78,8 @@ l6 = quote(
         y[i] = foo()
     }
 )
-p6 = parLoop(l6)
-expect_false(p6[["parallel"]])
+p6 = checkParLoop(l6)
+expect_false(p6[["result"]])
 
 
 l7 = quote(
@@ -87,19 +87,19 @@ l7 = quote(
         y[i %% k] = foo(y[i %% k])
     }
 )
-p7 = parLoop(l7)
-expect_false(p7[["parallel"]])
+p7 = checkParLoop(l7)
+expect_false(p7[["result"]])
 
 l8 = quote(
     for(i in x){
         y[i] = foo(y[i])
     }
 )
-p8 = parLoop(l8)
-expect_true(p8[["parallel"]])
+p8 = checkParLoop(l8)
+expect_true(p8[["result"]])
 
-p8b = parLoop(l8, checkIterator = TRUE)
-expect_false(p8b[["parallel"]])
+p8b = checkParLoop(l8, checkIterator = TRUE)
+expect_false(p8b[["result"]])
 
 
 l9 = quote(
@@ -107,8 +107,8 @@ l9 = quote(
         y[, i] = foo()
     }
 )
-p9 = parLoop(l9)
-expect_true(p9[["parallel"]])
+p9 = checkParLoop(l9)
+expect_true(p9[["result"]])
 
 
 l10 = quote(
@@ -116,8 +116,8 @@ l10 = quote(
         y[i, i] = foo()
     }
 )
-p10 = parLoop(l10)
-expect_true(p10[["parallel"]])
+p10 = checkParLoop(l10)
+expect_true(p10[["result"]])
 
 
 # This case is more subtle.
@@ -128,5 +128,5 @@ l11 = quote(
         y[i, foo(i)] = bar()
     }
 )
-p11 = parLoop(l11)
-expect_true(p11[["parallel"]])
+p11 = checkParLoop(l11)
+expect_true(p11[["result"]])
