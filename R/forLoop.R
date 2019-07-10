@@ -33,12 +33,10 @@ findAssignsOverVar = function(node, vs){
 findUpdatesVarWithIterVar = function(node, vs, iter_var){
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement") && x$write == vs){
-            # If it's a multidimensional array and any of the subscripts are the same as the iteration variable then it doesn't matter what the rest of the subscripts are.
-
-            args = x$read$args$contents
-            index_args = args[-c(1L, length(args))]
+            index_args = get_index(x)
             index_same_as_iter_var = sapply(index_args, `==`, iter_var)
 
+            # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
             if(any(index_same_as_iter_var)){
                 return(TRUE)
             }
