@@ -2,6 +2,12 @@
 library(CodeAnalysis)
 library(testthat)
 
+# Doesn't currently handle:
+# - nested loops
+# - this case of assigning into a constant:
+#       for(i in 1:n) x[foo(i)] = 100
+#   Too unusual, I didn't bother to implement it.
+
 
 if(FALSE)
 {
