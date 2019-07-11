@@ -1,4 +1,6 @@
 # Testing code for forLoop.R
+library(CodeAnalysis)
+library(testthat)
 
 
 if(FALSE)
@@ -7,7 +9,6 @@ if(FALSE)
     # For development
     library(rstatic)
     library(CodeDepends)
-    library(testthat)
     source("../R/forLoop.R")
 
 }
@@ -132,6 +133,15 @@ p10 = checkParLoop(l10)
 expect_true(p10[["result"]])
 
 
+l10b = quote(
+    for(i in x){
+        y[foo(i), bar(i)] = foobar()
+    }
+)
+p10b = checkParLoop(l10b)
+expect_false(p10b[["result"]])
+
+
 # This case is more subtle.
 # We know it can be parallelized because the ith iteration of the loop can only write into the ith row.
 # Therefore it does not matter what the remaining indices are.
@@ -142,5 +152,3 @@ l11 = quote(
 )
 p11 = checkParLoop(l11)
 expect_true(p11[["result"]])
-
-

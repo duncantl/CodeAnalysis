@@ -98,7 +98,7 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
         stop("Not a for loop.")
     }
 
-    deps = CodeDepends::getInputs(as_language(body))
+    deps = CodeDepends::getInputs(rstatic::as_language(body))
     changed = c(deps@outputs, deps@updates)
 
     # The easy way out
@@ -163,7 +163,7 @@ checkUnique = function(iterator, uniqueFuncs)
         ))
         }
     } else {
-        iter_msg = deparse(as_language(iterator))
+        iter_msg = deparse(rstatic::as_language(iterator))
         return(list(
             result = FALSE
             , reason = sprintf("iterator `%s` is not a symbol or a call", iter_msg)
@@ -195,7 +195,7 @@ checkVariableDependency = function(v, body, ivar)
     bad_updates = setdiff(all_updates, ok_updates)
     if(0 < length(bad_updates)){
         bad_up = body[[bad_updates[[1L]]]]
-        bad_up_msg = deparse(as_language(bad_up))
+        bad_up_msg = deparse(rstatic::as_language(bad_up))
         return(list(
             result = FALSE
             , reason = sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop: %s", v, bad_up_msg)
