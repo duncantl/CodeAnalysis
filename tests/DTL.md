@@ -102,3 +102,26 @@ d3 = quote(        for(i in 1:n.qtl) {
         })
 
 So definitely not clear that model[i,j] is unique across iterations.
+
+
+
+
+
+checkParLoop() doesn't get this right.
+It says 
+*variable `buildOut` is assigned to using an index which is not the iterator variable in the loop:
+buildOut[[i]] = tmpSeed"*
+
+e = quote(for (i in 1:max(ctrl$seed)) {
+    ind <- ctrl$aID[ctrl$seed == i]
+    buildSeed <- list()
+    for (j in seq_along(ind)) {
+        print(ind[j])
+        fileIn <- list.files("./", pattern = paste0("_", ind[j],
+            ".rds"), full.names = T)
+        tmp <- readRDS(fileIn)
+        buildSeed[[j]] <- tmp
+    }
+    tmpSeed <- do.call(cbind.data.frame, buildSeed)
+    buildOut[[i]] <- tmpSeed
+})
