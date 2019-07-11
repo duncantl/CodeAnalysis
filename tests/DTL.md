@@ -17,7 +17,8 @@ u = unique(y[x])
 z[u] = const
 ```
   
-  
+CF: If we pull out the loop invariants, then yes, it can be parallel.
+
   
   
 l6 = quote(
@@ -30,6 +31,10 @@ Ultimately, we want to reduce this to
 ```
 y[1] = foo()
 ```
+
+CF: Yes, we could make these changes statically.
+  But who actually writes such code?
+
 
 ```
 l7 = quote(
@@ -44,6 +49,32 @@ Again, we can reduce this to
 u = unique(x %% k)
 y[u] = foo(y[u])
 ```
+
+CF: This code transformation is only valid if i < k for all iterations.
+    If i < k, then there's no reason to do i %% k.
+    Generally there's a true loop dependency here, for example:
+```{r}
+n = 25
+k = 10
+y = rep(0, k)
+x = seq(n)
+x[x %% k == 0] = 1
+foo = function(z) z + 1
+for(i in x){
+    y[i %% k] = foo(y[i %% k])
+}
+> y
+ [1] 5 3 3 3 3 2 2 2 2 0
+
+y2 = rep(0, k)
+u = unique(x %% k)
+y2[u] = foo(y2[u])
+> y2
+ [1] 1 1 1 1 1 1 1 1 1 0
+```
+
+
+
 
 
 Let's elevate the diagnosis here to the more general "what are you doing changing the iterator
@@ -81,6 +112,7 @@ d2 = quote(for(i in 1:nchr(cross))
 So we need to broaden the criteria and analysis.
 I think we need a predicate that says "only operates on the i-th element"
 
+CF: Yes, this sounds good. Maybe "only modifies the i-th element".
 
 
 d3 = quote(        for(i in 1:n.qtl) {

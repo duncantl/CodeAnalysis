@@ -47,6 +47,7 @@ l2 = quote(
 # More important, the i-th iteration doesn't depend on any other iteration
 # That is the key we are looking for.
 # ANd names(y)[i] doesn't depend on any other itartion.
+# CF: Agree
 p2 = checkParLoop(l2)
 expect_true(p2[["result"]])
 
@@ -57,6 +58,12 @@ l2b = quote(
     }
     )
 #DTL: Again, I think this is too conservative/restrictive.
+# CF: If we know that bar() will always return the same thing, then yes, it can be parallel.
+#   Or if we know that:
+#           1 < foo(i + 1) - foo(i) 
+#   then yes, it can be parallel.
+#   But without those assumptions it could happen that foo(i) = 1 for all i and bar() cycles through `letters`.
+#   Then we don't know if the final name should be "a" or "z".
 p2b = checkParLoop(l2b)
 expect_false(p2b[["result"]])
 
@@ -68,6 +75,7 @@ l3 = quote(
     }
     )
 # Again, the i-th iteration is independent of any other.
+# CF: Agree
 p3 = checkParLoop(l3)
 expect_true(p3[["result"]])
 
@@ -126,6 +134,7 @@ l8 = quote(
     )
 #DTL: This looks too conservative. the i-th element of the result depends on the i-th element of y.
 # Same as above - x and y are probably parallel vectors.
+# CF: Agree
 p8 = checkParLoop(l8)
 expect_true(p8[["result"]])
 
@@ -140,6 +149,7 @@ l9 = quote(
     )
 # DTL: Again, this is the i-th iteration doesn't depend on any other iteration.
 p9 = checkParLoop(l9)
+# CF: Agree
 expect_true(p9[["result"]])
 
 
@@ -149,6 +159,7 @@ l10 = quote(
     }
     )
 #DTL: Again, I think it is TRUE. i-th iteration only depends on i-th iteration.
+# CF: Agree
 p10 = checkParLoop(l10)
 expect_true(p10[["result"]])
 
@@ -173,3 +184,56 @@ l11 = quote(
 # DTL: Nice one!
 p11 = checkParLoop(l11)
 expect_true(p11[["result"]])
+
+
+# From QTL/simulate.R 
+l12 = quote(
+    for(i in 1:nchr(cross)) {
+        o <- grep("^QTL[0-9]+", colnames(cross$geno[[i]]$data))
+        if(length(o) != 0) {
+            qtlgeno <- cbind(qtlgeno, cross$geno[[i]]$data[,o,drop=FALSE])
+            cross$geno[[i]]$data <- cross$geno[[i]]$data[,-o,drop=FALSE]
+            if(is.matrix(cross$geno[[i]]$map))
+                cross$geno[[i]]$map <- cross$geno[[i]]$map[,-o,drop=FALSE]
+            else
+                cross$geno[[i]]$map <- cross$geno[[i]]$map[-o]
+        }
+    })
+p12 = checkParLoop(l12)
+
+
+d2 = quote(for(i in 1:nchr(cross))
+        storage.mode(cross$geno[[i]]$data) <- "integer")
+
+d3 = quote(        for(i in 1:n.qtl) {
+            temp <- map[[model[i,1]]]
+            if(model[i,2] < min(temp)) {
+                temp <- c(model[i,2],temp)
+                names(temp)[1] <- paste("QTL",i,sep="")
+            }
+            else if(model[i,2] > max(temp)) {
+                temp <- c(temp,model[i,2])
+                names(temp)[length(temp)] <- paste("QTL",i,sep="")
+            }
+            else {
+                j <- max((seq(along=temp))[temp < model[i,2]])
+                temp <- c(temp[1:j],model[i,2],temp[(j+1):length(temp)])
+                names(temp)[j+1] <- paste("QTL",i,sep="")
+            }
+            map[[model[i,1]]] <- temp
+        })
+
+
+e = quote(for (i in 1:max(ctrl$seed)) {
+    ind <- ctrl$aID[ctrl$seed == i]
+    buildSeed <- list()
+    for (j in seq_along(ind)) {
+        print(ind[j])
+        fileIn <- list.files("./", pattern = paste0("_", ind[j],
+            ".rds"), full.names = T)
+        tmp <- readRDS(fileIn)
+        buildSeed[[j]] <- tmp
+    }
+    tmpSeed <- do.call(cbind.data.frame, buildSeed)
+    buildOut[[i]] <- tmpSeed
+})
