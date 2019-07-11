@@ -2,12 +2,15 @@
 #
 # Convention of these functions:
 #
-# find* returns a list of rstatic nodes that match a particular condition, following the convention of rstatic::find_nodes
+# find* functions return a list of rstatic nodes that match a particular condition, following the convention of rstatic::find_nodes
 #
-# check* returns a list with the following elements:
-#'      - result (logical) did the check pass?
-#'      - reason (character) human readable message for why the code did or did not pass
-#'      - reasonCode (character) short version of reason, for programming
+# check* functions return a list with the following elements:
+#      - result (logical) did the check pass?
+#      - reason (character) human readable message for why the code did or did not pass
+#      - reasonCode (character) short version of reason, for programming
+#
+# Alternatively, I considered tacking reason, reasonCode on as attributes on to a logical.
+# I decided against it because 
 
 
 
@@ -33,10 +36,10 @@ varAppears = function(node, var)
 {
     # Nick might be interested in this.
     # I'm using findNodes within another findNodes, and it seems to work fine.
-    # It doesn't make any sense for find_nodes to return value for leaf nodes of the AST, i.e. symbols and literals, because we cannot index into them.
-    # It would be nice to check whether we're at a leaf here.
-    # As it currently stands, I think I wrote a hidden bug because I'm not checking for literals (can anything else can be a leaf?)
     if(is(node, "Symbol")){
+        # It doesn't make any sense for find_nodes to return value for leaf nodes of the AST, i.e. symbols and literals, because we cannot index into them.
+        # It would be nice to check whether we're at a leaf here.
+        # As it currently stands, I think I wrote a hidden bug because I'm not checking for literals (can anything else can be a leaf?)
         node == var
     } else {
         finds = rstatic::find_nodes(node, `==`, var)
