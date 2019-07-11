@@ -41,7 +41,12 @@ l2 = quote(
     for(i in 1:n){
         names(x)[i] = names(y)[i]
     }
-)
+    )
+#DTL:  I think this is probably parallelizable. and so FALSE is not correct.
+# If we knew x and y were same-length/parallel vectors, then this parallelizable.
+# More important, the i-th iteration doesn't depend on any other iteration
+# That is the key we are looking for.
+# ANd names(y)[i] doesn't depend on any other itartion.
 p2 = checkParLoop(l2)
 expect_true(p2[["result"]])
 
@@ -50,7 +55,8 @@ l2b = quote(
     for(i in 1:n){
         names(x)[foo(i)] = bar()
     }
-)
+    )
+#DTL: Again, I think this is too conservative/restrictive.
 p2b = checkParLoop(l2b)
 expect_false(p2b[["result"]])
 
@@ -60,7 +66,8 @@ l3 = quote(
         x[i] = foo(x[i])
         y[i] = bar()
     }
-)
+    )
+# Again, the i-th iteration is independent of any other.
 p3 = checkParLoop(l3)
 expect_true(p3[["result"]])
 
@@ -86,7 +93,8 @@ l5 = quote(
         tmp = y[i]
         z[tmp] = foo()
     }
-)
+    )
+# See DTL.md
 p5 = checkParLoop(l5)
 expect_false(p5[["result"]])
 
@@ -96,7 +104,8 @@ l6 = quote(
         i = 1
         y[i] = foo()
     }
-)
+    )
+# See DTL.md
 p6 = checkParLoop(l6)
 expect_false(p6[["result"]])
 
@@ -105,7 +114,8 @@ l7 = quote(
     for(i in x){
         y[i %% k] = foo(y[i %% k])
     }
-)
+    )
+#See DTL.md
 p7 = checkParLoop(l7)
 expect_false(p7[["result"]])
 
@@ -113,7 +123,9 @@ l8 = quote(
     for(i in x){
         y[i] = foo(y[i])
     }
-)
+    )
+#DTL: This looks too conservative. the i-th element of the result depends on the i-th element of y.
+# Same as above - x and y are probably parallel vectors.
 p8 = checkParLoop(l8)
 expect_true(p8[["result"]])
 
@@ -125,7 +137,8 @@ l9 = quote(
     for(i in x){
         y[, i] = foo()
     }
-)
+    )
+# DTL: Again, this is the i-th iteration doesn't depend on any other iteration.
 p9 = checkParLoop(l9)
 expect_true(p9[["result"]])
 
@@ -134,7 +147,8 @@ l10 = quote(
     for(i in x){
         y[i, i] = foo()
     }
-)
+    )
+#DTL: Again, I think it is TRUE. i-th iteration only depends on i-th iteration.
 p10 = checkParLoop(l10)
 expect_true(p10[["result"]])
 
@@ -155,6 +169,7 @@ l11 = quote(
     for(i in x){
         y[i, foo(i)] = bar()
     }
-)
+    )
+# DTL: Nice one!
 p11 = checkParLoop(l11)
 expect_true(p11[["result"]])

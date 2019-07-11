@@ -1,0 +1,104 @@
+
+
+l5 = quote(
+    for(i in x){
+        tmp = y[i]
+        z[tmp] = foo()
+    }
+)
+p5 = checkParLoop(l5)
+
+This amounts to 
+  z[y[i]] = foo()
+And one can do
+```
+const = foo()
+u = unique(y[x])
+z[u] = const
+```
+  
+  
+  
+  
+l6 = quote(
+    for(i in x){
+        i = 1
+        y[i] = foo()
+    }
+)
+Ultimately, we want to reduce this to 
+```
+y[1] = foo()
+```
+
+```
+l7 = quote(
+    for(i in x){
+        y[i %% k] = foo(y[i %% k])
+    }
+)
+```
+
+Again, we can reduce this to
+```
+u = unique(x %% k)
+y[u] = foo(y[u])
+```
+
+
+Let's elevate the diagnosis here to the more general "what are you doing changing the iterator
+variable"
+If it is `i = fun(i)`, that might be okay depending on how i is used later.
+
+
+
+
+
+
+From QTL/simulate.R 
+quote(
+    for(i in 1:nchr(cross)) {
+        o <- grep("^QTL[0-9]+", colnames(cross$geno[[i]]$data))
+        if(length(o) != 0) {
+            qtlgeno <- cbind(qtlgeno, cross$geno[[i]]$data[,o,drop=FALSE])
+            cross$geno[[i]]$data <- cross$geno[[i]]$data[,-o,drop=FALSE]
+            if(is.matrix(cross$geno[[i]]$map))
+                cross$geno[[i]]$map <- cross$geno[[i]]$map[,-o,drop=FALSE]
+            else
+                cross$geno[[i]]$map <- cross$geno[[i]]$map[-o]
+        }
+    })
+	
+This says not parloop. But this is setting the i-th element and only the i-th
+element in the loop.
+
+d2 = quote(for(i in 1:nchr(cross))
+        storage.mode(cross$geno[[i]]$data) <- "integer")
+
++ Again, should be TRUE since just the i-th element.
++ This is an fun<- call which is interesting and challenging
+
+So we need to broaden the criteria and analysis.
+I think we need a predicate that says "only operates on the i-th element"
+
+
+
+d3 = quote(        for(i in 1:n.qtl) {
+            temp <- map[[model[i,1]]]
+            if(model[i,2] < min(temp)) {
+                temp <- c(model[i,2],temp)
+                names(temp)[1] <- paste("QTL",i,sep="")
+            }
+            else if(model[i,2] > max(temp)) {
+                temp <- c(temp,model[i,2])
+                names(temp)[length(temp)] <- paste("QTL",i,sep="")
+            }
+            else {
+                j <- max((seq(along=temp))[temp < model[i,2]])
+                temp <- c(temp[1:j],model[i,2],temp[(j+1):length(temp)])
+                names(temp)[j+1] <- paste("QTL",i,sep="")
+            }
+            map[[model[i,1]]] <- temp
+        })
+
+So definitely not clear that model[i,j] is unique across iterations.
