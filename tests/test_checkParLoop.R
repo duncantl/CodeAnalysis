@@ -15,7 +15,7 @@ if(FALSE)
     # For development
     library(rstatic)
     library(CodeDepends)
-    source("../R/forLoop.R")
+    source("../R/checkParLoop.R")
 
 }
 
