@@ -18,6 +18,7 @@ z[u] = const
 ```
   
 CF: If we pull out the loop invariants, then yes, it can be parallel.
+I think it would be best to first transform the code to remove the loop invariants, and then do these checks.
 
   
   

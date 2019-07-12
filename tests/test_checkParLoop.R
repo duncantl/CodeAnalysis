@@ -186,7 +186,8 @@ p11 = checkParLoop(l11)
 expect_true(p11[["result"]])
 
 
-# From QTL/simulate.R 
+# Examples 12 - 15 are from QTL/simulate.R 
+
 l12 = quote(
     for(i in 1:nchr(cross)) {
         o <- grep("^QTL[0-9]+", colnames(cross$geno[[i]]$data))
@@ -200,12 +201,13 @@ l12 = quote(
         }
     })
 p12 = checkParLoop(l12)
+expect_true(p12[["result"]])
 
 
-d2 = quote(for(i in 1:nchr(cross))
+l13 = quote(for(i in 1:nchr(cross))
         storage.mode(cross$geno[[i]]$data) <- "integer")
 
-d3 = quote(        for(i in 1:n.qtl) {
+l14 = quote(        for(i in 1:n.qtl) {
             temp <- map[[model[i,1]]]
             if(model[i,2] < min(temp)) {
                 temp <- c(model[i,2],temp)
@@ -224,7 +226,7 @@ d3 = quote(        for(i in 1:n.qtl) {
         })
 
 
-e = quote(for (i in 1:max(ctrl$seed)) {
+l15 = quote(for (i in 1:max(ctrl$seed)) {
     ind <- ctrl$aID[ctrl$seed == i]
     buildSeed <- list()
     for (j in seq_along(ind)) {

@@ -56,7 +56,7 @@ findUpdatesVarWithIterVar = function(node, vs, ivar)
 {
     rstatic::find_nodes(node, function(x){
         if(is(x, "Replacement") && varAppears(x$write, vs)){
-            index_args = rstatic::get_index(x)
+            index_args = rstatic::arg_index(x)
             index_same_as_ivar = sapply(index_args, `==`, ivar)
 
             # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
@@ -198,7 +198,7 @@ checkVariableDependency = function(v, body, ivar)
         bad_up_msg = deparse(rstatic::as_language(bad_up))
         return(list(
             result = FALSE
-            , reason = sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop: %s", v, bad_up_msg)
+            , reason = c(sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop:", v), bad_up_msg)
             , reasonCode = "COMPLEX_UPDATE"
         ))
     }
