@@ -48,6 +48,28 @@ varAppears = function(node, var)
 }
 
 
+# Predicate function for findModifiesVarWithIterVar
+# Duncan asked for this, and I realized that I've already written it.
+modifiesVarWithIterVar = function(node, v, ivar)
+{
+    if(is(node, "Replacement") && varAppears(node$write, v) ){
+        if(varAppears(node$write, ivar)){
+            # This case:
+            # x$foo$bar[[ivar]]$baz = ...
+            return(TRUE)
+        }
+        index_args = rstatic::arg_index(node)
+        index_same_as_ivar = sapply(index_args, `==`, ivar)
+
+        # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
+        if(any(index_same_as_ivar)){
+            return(TRUE)
+        }
+    }
+    FALSE
+}
+
+
 # Find those nodes that update based on the value of the iterator variable (ivar).
 # This means that ivar appears within a [ or [[ on the left hand side of the assignment operator, for example:
 #
@@ -55,22 +77,11 @@ varAppears = function(node, var)
 # x[, ivar] = ...
 # x$foo$bar[[ivar]]$baz = ...
 #
-# @param vs rstatic Symbol to search for
+# @param v rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
-findUpdatesVarWithIterVar = function(node, vs, ivar)
+findModifiesVarWithIterVar = function(node, v, ivar)
 {
-    rstatic::find_nodes(node, function(x){
-        if(is(x, "Replacement") && varAppears(x$write, vs) && varAppears(x$write, ivar)){
-#            index_args = rstatic::arg_index(x)
-#            index_same_as_ivar = sapply(index_args, `==`, ivar)
-#
-#            # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
-#            if(any(index_same_as_ivar)){
-#                return(TRUE)
-#            }
-            TRUE
-        } else FALSE
-    })
+    rstatic::find_nodes(node, modifiesVarWithIterVar, v, ivar)
 }
 
 
