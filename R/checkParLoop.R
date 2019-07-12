@@ -18,7 +18,7 @@
 # @param vs rstatic Symbol to search for
 findAllUpdates = function(node, vs)
 {
-    rstatic::find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
+    find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
 }
 
 
@@ -26,7 +26,7 @@ findAllUpdates = function(node, vs)
 # @param vs rstatic Symbol to search for
 findAssignsOverVar = function(node, vs)
 {
-    rstatic::find_nodes(node, function(x)
+    find_nodes(node, function(x)
         is(x, "Assign") && !is(x, "Replacement") && x$write == vs)
 }
 
@@ -42,7 +42,7 @@ varAppears = function(node, var)
         # As it currently stands, I think I wrote a hidden bug because I'm not checking for literals (can anything else can be a leaf?)
         node == var
     } else {
-        finds = rstatic::find_nodes(node, `==`, var)
+        finds = find_nodes(node, `==`, var)
         0 < length(finds)
     }
 }
@@ -81,7 +81,7 @@ updatesVarWithIterVar = function(node, v, ivar)
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
 findUpdatesVarWithIterVar = function(node, v, ivar)
 {
-    rstatic::find_nodes(node, updatesVarWithIterVar, v, ivar)
+    find_nodes(node, updatesVarWithIterVar, v, ivar)
 }
 
 

@@ -1,5 +1,7 @@
 import(CodeDepends)
 
+importFrom(rstatic, find_nodes)
+
 export(findLoopConcat)
 export(findUnusedArgs, findUnusedParams, findUnusedAssignments)
 export(constInputs)
