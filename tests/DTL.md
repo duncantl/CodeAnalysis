@@ -136,7 +136,12 @@ d3 = quote(        for(i in 1:n.qtl) {
 
 So definitely not clear that model[i,j] is unique across iterations.
 
-
+CF: I agree.
+Breaking it down a little more:
+Despite the length, it only uses these two global variables: `map[[model[i, 1]]]`, `model[i, 2]`.
+The only global that this code assigns to in the body of the loop is `map`, specifically `map[[model[i, 1]]]`, in the last statement.
+The problem is that we don't have any guarantee that the assignment index, `model[i, 1]`, is unique across iterations.
+It's possible that `model[i, 1] = 1` for all `i`, and this becomes a RAW dependency.
 
 
 

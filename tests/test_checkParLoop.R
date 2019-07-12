@@ -229,7 +229,6 @@ l14 = quote(        for(i in 1:n.qtl) {
             }
             map[[model[i,1]]] <- temp
         })
-# This reason is wrong:
 p14 = checkParLoop(l14)
 expect_false(p14[["result"]])
 
