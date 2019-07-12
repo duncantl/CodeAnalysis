@@ -13,6 +13,7 @@ if(FALSE)
 {
 
     # For development
+    library(testthat)
     library(rstatic)
     library(CodeDepends)
     source("../R/checkParLoop.R")
@@ -192,6 +193,7 @@ l12 = quote(
     for(i in 1:nchr(cross)) {
         o <- grep("^QTL[0-9]+", colnames(cross$geno[[i]]$data))
         if(length(o) != 0) {
+            # Iteratively build up qtlgeno- this is where the RAW dependency comes in.
             qtlgeno <- cbind(qtlgeno, cross$geno[[i]]$data[,o,drop=FALSE])
             cross$geno[[i]]$data <- cross$geno[[i]]$data[,-o,drop=FALSE]
             if(is.matrix(cross$geno[[i]]$map))
@@ -201,7 +203,7 @@ l12 = quote(
         }
     })
 p12 = checkParLoop(l12)
-expect_true(p12[["result"]])
+expect_equal(p12[["reasonCode"]], "RAW")
 
 
 l13 = quote(for(i in 1:nchr(cross))
