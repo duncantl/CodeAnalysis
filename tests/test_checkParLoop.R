@@ -208,6 +208,9 @@ expect_equal(p12[["reasonCode"]], "RAW")
 
 l13 = quote(for(i in 1:nchr(cross))
         storage.mode(cross$geno[[i]]$data) <- "integer")
+p13 = checkParLoop(l13)
+expect_true(p13[["result"]])
+
 
 l14 = quote(        for(i in 1:n.qtl) {
             temp <- map[[model[i,1]]]
@@ -226,6 +229,9 @@ l14 = quote(        for(i in 1:n.qtl) {
             }
             map[[model[i,1]]] <- temp
         })
+# This reason is wrong:
+p14 = checkParLoop(l14)
+expect_false(p14[["result"]])
 
 
 l15 = quote(for (i in 1:max(ctrl$seed)) {
@@ -241,3 +247,5 @@ l15 = quote(for (i in 1:max(ctrl$seed)) {
     tmpSeed <- do.call(cbind.data.frame, buildSeed)
     buildOut[[i]] <- tmpSeed
 })
+p15 = checkParLoop(l15)
+expect_true(p15[["result"]])
