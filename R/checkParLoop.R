@@ -48,9 +48,9 @@ varAppears = function(node, var)
 }
 
 
-# Predicate function for findModifiesVarWithIterVar
-# Duncan asked for this, and I realized that I've already written it.
-modifiesVarWithIterVar = function(node, v, ivar)
+# Predicate function for findUpdatesVarWithIterVar
+# Duncan suggested this, and I realized that I've already written it.
+updatesVarWithIterVar = function(node, v, ivar)
 {
     if(is(node, "Replacement") && varAppears(node$write, v) ){
         if(varAppears(node$write, ivar)){
@@ -79,9 +79,9 @@ modifiesVarWithIterVar = function(node, v, ivar)
 #
 # @param v rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
-findModifiesVarWithIterVar = function(node, v, ivar)
+findUpdatesVarWithIterVar = function(node, v, ivar)
 {
-    rstatic::find_nodes(node, modifiesVarWithIterVar, v, ivar)
+    rstatic::find_nodes(node, updatesVarWithIterVar, v, ivar)
 }
 
 
