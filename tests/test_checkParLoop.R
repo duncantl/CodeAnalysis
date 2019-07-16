@@ -108,6 +108,33 @@ p5 = checkParLoop(l5)
 expect_false(p5[["result"]])
 
 
+l5b = quote(
+    for(i in x){
+        z[y[i]] = foo()
+    }
+    )
+p5b = checkParLoop(l5b)
+
+
+l5c = quote(
+    for(i in x){
+        z[y[i]] = const
+    }
+    )
+p5c = checkParLoop(l5c)
+expect_true(p5c[["result"]])
+
+
+l5d = quote(
+    for(i in x){
+        const = foo(i)
+        z[y[i]] = const
+    }
+    )
+p5d = checkParLoop(l5d)
+expect_false(p5d[["result"]])
+
+
 l6 = quote(
     for(i in x){
         i = 1

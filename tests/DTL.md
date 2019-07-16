@@ -1,4 +1,5 @@
 
+TODO: CF: Think more about this one.
 
 l5 = quote(
     for(i in x){
@@ -74,7 +75,21 @@ y2[u] = foo(y2[u])
  [1] 1 1 1 1 1 1 1 1 1 0
 ```
 
+CF: I believe that you were thinking about this code:
+```
+l7b = quote(
+    for(i in x){
+        y[i %% k] = foo(y[i])
+    }
+)
 
+# For vectorized `foo` becomes:
+u = unique(x %% k)
+y[u] = foo(y[u])
+```
+
+
+------------------------------------------------------------
 
 
 
