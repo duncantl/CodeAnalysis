@@ -1,5 +1,36 @@
+CF: It seems the only one we disagree on is this:
 
-TODO: CF: Think more about this one.
+```{r}
+l5b = quote(
+    for(i in x){
+        z[y[i]] = foo()
+    }
+)
+```
+  
+If we pull out `foo()` because it is loop invariant, then yes, it can be parallel.
+I think it would be best to first transform the code to remove the loop invariants, and then check if the loop is parallel.
+
+`foo()` might not be loop invariant, for example, if it's a closure:
+```{r}
+foo_factory = function(){
+    count = 0L
+    function(){
+        count <<- count + 1L
+        count
+    }
+}
+
+foo = foo_factory()
+```
+
+Then the loop above is not parallel, since every iteration must run in order.
+
+
+
+
+
+-------------------------------------------------------------
 
 l5 = quote(
     for(i in x){
@@ -18,10 +49,6 @@ u = unique(y[x])
 z[u] = const
 ```
   
-CF: If we pull out the loop invariants, then yes, it can be parallel.
-I think it would be best to first transform the code to remove the loop invariants, and then do these checks.
-
-  
   
 l6 = quote(
     for(i in x){
@@ -36,6 +63,7 @@ y[1] = foo()
 
 CF: Yes, we could make these changes statically.
   But who actually writes such code?
+  Is this case a priority?
 
 
 ```
@@ -97,6 +125,7 @@ Let's elevate the diagnosis here to the more general "what are you doing changin
 variable"
 If it is `i = fun(i)`, that might be okay depending on how i is used later.
 
+CF: Yes, that's what the diagnosis is.
 
 
 
@@ -128,7 +157,7 @@ d2 = quote(for(i in 1:nchr(cross))
 So we need to broaden the criteria and analysis.
 I think we need a predicate that says "only operates on the i-th element"
 
-CF: Yes, this sounds good. Maybe "only modifies the i-th element".
+CF: Yes, have one, see `updatesVarWithIterVar` in `checkParLoop.R`.
 
 
 d3 = quote(        for(i in 1:n.qtl) {

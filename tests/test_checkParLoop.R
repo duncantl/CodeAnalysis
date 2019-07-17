@@ -108,14 +108,17 @@ p5 = checkParLoop(l5)
 expect_false(p5[["result"]])
 
 
+# CF: If we determine that `foo()` is loop invariant and pull it out of the loop first, then this becomes the same as 5c.
 l5b = quote(
     for(i in x){
         z[y[i]] = foo()
     }
     )
 p5b = checkParLoop(l5b)
+expect_false(p5b[["result"]])
 
 
+# TODO: Currently fails
 l5c = quote(
     for(i in x){
         z[y[i]] = const
