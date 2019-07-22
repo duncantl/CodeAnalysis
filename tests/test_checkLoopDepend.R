@@ -16,7 +16,7 @@ if(FALSE)
     library(testthat)
     library(rstatic)
     library(CodeDepends)
-    source("../R/checkParLoop.R")
+    source("../R/checkLoopDepend.R")
 
 }
 
@@ -25,7 +25,7 @@ l0 = quote(
         foo(i)
     }
 )
-p0 = checkParLoop(l0)
+p0 = checkLoopDepend(l0)
 stopifnot(p0[["result"]])
 
 
@@ -34,7 +34,7 @@ l1 = quote(
         x = foo(x)
     }
 )
-p1 = checkParLoop(l1)
+p1 = checkLoopDepend(l1)
 expect_false(p1[["result"]])
 
 
@@ -49,7 +49,7 @@ l2 = quote(
 # That is the key we are looking for.
 # ANd names(y)[i] doesn't depend on any other itartion.
 # CF: Agree
-p2 = checkParLoop(l2)
+p2 = checkLoopDepend(l2)
 expect_true(p2[["result"]])
 
 
@@ -65,7 +65,7 @@ l2b = quote(
 #   then yes, it can be parallel.
 #   But without those assumptions it could happen that foo(i) = 1 for all i and bar() cycles through `letters`.
 #   Then we don't know if the final name should be "a" or "z".
-p2b = checkParLoop(l2b)
+p2b = checkLoopDepend(l2b)
 expect_false(p2b[["result"]])
 
 
@@ -77,10 +77,10 @@ l3 = quote(
     )
 # Again, the i-th iteration is independent of any other.
 # CF: Agree
-p3 = checkParLoop(l3)
+p3 = checkLoopDepend(l3)
 expect_true(p3[["result"]])
 
-p3b = checkParLoop(l3, checkIterator = TRUE)
+p3b = checkLoopDepend(l3, checkIterator = TRUE)
 expect_true(p3b[["result"]])
 
 
@@ -90,10 +90,10 @@ l4 = quote(
         f(tmp, i)
     }
 )
-p4 = checkParLoop(l4)
+p4 = checkLoopDepend(l4)
 expect_true(p4[["result"]])
 
-p4b = checkParLoop(l4, checkIterator = TRUE)
+p4b = checkLoopDepend(l4, checkIterator = TRUE)
 expect_true(p4[["result"]])
 
 
@@ -104,7 +104,7 @@ l5 = quote(
     }
     )
 # See DTL.md
-p5 = checkParLoop(l5)
+p5 = checkLoopDepend(l5)
 expect_false(p5[["result"]])
 
 
@@ -114,7 +114,7 @@ l5b = quote(
         z[y[i]] = foo()
     }
     )
-p5b = checkParLoop(l5b)
+p5b = checkLoopDepend(l5b)
 expect_false(p5b[["result"]])
 
 
@@ -124,7 +124,7 @@ l5c = quote(
         z[y[i]] = const
     }
     )
-p5c = checkParLoop(l5c)
+p5c = checkLoopDepend(l5c)
 expect_true(p5c[["result"]])
 
 
@@ -134,7 +134,7 @@ l5d = quote(
         z[y[i]] = const
     }
     )
-p5d = checkParLoop(l5d)
+p5d = checkLoopDepend(l5d)
 expect_false(p5d[["result"]])
 
 
@@ -145,7 +145,7 @@ l6 = quote(
     }
     )
 # See DTL.md
-p6 = checkParLoop(l6)
+p6 = checkLoopDepend(l6)
 expect_false(p6[["result"]])
 
 
@@ -155,7 +155,7 @@ l7 = quote(
     }
     )
 #See DTL.md
-p7 = checkParLoop(l7)
+p7 = checkLoopDepend(l7)
 expect_false(p7[["result"]])
 
 l8 = quote(
@@ -166,10 +166,10 @@ l8 = quote(
 #DTL: This looks too conservative. the i-th element of the result depends on the i-th element of y.
 # Same as above - x and y are probably parallel vectors.
 # CF: Agree
-p8 = checkParLoop(l8)
+p8 = checkLoopDepend(l8)
 expect_true(p8[["result"]])
 
-p8b = checkParLoop(l8, checkIterator = TRUE)
+p8b = checkLoopDepend(l8, checkIterator = TRUE)
 expect_false(p8b[["result"]])
 
 
@@ -179,7 +179,7 @@ l9 = quote(
     }
     )
 # DTL: Again, this is the i-th iteration doesn't depend on any other iteration.
-p9 = checkParLoop(l9)
+p9 = checkLoopDepend(l9)
 # CF: Agree
 expect_true(p9[["result"]])
 
@@ -191,7 +191,7 @@ l10 = quote(
     )
 #DTL: Again, I think it is TRUE. i-th iteration only depends on i-th iteration.
 # CF: Agree
-p10 = checkParLoop(l10)
+p10 = checkLoopDepend(l10)
 expect_true(p10[["result"]])
 
 
@@ -200,7 +200,7 @@ l10b = quote(
         y[foo(i), bar(i)] = foobar()
     }
 )
-p10b = checkParLoop(l10b)
+p10b = checkLoopDepend(l10b)
 expect_false(p10b[["result"]])
 
 
@@ -213,7 +213,7 @@ l11 = quote(
     }
     )
 # DTL: Nice one!
-p11 = checkParLoop(l11)
+p11 = checkLoopDepend(l11)
 expect_true(p11[["result"]])
 
 
@@ -232,13 +232,13 @@ l12 = quote(
                 cross$geno[[i]]$map <- cross$geno[[i]]$map[-o]
         }
     })
-p12 = checkParLoop(l12)
+p12 = checkLoopDepend(l12)
 expect_equal(p12[["reasonCode"]], "RAW")
 
 
 l13 = quote(for(i in 1:nchr(cross))
         storage.mode(cross$geno[[i]]$data) <- "integer")
-p13 = checkParLoop(l13)
+p13 = checkLoopDepend(l13)
 expect_true(p13[["result"]])
 
 
@@ -259,7 +259,7 @@ l14 = quote(        for(i in 1:n.qtl) {
             }
             map[[model[i,1]]] <- temp
         })
-p14 = checkParLoop(l14)
+p14 = checkLoopDepend(l14)
 expect_false(p14[["result"]])
 
 
@@ -276,5 +276,5 @@ l15 = quote(for (i in 1:max(ctrl$seed)) {
     tmpSeed <- do.call(cbind.data.frame, buildSeed)
     buildOut[[i]] <- tmpSeed
 })
-p15 = checkParLoop(l15)
+p15 = checkLoopDepend(l15)
 expect_true(p15[["result"]])

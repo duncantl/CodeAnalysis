@@ -85,15 +85,13 @@ findUpdatesVarWithIterVar = function(node, v, ivar)
 }
 
 
-#' Determine If a Loop Can Be Made Parallel
+#' Determine If the Loop Iterations Depend on Each Other
 #'
-#' and tell the user why the loop is parallel or not.
-#'
-#' A loop can be made parallel if the order of the iterations do not matter.
+#' A loop can be made parallel if the iterations do not depend on each other.
 #' A loop is not parallel if it has a true dependency on loop iterations.
 #' There are several possible ways for a dependency to come up.
-#' This functions stops and returns as soon as it finds one reason.
-#' The design errs on the side of being conservative; if it's not clear whether a loop is parallel or not, it will say that it is not.
+#' This functions stops and returns as soon as it finds one reason that the order matters.
+#' The design errs on the side of being conservative; if it's not clear whether there is a dependency or not, it will report the dependency.
 #'
 #' @param forloop for loop language object
 #' @param checkIterator logical check that the iterator is a function call that is guaranteed to produce only unique values.
@@ -103,7 +101,7 @@ findUpdatesVarWithIterVar = function(node, v, ivar)
 #'      - result (logical) can the for loop be parallel?
 #'      - reason (character) human readable message for why the loop is or is not parallel
 #'      - reasonCode (character) short version of reason, for programming
-checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
+checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
 {
 
     forloop = rstatic::to_ast(forloop)
