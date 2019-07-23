@@ -20,6 +20,7 @@ Per function:
     +   parentheses
 
 *   total number (or locations) of:
+    * local aliases for global functions (e.g., `options()`, `rm()`)
     + calls
     + calls, including calls made by calls (computed recursively)
     + ratio of calls inside packages compared to base, recommended, and 3rd
