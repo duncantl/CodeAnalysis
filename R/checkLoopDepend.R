@@ -55,10 +55,13 @@ updatesVarWithIterVar = function(node, v, ivar, fixed_globals = character())
 {
     if(is(node, "Replacement") && varAppears(node$write, v) ){
 
-        if(node$read$value %in% fixed_globals){
+        # TODO: Look into how to find the RHS, I think that Nick added this stuff recently.
+        rhs = node$read
+            #browser()
+        if(is(rhs, "Symbol") && rhs$value %in% fixed_globals){
             # This case:
             # x[foo(i)] = const
-            return(TRUE)
+            return(FALSE)
         }
 
         if(varAppears(node$write, ivar)){
