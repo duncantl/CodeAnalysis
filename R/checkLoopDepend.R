@@ -50,9 +50,17 @@ varAppears = function(node, var)
 
 # Predicate function for findUpdatesVarWithIterVar
 # Duncan suggested this, and I realized that I've already written it.
-updatesVarWithIterVar = function(node, v, ivar)
+# fixed_globals is a character vectors of global variables that stay constant throughout the loop.
+updatesVarWithIterVar = function(node, v, ivar, fixed_globals = character())
 {
     if(is(node, "Replacement") && varAppears(node$write, v) ){
+
+        if(node$read$value %in% fixed_globals){
+            # This case:
+            # x[foo(i)] = const
+            return(TRUE)
+        }
+
         if(varAppears(node$write, ivar)){
             # This case:
             # x$foo$bar[[ivar]]$baz = ...
@@ -79,9 +87,9 @@ updatesVarWithIterVar = function(node, v, ivar)
 #
 # @param v rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
-findUpdatesVarWithIterVar = function(node, v, ivar)
+findUpdatesVarWithIterVar = function(node, v, ivar, fixed_globals)
 {
-    find_nodes(node, updatesVarWithIterVar, v, ivar)
+    find_nodes(node, updatesVarWithIterVar, v, ivar, fixed_globals)
 }
 
 
@@ -98,7 +106,7 @@ findUpdatesVarWithIterVar = function(node, v, ivar)
 #'      This should be TRUE if you really want to be sure that the loop is parallelizable.
 #' @param uniqueFuncs names of functions that will produce unique values.
 #' @return list with the following elements:
-#'      - result (logical) can the for loop be parallel?
+#'      - result (logical) do the iterations of the loop depend on each other?
 #'      - reason (character) human readable message for why the loop is or is not parallel
 #'      - reasonCode (character) short version of reason, for programming
 checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
@@ -136,9 +144,10 @@ checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq"
     }
 
     global_updates = intersect(deps@inputs, deps@updates)
+    fixed_globals = setdiff(deps@inputs, changed)
 
     for(v in global_updates){
-        tmp = checkVariableDependency(v, body, ivar)
+        tmp = checkVariableDependency(v, body, ivar, fixed_globals = fixed_globals)
         if(!tmp[["result"]]){
             return(tmp)
         }
@@ -153,8 +162,8 @@ checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq"
 
     return(list(
         result = TRUE
-        , reason = "passed all tests for loop carried dependencies / parallel loop iterations"
-        , reasonCode = "PASS_PARALLEL"
+        , reason = "passed all tests for loop carried dependencies"
+        , reasonCode = "PASS_LOOP_DEPEND"
     ))
 }
 
@@ -192,7 +201,7 @@ checkUnique = function(iterator, uniqueFuncs)
 }
 
 
-checkVariableDependency = function(v, body, ivar)
+checkVariableDependency = function(v, body, ivar, fixed_globals)
 {
     vs = rstatic::Symbol$new(v)
     assigns_over_var = findAssignsOverVar(body, vs)
@@ -205,7 +214,7 @@ checkVariableDependency = function(v, body, ivar)
     }
 
     all_updates = findAllUpdates(body, vs)
-    ok_updates = findUpdatesVarWithIterVar(body, vs, ivar)
+    ok_updates = findUpdatesVarWithIterVar(body, vs, ivar, fixed_globals)
     bad_updates = setdiff(all_updates, ok_updates)
     if(0 < length(bad_updates)){
         bad_up = body[[bad_updates[[1L]]]]
