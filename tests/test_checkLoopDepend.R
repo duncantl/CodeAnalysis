@@ -125,7 +125,6 @@ l5c = quote(
     }
     )
 p5c = checkLoopDepend(l5c)
-
 expect_true(p5c[["result"]])
 
 

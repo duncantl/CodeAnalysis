@@ -48,20 +48,31 @@ varAppears = function(node, var)
 }
 
 
-# Predicate function for findUpdatesVarWithIterVar
+# Predicate function for findIndependentUpdates
+#
 # Duncan suggested this, and I realized that I've already written it.
-# fixed_globals is a character vectors of global variables that stay constant throughout the loop.
-updatesVarWithIterVar = function(node, v, ivar, fixed_globals = character())
+# fixed_globals is a character vector of global variables that stay constant throughout the loop.
+# Find those nodes that update based on the value of the iterator variable (ivar).
+# This means that ivar appears within a [ or [[ on the left hand side of the assignment operator, for example:
+#
+# x[ivar] = ...
+# x[, ivar] = ...
+# x$foo$bar[[ivar]]$baz = ...
+#
+# @param v rstatic Symbol to search for
+# @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
+independentUpdate = function(node, v, ivar, fixed_globals = character())
 {
     if(is(node, "Replacement") && varAppears(node$write, v) ){
 
-        # TODO: Look into how to find the RHS, I think that Nick added this stuff recently.
-        rhs = node$read
-            #browser()
+        # The order of these checks matters.
+
+        rhs = rstatic::arg_value(node)
         if(is(rhs, "Symbol") && rhs$value %in% fixed_globals){
+            #browser()
             # This case:
             # x[foo(i)] = const
-            return(FALSE)
+            return(TRUE)
         }
 
         if(varAppears(node$write, ivar)){
@@ -80,20 +91,6 @@ updatesVarWithIterVar = function(node, v, ivar, fixed_globals = character())
     FALSE
 }
 
-
-# Find those nodes that update based on the value of the iterator variable (ivar).
-# This means that ivar appears within a [ or [[ on the left hand side of the assignment operator, for example:
-#
-# x[ivar] = ...
-# x[, ivar] = ...
-# x$foo$bar[[ivar]]$baz = ...
-#
-# @param v rstatic Symbol to search for
-# @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
-findUpdatesVarWithIterVar = function(node, v, ivar, fixed_globals)
-{
-    find_nodes(node, updatesVarWithIterVar, v, ivar, fixed_globals)
-}
 
 
 #' Determine If the Loop Iterations Depend on Each Other
@@ -217,8 +214,9 @@ checkVariableDependency = function(v, body, ivar, fixed_globals)
     }
 
     all_updates = findAllUpdates(body, vs)
-    ok_updates = findUpdatesVarWithIterVar(body, vs, ivar, fixed_globals)
+    ok_updates = find_nodes(body, independentUpdate, vs, ivar, fixed_globals)
     bad_updates = setdiff(all_updates, ok_updates)
+
     if(0 < length(bad_updates)){
         bad_up = body[[bad_updates[[1L]]]]
         bad_up_msg = deparse(rstatic::as_language(bad_up))
