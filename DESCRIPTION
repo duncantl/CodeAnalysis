@@ -24,4 +24,4 @@ Description: This package provides a (growing) collection of
 Author: Duncan Temple Lang, Nick Ulle, Clark Fitzgerald, Matt Espe
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
-Imports: CodeDepends, rstatic
+Imports: CodeDepends, rstatic (>= 0.2-0)

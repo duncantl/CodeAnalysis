@@ -22,8 +22,7 @@ Per function:
 *   total number (or locations) of:
     + calls
     + calls, including calls made by calls (computed recursively)
-    + ratio of calls inside packages compared to base, recommended, and 3rd
-      party packages.
+    + ratio of calls inside packages compared to base, recommended, and 3rd-party packages.
     + literals
     + globals
     + loops, broken down by `for`, `while`, apply family
@@ -33,7 +32,8 @@ Per function:
     + `<<-` assignments
     + calls to NSE/macro functions: `eval()`, `substitute()`, `quote()`, ...
     + calls to foreign functions: `.C()`, `.Call()`
-    + comments and number of characters
+	  + use of registration of routines
+   + comments and number of characters
     * namespacing: `::` and `:::`, also use `NAMESPACE` to identify calls to
       functions in other packages that don't use `::`
     * conditional assignments

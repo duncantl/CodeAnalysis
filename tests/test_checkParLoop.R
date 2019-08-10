@@ -32,7 +32,7 @@ l1 = quote(
     for(i in 1:n){
         x = foo(x)
     }
-)
+    )
 p1 = checkParLoop(l1)
 expect_false(p1[["result"]])
 
@@ -42,7 +42,8 @@ l2 = quote(
         names(x)[i] = names(y)[i]
     }
     )
-#DTL:  I think this is probably parallelizable. and so FALSE is not correct.
+#DTL: New version of rstatic leads to TRUE.
+# I think this is probably parallelizable. and so FALSE is not correct.
 # If we knew x and y were same-length/parallel vectors, then this parallelizable.
 # More important, the i-th iteration doesn't depend on any other iteration
 # That is the key we are looking for.
@@ -57,6 +58,7 @@ l2b = quote(
     }
     )
 #DTL: Again, I think this is too conservative/restrictive.
+# The i-th element of the result is independent of the other iterations.
 p2b = checkParLoop(l2b)
 expect_false(p2b[["result"]])
 
