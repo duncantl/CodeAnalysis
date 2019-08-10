@@ -52,7 +52,9 @@ function(code, readFuns = getReadFunNames(), recursive = TRUE)
                                ans
                        })
 
-    return(unlist(ans, recursive = FALSE))
+    ans = unlist(ans, recursive = FALSE)
+    ans = unique(lapply(ans, function(x) if(is(x, "Symbol")) {p = x$parent; if(is(p, "ArgumentList")) p = p$parent; p} else x))
+    return(ans)
     
 if(FALSE) {    
     els = lapply(idx, function(i) code1[[i]])
