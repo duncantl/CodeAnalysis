@@ -127,3 +127,5 @@ and strict/lazy eval
    [Drake](https://cran.r-project.org/web/packages/drake/vignettes/drake.html)).
 1. Extend CodeDepends to handle S4 methods.
 1. ?Documentation generation?
+1. Global changes between coding naming conventions, i.e. `snake_case` and `CamelCase`.
+   This requires some care to avoid writing over existing variable names.

@@ -1,4 +1,36 @@
+CF: It seems the only one we disagree on is this:
 
+```{r}
+l5b = quote(
+    for(i in x){
+        z[y[i]] = foo()
+    }
+)
+```
+  
+If we pull out `foo()` because it is loop invariant, then yes, it can be parallel.
+I think it would be best to first transform the code to remove the loop invariants, and then check if the loop is parallel.
+
+`foo()` might not be loop invariant, for example, if it's a closure:
+```{r}
+foo_factory = function(){
+    count = 0L
+    function(){
+        count <<- count + 1L
+        count
+    }
+}
+
+foo = foo_factory()
+```
+
+Then the loop above is not parallel, since every iteration must run in order.
+
+
+
+
+
+-------------------------------------------------------------
 
 l5 = quote(
     for(i in x){
@@ -18,8 +50,6 @@ z[u] = const
 ```
   
   
-  
-  
 l6 = quote(
     for(i in x){
         i = 1
@@ -30,6 +60,11 @@ Ultimately, we want to reduce this to
 ```
 y[1] = foo()
 ```
+
+CF: Yes, we could make these changes statically.
+  But who actually writes such code?
+  Is this case a priority?
+
 
 ```
 l7 = quote(
@@ -45,11 +80,52 @@ u = unique(x %% k)
 y[u] = foo(y[u])
 ```
 
+CF: This code transformation is only valid if i < k for all iterations.
+    If i < k, then there's no reason to do i %% k.
+    Generally there's a true loop dependency here, for example:
+```{r}
+n = 25
+k = 10
+y = rep(0, k)
+x = seq(n)
+x[x %% k == 0] = 1
+foo = function(z) z + 1
+for(i in x){
+    y[i %% k] = foo(y[i %% k])
+}
+> y
+ [1] 5 3 3 3 3 2 2 2 2 0
+
+y2 = rep(0, k)
+u = unique(x %% k)
+y2[u] = foo(y2[u])
+> y2
+ [1] 1 1 1 1 1 1 1 1 1 0
+```
+
+CF: I believe that you were thinking about this code:
+```
+l7b = quote(
+    for(i in x){
+        y[i %% k] = foo(y[i])
+    }
+)
+
+# For vectorized `foo` becomes:
+u = unique(x %% k)
+y[u] = foo(y[u])
+```
+
+
+------------------------------------------------------------
+
+
 
 Let's elevate the diagnosis here to the more general "what are you doing changing the iterator
 variable"
 If it is `i = fun(i)`, that might be okay depending on how i is used later.
 
+CF: Yes, that's what the diagnosis is.
 
 
 
@@ -81,6 +157,7 @@ d2 = quote(for(i in 1:nchr(cross))
 So we need to broaden the criteria and analysis.
 I think we need a predicate that says "only operates on the i-th element"
 
+CF: Yes, have one, see `updatesVarWithIterVar` in `checkParLoop.R`.
 
 
 d3 = quote(        for(i in 1:n.qtl) {
@@ -103,7 +180,12 @@ d3 = quote(        for(i in 1:n.qtl) {
 
 So definitely not clear that model[i,j] is unique across iterations.
 
-
+CF: I agree.
+Breaking it down a little more:
+Despite the length, it only uses these two global variables: `map[[model[i, 1]]]`, `model[i, 2]`.
+The only global that this code assigns to in the body of the loop is `map`, specifically `map[[model[i, 1]]]`, in the last statement.
+The problem is that we don't have any guarantee that the assignment index, `model[i, 1]`, is unique across iterations.
+It's possible that `model[i, 1] = 1` for all `i`, and this becomes a RAW dependency.
 
 
 

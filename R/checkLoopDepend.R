@@ -10,7 +10,7 @@
 #      - reasonCode (character) short version of reason, for programming
 #
 # Alternatively, I considered tacking reason, reasonCode on as attributes on to a logical.
-# I decided against it because 
+# I decided against it because the list seemed simpler.
 
 
 
@@ -18,7 +18,7 @@
 # @param vs rstatic Symbol to search for
 findAllUpdates = function(node, vs)
 {
-    rstatic::find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
+    find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
 }
 
 
@@ -26,7 +26,7 @@ findAllUpdates = function(node, vs)
 # @param vs rstatic Symbol to search for
 findAssignsOverVar = function(node, vs)
 {
-    rstatic::find_nodes(node, function(x)
+    find_nodes(node, function(x)
         is(x, "Assign") && !is(x, "Replacement") && x$write == vs)
 }
 
@@ -42,52 +42,74 @@ varAppears = function(node, var)
         # As it currently stands, I think I wrote a hidden bug because I'm not checking for literals (can anything else can be a leaf?)
         node == var
     } else {
-        finds = rstatic::find_nodes(node, `==`, var)
+        finds = find_nodes(node, `==`, var)
         0 < length(finds)
     }
 }
 
 
-# Find those nodes that update based strictly on the value of the iterator variable
+# Predicate function for findIndependentUpdates
 #
-# @param vs rstatic Symbol to search for
+# Duncan suggested this, and I realized that I've already written it.
+# fixed_globals is a character vector of global variables that stay constant throughout the loop.
+# Find those nodes that update based on the value of the iterator variable (ivar).
+# This means that ivar appears within a [ or [[ on the left hand side of the assignment operator, for example:
+#
+# x[ivar] = ...
+# x[, ivar] = ...
+# x$foo$bar[[ivar]]$baz = ...
+#
+# @param v rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
-findUpdatesVarWithIterVar = function(node, vs, ivar)
+independentUpdate = function(node, v, ivar, fixed_globals = character())
 {
-    rstatic::find_nodes(node, function(x){
-        if(is(x, "Replacement") && varAppears(x$write, vs)){
-            index_args = rstatic::get_index(x)
-            index_same_as_ivar = sapply(index_args, `==`, ivar)
+    if(is(node, "Replacement") && varAppears(node$write, v) ){
 
-            # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
-            if(any(index_same_as_ivar)){
-                return(TRUE)
-            }
+        # The order of these checks matters.
+
+        rhs = rstatic::arg_value(node)
+        if(is(rhs, "Symbol") && rhs$value %in% fixed_globals){
+            #browser()
+            # This case:
+            # x[foo(i)] = const
+            return(TRUE)
         }
-        FALSE
-    })
+
+        if(varAppears(node$write, ivar)){
+            # This case:
+            # x$foo$bar[[ivar]]$baz = ...
+            return(TRUE)
+        }
+        index_args = rstatic::arg_index(node)
+        index_same_as_ivar = sapply(index_args, `==`, ivar)
+
+        # If it's a multidimensional array and at least one of the subscripts is the same as the iteration variable, then it doesn't matter what the rest of the subscripts are.
+        if(any(index_same_as_ivar)){
+            return(TRUE)
+        }
+    }
+    FALSE
 }
 
 
-#' Determine If a Loop Can Be Made Parallel
+
+#' Determine If the Loop Iterations Depend on Each Other
 #'
-#' and tell the user why the loop is parallel or not.
-#'
-#' A loop can be made parallel if the order of the iterations do not matter.
+#' A loop can be made parallel if the iterations do not depend on each other.
 #' A loop is not parallel if it has a true dependency on loop iterations.
 #' There are several possible ways for a dependency to come up.
-#' This functions stops and returns as soon as it finds one reason.
-#' The design errs on the side of being conservative; if it's not clear whether a loop is parallel or not, it will say that it is not.
+#' This functions stops and returns as soon as it finds one reason that the order matters.
+#' The design errs on the side of being conservative; if it's not clear whether there is a dependency or not, it will report the dependency.
 #'
 #' @param forloop for loop language object
 #' @param checkIterator logical check that the iterator is a function call that is guaranteed to produce only unique values.
 #'      This should be TRUE if you really want to be sure that the loop is parallelizable.
 #' @param uniqueFuncs names of functions that will produce unique values.
 #' @return list with the following elements:
-#'      - result (logical) can the for loop be parallel?
+#'      - result (logical) do the iterations of the loop depend on each other?
 #'      - reason (character) human readable message for why the loop is or is not parallel
 #'      - reasonCode (character) short version of reason, for programming
-checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
+checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
 {
 
     forloop = rstatic::to_ast(forloop)
@@ -122,9 +144,10 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
     }
 
     global_updates = intersect(deps@inputs, deps@updates)
+    fixed_globals = setdiff(deps@inputs, changed)
 
     for(v in global_updates){
-        tmp = checkVariableDependency(v, body, ivar)
+        tmp = checkVariableDependency(v, body, ivar, fixed_globals = fixed_globals)
         if(!tmp[["result"]]){
             return(tmp)
         }
@@ -139,8 +162,8 @@ checkParLoop = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", "
 
     return(list(
         result = TRUE
-        , reason = "passed all tests for loop carried dependencies / parallel loop iterations"
-        , reasonCode = "PASS_PARALLEL"
+        , reason = "passed all tests for loop carried dependencies"
+        , reasonCode = "PASS_LOOP_DEPEND"
     ))
 }
 
@@ -178,7 +201,7 @@ checkUnique = function(iterator, uniqueFuncs)
 }
 
 
-checkVariableDependency = function(v, body, ivar)
+checkVariableDependency = function(v, body, ivar, fixed_globals)
 {
     vs = rstatic::Symbol$new(v)
     assigns_over_var = findAssignsOverVar(body, vs)
@@ -191,14 +214,15 @@ checkVariableDependency = function(v, body, ivar)
     }
 
     all_updates = findAllUpdates(body, vs)
-    ok_updates = findUpdatesVarWithIterVar(body, vs, ivar)
+    ok_updates = find_nodes(body, independentUpdate, vs, ivar, fixed_globals)
     bad_updates = setdiff(all_updates, ok_updates)
+
     if(0 < length(bad_updates)){
         bad_up = body[[bad_updates[[1L]]]]
         bad_up_msg = deparse(rstatic::as_language(bad_up))
         return(list(
             result = FALSE
-            , reason = sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop: %s", v, bad_up_msg)
+            , reason = c(sprintf("variable `%s` is assigned to using an index which is not the iterator variable in the loop:", v), bad_up_msg)
             , reasonCode = "COMPLEX_UPDATE"
         ))
     }
