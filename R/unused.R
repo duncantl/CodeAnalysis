@@ -24,6 +24,17 @@ function(fun, remove = TRUE, clean = TRUE)
 }
 
 
+# How about this?
+unusedParams =
+function(fun)
+{
+    f2 = fun
+    formals(f2) = NULL
+    vars = getGlobals(f2, FALSE)$variables
+    setdiff( names(formals(fun)), vars )
+}
+
+
 
 findUnusedAssignments =
 function(fun, remove = TRUE, clean = TRUE)
