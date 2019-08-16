@@ -19,12 +19,16 @@ function(code, readFuns = getReadFunNames(), recursive = TRUE)
         # Find all the calls or references to anything in readFuns
         idx = find_nodes(code1, isReadFun, readFuns)
         return(code1[idx])
-    } else
+    } else 
         # look only at the top-level expressions in the script that do some calculation and  not the Function defintions.
        exprs = getTopLevelCalls(code1)
 
-     # need to worry about the order here as the alias can come into effect after being called
-    aliases = findAliases(exprs)    
+browser()    
+    # need to worry about the order here as the alias can come into effect after being called
+    w = sapply(exprs, isAlias)
+    aliases = findAliases(exprs[w])
+    exprs = exprs[!w]
+
     w = aliases %in% readFuns
     if(any(w))
         readFuns = c(readFuns, names(aliases)[w])
@@ -119,10 +123,29 @@ function(code)
 
 
 findAliases =
-function(code)
+function(code, ...)
+    UseMethod("findAliases")
+
+findAliases.list =
+function(code, ...)
 {
-    isFun = find_nodes(code, function(x) is(x, "Assign") && is(x$read, "Symbol"))
-    els = lapply(isFun, function(i) code[[i]])
+    ans = lapply(code, findAliases, ...)
+    unlist(ans)
+}
+
+isAlias = function(x) is(x, "Assign") && is(x$read, "Symbol")
+
+findAliases.ASTNode =
+function(code, ...)    
+{
+     # have to test code itself since find_nodes doesn't apply the test to the top node.
+
+    if(!isAlias(code)) {
+      isFun = find_nodes(code, isAlias)
+      els = lapply(isFun, function(i) code[[i]])
+  } else
+      els = list(code)
+    
     structure(sapply(els, function(x) x$read$value), names = sapply(els, function(x) x$write$ssa_name))
 #    structure(lapply(code[isFun], function(x) x$read), names = sapply(code[isFun], function(x) x$write$ssa_name))
 }

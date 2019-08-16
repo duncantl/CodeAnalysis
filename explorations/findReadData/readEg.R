@@ -6,7 +6,13 @@ d = read.csv(file)
 d[c(1, 4)] = lapply(d[c(1, 4)], as.Date)
 
 
+source("funsEg.R")
+
+z = myRead("data1", "data2")
+
+
 f = read.csv
+g = file  # other alias that is not a read data function.
 d3 = f("jane.csv")
 
 
