@@ -15,6 +15,8 @@ function(code, readFuns = getReadFunNames(), recursive = TRUE)
 {
     code1 = to_ast(code)
 
+    code1 = substSource(code1)
+
     if(is(code1, "Function")) {
         # Find all the calls or references to anything in readFuns
         idx = find_nodes(code1, isReadFun, readFuns)
@@ -23,7 +25,7 @@ function(code, readFuns = getReadFunNames(), recursive = TRUE)
         # look only at the top-level expressions in the script that do some calculation and  not the Function defintions.
        exprs = getTopLevelCalls(code1)
 
-browser()    
+# browser()    
     # need to worry about the order here as the alias can come into effect after being called
     w = sapply(exprs, isAlias)
     aliases = findAliases(exprs[w])
@@ -150,3 +152,28 @@ function(code, ...)
 #    structure(lapply(code[isFun], function(x) x$read), names = sapply(code[isFun], function(x) x$write$ssa_name))
 }
 
+
+
+isSourceCall =
+function(x)
+      # make more flexible / sophisticated
+ is(x, "Call") && x$fn$value == "source"  && (length(x$args) > 0 && is(x$args[[1]], "Character"))
+
+substSource =
+    #
+    # This modifies code in place.!
+    #
+function(code, recursive = FALSE)
+{
+    idx = find_nodes(code, isSourceCall)
+# browser()
+    if(length(idx)) {
+        ans = code$contents
+        for(i in rev(idx)) {
+            tmp = to_ast(parse(code[[i]]$args[[1]]$value))
+            ans = c(ans[seq_len((i[1] - 1))], tmp$contents, ans[-(i[1]:length(ans))])
+        }
+        code$contents = ans        
+    }
+    code
+}
