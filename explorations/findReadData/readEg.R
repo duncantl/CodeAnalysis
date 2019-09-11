@@ -10,6 +10,8 @@ source("funsEg.R")
 
 z = myRead("data1", "data2")
 
+z2 = myRead2("xdata1", "xdata2")
+
 
 f = read.csv
 g = file  # other alias that is not a read data function.
