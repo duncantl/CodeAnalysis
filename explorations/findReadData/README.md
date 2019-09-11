@@ -39,7 +39,6 @@ source("findReadDataCalls.R")
 ```
 kk = to_ast(parse("readEg.R"))
 e = findReadDataCalls( kk)
-
 ```
 
 ```
