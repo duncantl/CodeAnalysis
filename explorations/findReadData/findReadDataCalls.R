@@ -21,6 +21,8 @@ function(code, readFuns = getReadFunNames(), recursive = TRUE)
         # Find all the calls or references to anything in readFuns
         idx = find_nodes(code1, isReadFun, readFuns)
         return(code1[idx])
+        #nodes = lapply(idx, function(i) code1[[i]])
+        #return(nodes)
     } else 
         # look only at the top-level expressions in the script that do some calculation and  not the Function defintions.
        exprs = getTopLevelCalls(code1)
