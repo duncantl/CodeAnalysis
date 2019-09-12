@@ -165,15 +165,34 @@ substSource =
     #
     # This modifies code in place.!
     #
-function(code, recursive = FALSE)
+function(code, recursive = FALSE, dir = ".")
 {
     idx = find_nodes(code, isSourceCall)
-# browser()
+    # These better all be top-level AST nodes at this point, not nested within top-level expressions.
+
     if(length(idx)) {
         ans = code$contents
         for(i in rev(idx)) {
-            tmp = to_ast(parse(code[[i]]$args[[1]]$value))
-            ans = c(ans[seq_len((i[1] - 1))], tmp$contents, ans[-(i[1]:length(ans))])
+#browser()            
+            file = code[[i]]$args[[1]]$value
+            if(!file.exists(file) && file.exists(file.path(dir, file)))
+                file = file.path(dir, file)
+
+           if(!file.exists(file)) {
+                warning(file, " to be source()'d doesn't exist")
+                next
+            }
+            
+            tmp = to_ast(parse(file))
+            if(recursive)
+                tmp = substSource(tmp, recursive, dirname(file))
+            if(is(tmp, "Brace"))
+                tmp = tmp$contents
+
+            if(i == length(ans))
+                ans = c(ans[-i], tmp)
+            else
+                ans = c(ans[seq_len((i[1] - 1))], tmp, ans[( (i[1]+1):length(ans))])
         }
         code$contents = ans        
     }
