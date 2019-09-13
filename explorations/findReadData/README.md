@@ -69,64 +69,6 @@ lapply(files, getData)
 ```
 
 
-CF: This behaves differently for me.
-It may be related to the modification in place by `substSource`.
-`kk` has less code after I run `findReadDataCalls`- I thought it would have more if `substSource` is inlining code.
-
-```
-> kk = to_ast(parse("readEg.R"))
-> kk
-<Brace> $contents $is_hidden $parent
-{
-    file = "bob.csv"
-    d = read.csv(file)
-    d[c(1, 4)] = lapply(d[c(1, 4)], as.Date)
-    source("funsEg.R")
-    z = myRead("data1", "data2")
-    z2 = myRead2("xdata1", "xdata2")
-    f = read.csv
-    g = file
-    d3 = f("jane.csv")
-    getData = function(f) {
-        readLines(f)
-    }
-    foo = function(x) sin(x + 1)
-    bar = function(x) scan(x, "integer")
-    points = getData("data.txt")
-    plot(points, d$x)
-    d2 = lapply(files, getData)
-}
-
-> e = findReadDataCalls( kk)
-Error in code1[idx] : object of type 'environment' is not subsettable
-
-Enter a frame number, or 0 to exit
-
-1: findReadDataCalls(kk)
-2: findReadDataCalls.R#44: sapply(funs, function(f) findReadDataCalls(f, readF
-3: lapply(X = X, FUN = FUN, ...)
-4: FUN(X[[i]], ...)
-5: findReadDataCalls.R#44: findReadDataCalls(f, readFuns)
-
-Selection: 0
-> kk
-<Brace> $contents $is_hidden $parent
-{
-    file = "bob.csv"
-    d = read.csv(file)
-    d[c(1, 4)] = lapply(d[c(1, 4)], as.Date)
-    myRead = function(...) {
-        do.call(rbind, lapply(list(...), read.table))
-    }
-    myRead2 = myRead
-    file = "bob.csv"
-    d = read.csv(file)
-    d[c(1, 4)] = lapply(d[c(1, 4)], as.Date)
-}
-```
-
-
-
 ## chp1.Muaggregate.by.year.R
 ```
 kk2 = to_ast(parse("chp1.Muaggregate.by.year.R"))
