@@ -20,9 +20,8 @@ function(code, readFuns = getReadFunNames(), recursive = TRUE)
     if(is(code1, "Function")) {
         # Find all the calls or references to anything in readFuns
         idx = find_nodes(code1, isReadFun, readFuns)
-        return(code1[idx])
-        #nodes = lapply(idx, function(i) code1[[i]])
-        #return(nodes)
+        #return(code1[idx])
+        return(lapply(idx, function(i) code1[[i]]))
     } else 
         # look only at the top-level expressions in the script that do some calculation and  not the Function defintions.
        exprs = getTopLevelCalls(code1)
@@ -171,9 +170,9 @@ function(code, recursive = FALSE, dir = ".")
     # These better all be top-level AST nodes at this point, not nested within top-level expressions.
 
     if(length(idx)) {
+        # Replace each of these with the parsed contents of the source() call.
         ans = code$contents
         for(i in rev(idx)) {
-#browser()            
             file = code[[i]]$args[[1]]$value
             if(!file.exists(file) && file.exists(file.path(dir, file)))
                 file = file.path(dir, file)
@@ -181,20 +180,56 @@ function(code, recursive = FALSE, dir = ".")
            if(!file.exists(file)) {
                 warning(file, " to be source()'d doesn't exist")
                 next
-            }
+           }
             
-            tmp = to_ast(parse(file))
-            if(recursive)
-                tmp = substSource(tmp, recursive, dirname(file))
-            if(is(tmp, "Brace"))
-                tmp = tmp$contents
+           tmp = to_ast(parse(file))
+           if(recursive)
+               tmp = substSource(tmp, recursive, dirname(file))
+           if(is(tmp, "Brace"))
+               tmp = tmp$contents
 
-            if(i == length(ans))
-                ans = c(ans[-i], tmp)
-            else
-                ans = c(ans[seq_len((i[1] - 1))], tmp, ans[( (i[1]+1):length(ans))])
+           if(i == length(ans))
+               ans = c(ans[-i], tmp)
+           else
+               ans = c(ans[seq_len((i[1] - 1))], tmp, ans[( (i[1]+1):length(ans))])
         }
         code$contents = ans        
     }
     code
+}
+
+
+getReadFunName =
+    #
+    # Resolves aliases
+    #  f = read.csv
+    #  f()
+    #
+function(expr, aliases = getAliases(expr))
+{
+    nm = expr$fn$value
+    if(length(aliases) && !is.na(m <- match(nm, names(aliases))))
+        aliases[m]
+    else
+        nm
+}
+
+getAliases =
+function(expr, root = getRoot(expr))
+{
+    idx = find_nodes(root, function(x) is(x, "Assign") && is(x$read, "Symbol") && is(x$write, "Symbol"))
+    if(length(idx))
+        structure( sapply(idx, function(i) root[[i]]$read$value), names =  sapply(idx, function(i) root[[i]]$write$value))
+    else
+        character()
+}
+
+
+getRoot =
+function(x)
+{
+    while(!is.null(x$parent))
+        x = x$parent
+    
+    x
 }
