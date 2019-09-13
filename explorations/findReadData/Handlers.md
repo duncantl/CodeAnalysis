@@ -1,16 +1,25 @@
+# S3 Extensibility and Handler Functions Customization
 
- This illustrates an idiom I sometimes use.
- The issue is how to allow extensibility and customizability in a structured manner.
- This is a mix of 1) S3 classes and methods, and 2) an adaptible list of handler functions
+This illustrates an idiom I sometimes use.
+The issue is how to allow extensibility and customizability in a structured manner.
+This is a mix of 1) S3 classes and methods, and 2) an adaptible list of handler functions
   specified for a given call.
- The programmer can provide either a function in the call (2) or define a method for a function
- for a given class and have a generic function look for that.
- The generic function first looks for a matching handler in the call, and if it doesn't find it
- uses the S3 method dispatch to look for the corresponding method in the search path.
+The programmer can provide either a function in the call (2) or define a method for a function
+for a given class and have a generic function look for that.
+The generic function first looks for a matching handler in the call, and if it doesn't find it
+uses the S3 method dispatch to look for the corresponding method in the search path.
 
-  This allows a programmer to provide a customized function for a specific call
-  or to define/declare a default way to behave for all calls for a given class of object.
-  The former can override the latter for a given call. 
+This approach allows a programmer to provide a customized function for a specific call
+or to define/declare a default way to behave for all calls for a given class of object.
+The former can override the latter for a given call. 
+
+
+This arises generally, but especially in cases where we have
++ a general class, e.g. a Call, an XMLNode
++ and we want to do different things based on the value in the  object, e.g. the name of the XML
+  node (table versus img), the name of the function in a Call (read.table versus readLines).
+The S3 mechanism can't dispatch on the value, but just the class.
+
 
  The situation for this example/case study is that we are using rstatic AST Call objects
  These are calls to functions that read data. We want to modify these so that they don't read
