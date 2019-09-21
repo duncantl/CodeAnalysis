@@ -234,6 +234,55 @@ We also either don't define  foo.Call() or have it perform a default operation a
 Call object.
 
 
+CF: Another way to avoid the infinite recursion is to have two generic functions, instead of one.
+This is how I actually implemented it before we spoke (minus the handler list).
+
+```
+dataSource = function(expr, ...) UseMethod("dataSource")
+
+dataSource.Call = function(expr, handlers = list(), ...)
+{
+    expr = rstatic::match_call(expr)
+    fname = expr$fn$ssa_name
+    m = match(fname, names(handlers))
+    if(!is.na(m)){
+        handlers[[m]](expr, handlers, ...)
+    } else {
+        func_class = paste0(fname, "_Call")
+        class(expr) = c(func_class, class(expr))
+
+        inferDataSourceFromCall(expr, ...)
+    }
+}
+
+inferDataSourceFromCall = function(expr, ...) UseMethod("inferDataSourceFromCall")
+
+inferDataSourceFromCall.default = function(expr, ...) message("default")
+
+inferDataSourceFromCall.read.fwf_Call = function(expr, ...) message("fixed width")
+```
+
+Let's test it out:
+```
+library(rstatic)
+
+dataSource(quote_ast(read.fwf("file.txt")))
+# fixed width
+
+h = list(read.fwf = function(...) message("override!!!"))
+dataSource(quote_ast(read.fwf("file.txt")), handlers = h)
+# override!!!
+
+dataSource(quote_ast(read.table("file.txt")))
+# default
+
+```
+In the code above, `dataSource` corresponds to `foo`.
+This works for my use case, because I use `dataSource` to handle a more diverse set of objects, and `inferDataSourceFromCall` to handle specific calls to data reading functions.
+If we wanted to look recursively inside all the calls we could have `inferDataSourceFromCall` default method descend into the children.
+That's more than I need.
+
+
 # An Example of a Method that Modifies the Call
 
 To provide an actual working customized version for read.fwf, we can do so with a method
