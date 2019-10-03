@@ -46,7 +46,9 @@ function(expr, nrow = 10, ...)
     nr = wc(as.character(expr[[2]]))
     
     d = eval(insertNRow(I(expr), nrow))
-     
+    nc = ncol(d)
+    vars = names(d)
+    
     structure(list(dim = c(nr, nc), elNames = vars, elementClasses = lapply(d, class), elementTypes = sapply(d, typeof)), class = "TabularTypeInfo")
 }
 

@@ -23,3 +23,7 @@ export(loadCode)
 export(getFilesRead, findNSE, S3Assignments, mkClassGraph, findUsedOptions)
 
 
+
+
+export(csvTypeInfo)
+exportMethods(csvTypeInfo)
