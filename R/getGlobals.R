@@ -147,6 +147,10 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           if(popFuns)
               curFuns <<- curFuns[- length(curFuns)]
        } else if(is.name(e)) {
+           # with the changes for lazily dealing with default values of parameters, we now
+           # have all symbols coming through this, even as name of function in a call
+           # e.g.,   sapply(x, f)  will have sapply come through this.
+           # So have to avoid adding it to the vars variable.
           name = as.character(e)
           if(!(name %in% localVars) && name %in% names(params) && !defaultValuesProcessed[name]) {
               defaultValuesProcessed[name] <<- TRUE
@@ -155,10 +159,12 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           }
 
           if(!(name %in% localVars)) {
-#             browser()
-             if(!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns)) {
-             } else
-                vars <<- c(vars, name)
+             if(name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
+             } else {
+#                 browser()
+                 vars <<- c(vars, name)
+             }
+
              
              if(length(curFuns))
                  sapply(curFuns, function(id)

@@ -142,9 +142,10 @@ stopifnot(tmp$functions == c("aggregate", "mean", "~"))  # why is ~ third?
 
 # Shouldn't find f since a parameter.
 ng = function(x, f) sapply(x, f, FALSE)
-tmp = getGlobals(ng)$functions
-#XXX!!! Fails. Includes f
-#stopifnot(length(tmp) == 1 && tmp == "sapply")
+tmp = getGlobals(ng)
+#[fixed] Includes f
+stopifnot(identical(tmp$functions, "sapply"))
+stopifnot(identical(tmp$variables, character()))
 #??? Why is sapply() in the $variables output
 
 
