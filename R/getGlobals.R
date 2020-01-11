@@ -54,7 +54,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   subFunInfo = list()
 
   skippedExpressions = list()
-  
+
+
   addFunName = function(id) {
                   if(!(as.character(id) %in% c(c("for", "if", "{", "while"), skip)))
                      funs <<- c(funs, as.character(id))
@@ -104,10 +105,10 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
           
            funName = as.character(e[[1]])
-if(funName == 'names') browser()
+#if(funName == 'foo') browser()
            if(funName == "function") {
               subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip, .ignoreDefaultArgs = .ignoreDefaultArgs)
-             return(TRUE)
+              return(TRUE)
           } else if(funName %in% c('<-', '=')) {
               fun(e[[3]], fun)
               e = e[-3]
@@ -140,22 +141,21 @@ if(funName == 'names') browser()
           else if (funName %in% c("apply", "eapply", "sweep", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep")) {
                 els = procIndirectFunCall(e, funName)
           }
-##          else if(funName %in% c("sapply", "lapply") && is.name(e[[3]])) {
-##             addFunName(as.character(e[[3]])) #XXX Also need to add it to the varsByFuns
-##             els = els[-2]
-##          } else if(funName %in% c("mapply") && is.name(e[[2]])) {
-##             addFunName(as.character(e[[2]])) #XXX Also need to add it to the varsByFuns
-##             els = els[-2]
-##          } else if(funName %in% c("do.call") && (is.name(e[[2]]) || is.character(e[[2]]))) {
-##             addFunName(as.character(e[[2]])) #XXX Also need to add it to the varsByFuns
-##             els = els[-2]
-##          }
+
            
           lapply(els, fun, w)
           if(popFuns)
               curFuns <<- curFuns[- length(curFuns)]
-      } else if(is.name(e) && !(as.character(e) %in% localVars)) {
-             name = as.character(e)
+       } else if(is.name(e)) {
+          name = as.character(e)
+          if(!(name %in% localVars) && name %in% names(params) && !defaultValuesProcessed[name]) {
+              defaultValuesProcessed[name] <<- TRUE
+              fun(params[[name]], fun)
+              localVars <<- c(localVars, name)
+          }
+
+          if(!(name %in% localVars)) {
+#             browser()
              if(!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns)) {
              } else
                 vars <<- c(vars, name)
@@ -163,22 +163,39 @@ if(funName == 'names') browser()
              if(length(curFuns))
                  sapply(curFuns, function(id)
                                     varsByFun[[id]] <<- c(varsByFun[[id]], name))
-        } else
+          }
+         } else
           lapply(as.list(e)[-1], fun, w)
   }
 
   if(is.call(f) && as.character(f[[1]]) == "function") 
      f = eval(f, globalenv())
 
-  if(typeof(f) == "closure") {
-      localVars = names(formals(f))
-      if(!.ignoreDefaultArgs)
-         lapply(formals(f), fun, fun)
-      f = body(f)
-  } 
+
+  if(is.function(f)) {
+    params = formals(f)
+    defaultValuesProcessed = structure(rep(FALSE, length(params)), names = names(params))
+  } else {
+    params = list()
+    defaultValuesProcessed = logical()
+  }
   
+  
+  if(typeof(f) == "closure") {
+
+      if(!.ignoreDefaultArgs) {
+         localVars = names(params)[sapply(params, length) == 0]
+         # lapply(params, fun, fun)
+         f = body(f)
+     }
+  } 
+#  origFun = body(f)
+
   fun(f, fun)
 
+  if(any(!defaultValuesProcessed))
+      lapply(formals(f)[!defaultValuesProcessed], fun, fun)
+  
   varsByFun = varsByFun[ setdiff(names(varsByFun), c("for", "if", "{"))]
 
     #XXX This doesn't catch the case that a function is defined and called before the variable it references in the parent function

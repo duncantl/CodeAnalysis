@@ -1,5 +1,26 @@
 library(CodeAnalysis)
 
+
+
+f = function(x = foo(1))
+{
+#    foo = function(val) 2*val + 1
+    x + 2
+}
+
+gv = getGlobals(f)
+
+
+f2 = function(x = foo(1))
+{
+    foo = function(val) 2*val + 1
+    x + 2
+}
+gv = getGlobals(f2)
+
+#########
+
+
 f =
     #
     # This is a good example as we see foo used in the default values
@@ -29,6 +50,8 @@ tmp = unique(gv$variables)
 stopifnot(identical(tmp, c("globalVar", "g")))
 
 #XXX problem. Thinks foo is a global but actually should be defined by time x is used.
+# This is because it processes the default values before the body of the function,
+# not the first time each parameter is first used.
 gv$functions
 
 # If we use x before foo is defined, foo should become a global variable.
