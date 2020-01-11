@@ -19,9 +19,34 @@ function(x = foo(globalVar), y = length(x))
    z = bar()
 }
 
+g = 1; ans = f(1:3)
+stopifnot(identical(ans, 12))
 
 gv = getGlobals(f)
-unique(gv$variables)
+tmp = unique(gv$variables)
+# Identifies g but not w since w is a parameter of foo.
+# Note that it also identifies that a will be available for 
+stopifnot(identical(tmp, c("globalVar", "g")))
+
+#XXX problem. Thinks foo is a global but actually should be defined by time x is used.
+gv$functions
+
+# If we use x before foo is defined, foo should become a global variable.
+f2 = function(x = foo(globalVar), y = length(x))
+{
+   x + 1
+   y = 1
+   foo = function(w)
+             w + y
+   bar = function()
+            y + a + g
+
+   foo(x)
+   a = 10
+   z = bar()
+}
+gv = getGlobals(f2)
+tmp = unique(gv$variables)
 
 
 
@@ -40,7 +65,8 @@ getGlobals(tmp, .ignoreDefaultArgs = TRUE)$variables
 formals(tmp)[] = replicate(length(formals(tmp)), formals(getGlobals)[[1]], simplify = FALSE)
 getGlobals(tmp)$variables
 
-
+###################################################################
+# These  are about identifying functions called indirectly via *apply(), outer, kronecker, do.call, etc.
 
 m = function(x, y) mapply(sort, x, y)
 tmp = getGlobals(m)$functions
