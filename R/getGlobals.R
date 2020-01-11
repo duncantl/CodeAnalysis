@@ -184,7 +184,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   if(typeof(f) == "closure") {
 
       if(!.ignoreDefaultArgs) {
-         localVars = names(params)[sapply(params, length) == 0]
+            # process the parameters that have no default value.
+         localVars = names(params)[sapply(params, function(x) is.name(x) && x == "")]
          # lapply(params, fun, fun)
          f = body(f)
      }
@@ -194,7 +195,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   fun(f, fun)
 
   if(any(!defaultValuesProcessed))
-      lapply(formals(f)[!defaultValuesProcessed], fun, fun)
+      lapply(params[!defaultValuesProcessed], fun, fun)
   
   varsByFun = varsByFun[ setdiff(names(varsByFun), c("for", "if", "{"))]
 
