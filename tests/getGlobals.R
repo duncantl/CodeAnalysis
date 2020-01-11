@@ -1,6 +1,9 @@
 library(CodeAnalysis)
 
-
+if(FALSE) {
+    e = new.env(parent = getNamespace("base"))
+    source("~/GitWorkingArea/CodeAnalysis/tests/getGlobals.R", e, echo = TRUE)
+}
 
 f = function(x = foo(1))
 {
@@ -193,6 +196,7 @@ stopifnot(identical(tmp, character()))
 f = function(x) x + 1
 fv = Vectorize(f)
 tmp = getGlobals(fv)
+stopifnot("names" %in% tmp$functions)
 #[fixed] misses names()
 
 
