@@ -40,3 +40,87 @@ getGlobals(tmp, .ignoreDefaultArgs = TRUE)$variables
 formals(tmp)[] = replicate(length(formals(tmp)), formals(getGlobals)[[1]], simplify = FALSE)
 getGlobals(tmp)$variables
 
+
+
+m = function(x, y) mapply(sort, x, y)
+tmp = getGlobals(m)$functions
+stopifnot(tmp$functions == c("mapply", "sort"))
+
+m = function(x, y) mapply(x, y, FUN = sort)
+tmp = getGlobals(m)$functions
+stopifnot(tmp$functions == c("mapply", "sort"))
+
+
+df = function(...) do.call(rbind, list(...))
+tmp = getGlobals(df)$functions
+stopifnot(tmp$functions == c("do.call", "rbind", "list"))
+
+
+f = function(d)  aggregate(len ~ ., data = d, mean)
+tmp = getGlobals(f)$functions
+stopifnot(tmp$functions == c("do.call", "rbind", "list"))
+
+
+# Shouldn't find f since a parameter.
+ng = function(x, f) sapply(x, f, FALSE)
+tmp = getGlobals(ng)$functions
+stopifnot(length(tmp) == 1 && tmp == "sapply")
+
+
+ap = function(x) apply(x, 1, which.max)
+tmp = getGlobals(ap)$functions
+stopifnot(tmp == c("apply", "which.max"))
+
+
+# Note the
+f = function(x, y) outer(y, x, "^")
+tmp = getGlobals(f)$functions
+stopifnot(identical(tmp, c("outer", "^")))
+
+f = function(x, y) outer(y, x, `^`)
+tmp = getGlobals(f)$functions
+stopifnot(identical(tmp, c("outer", "^")))
+
+#
+cf = function(x, f) for(i in x) f(i)
+tmp = findCallsParam(cf)
+stopifnot(identical(tmp$functions,  "f"))
+
+cf = function(x, f) for(i in x) { x = f(i); y = g(x) }
+tmp = findCallsParam(cf)
+stopifnot(identical(tmp$functions,  "f"))
+
+getGlobals(cf)$functions
+#[Done] Needs to skip for and {.
+
+
+
+# Check to see if we call a fn and then assign over its name we
+# capture that call
+f = function(x) { g = g(x)}
+tmp = getGlobals(f)$functions
+stopifnot(identical(tmp, "g"))
+
+# Here we assign to g before calling it so it is not a global. So this is empty, no globals.
+# The code is also wrong as g is not a function, but getGlobals doesn't do that
+# analysis.
+f = function(x) { g = 1; g(x)}
+tmp = getGlobals(f)$functions
+stopifnot(identical(tmp, character()))
+
+#
+f = function(x) x + 1
+fv = Vector(f)
+tmp = getGlobals(fv)
+#[fixed] misses names()
+
+
+
+f = function(x) if(FALSE) g(x) else x + 1
+tmp = getGlobals(f)
+stopifnot(identical(tmp$functions, "+"))
+
+f = function(x) if(TRUE) g(x) else x + 1
+tmp = getGlobals(f)
+stopifnot(identical(tmp$functions, "g"))
+
