@@ -9,7 +9,7 @@ export(removeAfterReturn)
 
 export(removeConstIf)
 
-export(getGlobals)
+export(getGlobals, getGlobalFunctions)
 export(substituteDefaultValues)
 export(checkLoopDepend)
 export(mkGlobalsLocal)

@@ -8,13 +8,14 @@ getGlobals =
     #
     # This is not the same as findGlobals (yet!), and is probably not as comprehensive
     # but also finds some errors, i.e. finds use of variables before they are defined/assigned.
+    # 
+    # It also attempts to deal with 
     #
-    # We didn't use the code walker mechanism in codetools as it doesn't appear to give us a means
+    # We didn't use the code walker mechanism in codetools as it doesn't appear to give us a relativel simple means
     # to push and pop function calls. But this could be just that I haven't wrapped my head around it.
+    # But also, it is a slightly akward interface and undocumented.
     #
     # Todo:  process nested function definitions and determine their local variables
-    #
-    #
     #
     # When run on compileFunction(), we find ir and nenv as globals.
     # nenv is real as it used before it is defined.
@@ -25,16 +26,19 @@ getGlobals =
     # skip  is for the names of functions for which we are to ignore calls to these
     #
     #
-    # To find functions that have a FUN argument
+    # To find functions that have a FUN argument which is likely to be called directly, we can use
     #
     # bvars = ls("package:base")
     # hasFun = structure(sapply(bvars, function(x) { f = get(x, "package:base"); if(is.function(f)) "FUN" %in% names(formals(f)) else FALSE}), names = bvars)
     #  bvars[hasFun]
     #
+    #
+    # Doesn't identify do.call, optim, etc.  But for optim, we have findCallsParam().
+    #
 function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, 
          skip = c(".R", ".typeInfo", ".signature", ".pragma"),
          .debug = TRUE, .assert = TRUE,
-         localVars = character())
+         localVars = character(), mergeSubFunGlobals = TRUE)
 {
 
   if(is.logical(.debug))
@@ -74,6 +78,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       } else
           e2
   }
+
+  curAssignName = character()
   
   fun = function(e, w) {
       popFuns = FALSE
@@ -103,15 +109,23 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            if(is.call(e[[1]]))  # e.g. x$bob()
                return(lapply(e, fun,  w))
 
-          
            funName = as.character(e[[1]])
 #if(funName == 'foo') browser()
            if(funName == "function") {
+               #XXX Should be able to get the name of this if it is available.
               subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip, .ignoreDefaultArgs = .ignoreDefaultArgs)
+              if(length(curAssignName) > 0)
+                  names(subFunInfo)[length(subFunInfo)] = curAssignName[1]
               return(TRUE)
           } else if(funName %in% c('<-', '=')) {
+              if(is.name(e[[2]]))
+                  curAssignName <<- c(as.character(e[[2]]), curAssignName)
+              
               fun(e[[3]], fun)
               e = e[-3]
+              if(is.name(e[[2]]))              
+                  curAssignName = curAssignName[-1]
+              
               if(is.name(e[[2]]))
                   localVars <<- c(localVars, as.character(e[[2]]))
            } else {
@@ -214,26 +228,67 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   gvs = unlist(sapply(subFunInfo, `[[`, "variables"))
   i = match(gvs, localVars)
   vars = c(vars, gvs[is.na(i)])
-  list(localVariables = localVars,
-       variables = vars,
-       functions = funs,
-       variablesByFun = lapply(varsByFun, table),
-       expressions = expressions,
-       subFunctions = subFunInfo,
-       skippedExpressions = skippedExpressions)
+
+  ans = structure(list(localVariables = localVars,
+                 variables = vars,
+                 functions = funs,
+                 variablesByFun = lapply(varsByFun, table),
+                 expressions = expressions,
+                 subFunctions = subFunInfo,
+                 skippedExpressions = skippedExpressions),
+      class = "GlobalUses")
+
+  if(mergeSubFunGlobals) 
+      ans$functions = getGlobalFunctions(ans, TRUE)
+
+  ans
+
 }
 
 
+getGlobalFunctions =
+function(x, ...)   
+    UseMethod("getGlobalFunctions")
+
+getGlobalFunctions.GlobalUses =
+function(x, mergeSubFuns = FALSE, asNames = TRUE, ...)
+{    
+    ans = x$functions
+    if(mergeSubFuns) {
+        # This isn't quite right as we might define a function in the top-level function
+        # and so it is not global, but intermediate. But then it would be available to those
+        # functions even after they are defined
+        # e.g.   function() { foo = function(x) bar(x); bar = function(y) y+1; ...}
+        # We need to pass the names of the existing functions down to getGlobals when we process a new function.
+        # But again, are available after the definition of that function.
+        #
+        
+        # Need to exclude the functions that are defined within the top-level function
+        # 
+        tmp = unlist(lapply(x$subFunctions, `[[`, "functions"))
+        
+        ans = c(ans, tmp[ !(tmp %in% x$localVariables)] )
+   }
+
+    if(asNames)
+        unique(ans)
+    else
+        table(ans)
+}
 
 
+#############################
 
 findCallsParam =
     #
     # Find any direct calls to a parameter, e.g.
-    #  optim() may call its fn and gr
+    #   optim() may call its fn and gr
     #
     # Doesn't find indirect calls such as function(x, f) sapply(x, f).
     # Get those with getGlobals()
+    #
+    # Does't detect calls from C code of course. See the RCIndex package 
+    # and NativeCodeAnalysis package for that..
     #
 function(fun)
 {
