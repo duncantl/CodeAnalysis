@@ -79,13 +79,15 @@ tmp = unique(gv$variables)
 # Note that it also identifies that a will be available for 
 stopifnot(identical(tmp, c("globalVar", "g")))
 
-#XXX!!! Not  integrating global functions from functions defined in this.
-#stopifnot(identical(gv$functions, c("length", "+")))
-
 # problem. Thinks foo is a global but actually should be defined by time x is used.
 # This is because it processes the default values before the body of the function,
 # not the first time each parameter is first used.
 gv$functions
+
+#XXX!!! Not  integrating global functions from functions defined in this.
+#stopifnot(identical(gv$functions, c("length", "+")))
+
+
 
 
 # If we use x before foo is defined, foo should become a global variable.
@@ -214,3 +216,28 @@ f = function(x) if(TRUE) g(x) else x + 1
 tmp = getGlobals(f)
 stopifnot(identical(tmp$functions, "g"))
 
+
+
+
+
+##################
+
+# Tests for getGlobalFunctions
+
+f =
+function(x, y)
+{
+    foo = function(a) 1 + bar(a)
+    bar = function(x) 2*sin(x)
+
+    foo(x) + bar(y)
+}
+
+# Should identify +, * and sin as global functions.
+gv = getGlobals(f)
+tmp = getGlobalFunctions(gv, TRUE)
+stopifnot(identical(tmp, c("+", "*", "sin")))
+
+
+gv = getGlobals(f, mergeSubFun = TRUE)
+stopifnot(identical(gv$functions, c("+", "*", "sin")))
