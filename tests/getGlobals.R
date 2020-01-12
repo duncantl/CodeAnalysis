@@ -79,10 +79,14 @@ tmp = unique(gv$variables)
 # Note that it also identifies that a will be available for 
 stopifnot(identical(tmp, c("globalVar", "g")))
 
-#XXX problem. Thinks foo is a global but actually should be defined by time x is used.
+#XXX!!! Not  integrating global functions from functions defined in this.
+#stopifnot(identical(gv$functions, c("length", "+")))
+
+# problem. Thinks foo is a global but actually should be defined by time x is used.
 # This is because it processes the default values before the body of the function,
 # not the first time each parameter is first used.
 gv$functions
+
 
 # If we use x before foo is defined, foo should become a global variable.
 f2 = function(x = foo(globalVar), y = length(x))

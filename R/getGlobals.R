@@ -151,6 +151,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            # have all symbols coming through this, even as name of function in a call
            # e.g.,   sapply(x, f)  will have sapply come through this.
            # So have to avoid adding it to the vars variable.
+
+           # This needs some comparison with origina and probably needs changes to the logic.
+           
           name = as.character(e)
           if(!(name %in% localVars) && name %in% names(params) && !defaultValuesProcessed[name]) {
               defaultValuesProcessed[name] <<- TRUE
