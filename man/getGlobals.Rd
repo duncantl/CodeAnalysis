@@ -1,5 +1,6 @@
 \name{getGlobals}
 \alias{getGlobals}
+\alias{getGlobalFunctions}
 \title{Compute information about uses of globals, etc. for a function}
 \description{
  This is an alternative version of \code{\link[codetools]{findGlobals}}
@@ -15,7 +16,8 @@
 \usage{
 getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            skip = c(".R", ".typeInfo", ".signature", ".pragma"),
-           .debug = TRUE, .assert = TRUE, localVars = character())
+           .debug = TRUE, .assert = TRUE, localVars = character(),
+           mergeSubFunGlobals = TRUE)
 }
 \arguments{
   \item{f}{the function to be analyzed}
@@ -38,9 +40,12 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
  skipping \code{.assert} calls, or it can be the name of another
  function, e.g. \code{"assert_that"} which we will  add to the
  \code{skip} vector.}
+ \item{mergeSubFunGlobals}{a logical scalar value that
+   controls whether we merge the global functions used in any function
+  defined within this functions \code{f} into the answer or keep them separate.}
 }
 \value{
-  A list with numerous elements:
+  A list of class \code{GlobalUses} with numerous elements:
   \item{localVariables}{the names of all the variables that are assigned
  in the body of the function.}  
   \item{variables}{the names of non-local/global variables referenced in
