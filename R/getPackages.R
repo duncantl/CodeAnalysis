@@ -1,3 +1,18 @@
+# Should be in CodeDepends, not here.
+setAs("expression", "ScriptInfo",
+      function(from)
+         new("ScriptInfo", lapply(from, getInputs)))
+
+getToplevelVariables =
+function(code, ...)
+{
+    info = as(code, "ScriptInfo")
+    #?? can we just call CodeDepends::getVariables()
+    # Also, move this to CodeDepends.
+    unique(unlist(c(lapply(info, slot, "outputs"), lapply(info, slot, "updates"))))
+}
+
+
 setGeneric("getPackages",
            function(code, ...)
            standardGeneric("getPackages"))
@@ -40,18 +55,6 @@ setMethod("getPackages",
 })
 
 
-# Should be in CodeDepends, not here.
-setAs("expression", "ScriptInfo",
-      function(from)
-         new("ScriptInfo", lapply(from, getInputs)))
-
-getToplevelVariables =
-function(code, ...)
-{
-    info = as(code, "ScriptInfo")
-    unique(unlist(c(lapply(info, slot, "outputs"), lapply(info, slot, "updates"))))
-}
-    
 
 ################
 
@@ -74,6 +77,7 @@ tmp = function(x, merge = TRUE)
 setMethod("getOutputVars", "ScriptNodeInfo", tmp)
 setMethod("getOutputVars", "call", tmp)
 setMethod("getOutputVars", "<-", tmp)
+setOldClass("=")
 setMethod("getOutputVars", "=", tmp)
 
 setMethod("getOutputVars", "character",
@@ -122,34 +126,3 @@ setAs("character", "ScriptNodeInfo",
 
 
 
-
-
-###################
-
-getVarGraph =
-function(var, sc, asGraph = TRUE,
-         idx = getVariableDepends(var, sc, asIndex = TRUE))
-{
-    df = createVarGraph(sc[i], sc)
-    if(asGraph)
-        graph_from_data_frame(df)
-    else
-        df
-}
-
-createVarGraph =
-function(cmds, script = NULL)
-{
-    info = lapply(cmds, getInputs)
-    do.call(rbind, lapply(info, inputOutputEdges))
-}
-
-inputOutputEdges =
-function(info)    
-{
-    ins = unique(info@inputs)
-    outs = unique(c(info@outputs, info@updates))
-#    if(length(outs) > 1)
-#        warning("more than one output for ", paste(deparse(info@code), sep = " "))
-    expand.grid(input = ins, output = outs, stringsAsFactors = FALSE)
-}
