@@ -27,7 +27,7 @@ function(pkg, classes = getClasses(pkg), classDefs = lapply(classes, getClass))
     df = lapply(classes, function(k) {
                       def = getClass(k)
                       from = names(def@contains)[sapply(def@contains, slot, "distance") == 1]
-                      data.frame(to = rep(k, length(from)), from = from)
+                      data.frame(to = rep(k, length(from)), from = from, stringsAsFactors = FALSE)
                     })
     do.call(rbind, df)
 }
