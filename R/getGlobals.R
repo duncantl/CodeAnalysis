@@ -2,16 +2,19 @@ getGlobals =
     #
     # This is like codetools::findGlobals() but can be made aware of
     # function calls which we want to ignore because they may refer to 
-    # global variables that are in an entirely different scope, e.g. R.
+    # global variables that are in an entirely different scope, e.g. R. (?)
     # This is for compiling callbacks to R and identifying variables that
     # are to be resolved in R.
     #
     # This is not the same as findGlobals (yet!), and is probably not as comprehensive
     # but also finds some errors, i.e. finds use of variables before they are defined/assigned.
+    #
+    #  Actually it is more correct and comprehensive than findGlobals.
+    #  It recognizes when variables are defined locally and identifies uses of it before that as globals.
     # 
     # It also attempts to deal with 
     #
-    # We didn't use the code walker mechanism in codetools as it doesn't appear to give us a relativel simple means
+    # We didn't use the code walker mechanism in codetools as it doesn't appear to give us a relatively simple means
     # to push and pop function calls. But this could be just that I haven't wrapped my head around it.
     # But also, it is a slightly akward interface and undocumented.
     #
@@ -66,6 +69,11 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                }
 
   procIndirectFunCall = function(e, funName = as.character(e[[1]]), def = get(funName)) {
+      # remove ... from e as match.call
+      #   ... used in a situation where it does not exist
+      w = sapply(e, function(x) is.name(x) && x == "...")
+      if(any(w))
+          e = e[!w]
       e2 = match.call(def, e)
       i = switch(funName,
              do.call = match("what", names(e2)),
