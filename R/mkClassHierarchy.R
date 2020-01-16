@@ -1,3 +1,6 @@
+#!!! Add edges for as() connections. And also is() via setClassUnion(). Put a type column for the type of edge.
+# or hang these edges off the df. as attributes
+
 getAllClasses =
 function(classes, classDefs = lapply(classes, getClass))
 {
@@ -21,16 +24,26 @@ function(pkg, classes = getClasses(pkg), classDefs = lapply(classes, getClass))
 
 
 mkClassGraph =
-function(pkg, classes = getClasses(pkg), classDefs = lapply(classes, getClass))
+function(pkg, classes = getClasses(pkg), classDefs = structure(lapply(classes, getClass), names = classes))
 {
-    classes = getAllClasses(classes, classDefs)    
+    classes = getAllClasses(classes, classDefs)
+    o = setdiff(classes, names(classDefs))
+    if(length(o))
+        classDefs[o] = lapply(o, getClass)
     df = lapply(classes, function(k) {
-                      def = getClass(k)
+                      def = classDefs[[k]] # getClass(k)
                       from = names(def@contains)[sapply(def@contains, slot, "distance") == 1]
+                      if(length(from) == 0)
+                          from = NA
                       data.frame(to = rep(k, length(from)), from = from, stringsAsFactors = FALSE)
-                    })
-    do.call(rbind, df)
+                  })
+    # what about the classes that are not inherited from or inherit. Omitted so need to add them.
+    ans = do.call(rbind, df)
+    ans
 }
+
+# g = mkClassGraph("package:CodeDepends")
+# plot(graph_from_data_frame(g[!is.na(g$from),], TRUE, unique(na.omit(c(g$from, g$to)))))
 
 
 # gg = graph_from_incidence_matrix(o)
