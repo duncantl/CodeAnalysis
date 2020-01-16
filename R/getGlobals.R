@@ -287,21 +287,3 @@ function(x, mergeSubFuns = FALSE, asNames = TRUE, ...)
 
 #############################
 
-findCallsParam =
-    #
-    # Find any direct calls to a parameter, e.g.
-    #   optim() may call its fn and gr
-    #
-    # Doesn't find indirect calls such as function(x, f) sapply(x, f).
-    # Get those with getGlobals()
-    #
-    # Does't detect calls from C code of course. See the RCIndex package 
-    # and NativeCodeAnalysis package for that..
-    #
-function(fun)
-{
-   params = names(formals(fun))
-   funa = to_ast(fun)
-   v = find_nodes(funa, function(x) is(x, "Call") && is(x$fn, "Symbol") && x$fn$value %in% params)
-   vapply(v, function(x) x$fn$value, character(1))
-}
