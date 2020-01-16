@@ -15,7 +15,7 @@ function(body)
            && is(expr$write, "Symbol")) {
             # collect this
             # funcs <<- append(funcs, expr)
-            funcs[[ expr$write$name ]] <<- expr
+            funcs[[ expr$write$value ]] <<- expr
             # Remove from the body
             removeFromBody(body, i)
         }
@@ -29,13 +29,13 @@ function(fun)
 {
     b = to_ast(body(fun))
     col = collectRemoveFun(b)
-browser()
+#browser()
     # Note we go from last to first so that if we remove an element
     # this doesn't change the index of the next element.
     mapply(col, b, rev(seq(along = b$body)))
 
-    funcs = lapply(environment(col)$funcs, to_r)
-    body(fun) = to_r(b)
+    funcs = lapply(environment(col)$funcs, as_language)
+    body(fun) = as_language(b)
     list(fun = fun, externalFunctions = funcs)
 }
 
