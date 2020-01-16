@@ -13,14 +13,14 @@ Description: This package provides a (growing) collection of
  e.g. memory management, 
       opportunities for parallelism, 
       data locality for parallel computations, ...
- Currently, there is functionality to 
+ Currently, there is functionality to: 
    *  find unused parameters/arguments
    *  find unused variables/assignments
    *  identify constant parameters (i.e. unchanged in the function's body)
    *  detect vector concatenation in loops
    *  identify & remove dead code (after a call to return())
    *  remove dead if/else code blocks (i.e. where we are certain the condition is TRUE or FALSE)
-   *  identify parallel for loops
+   *  identify parallel for loops.
 Author: Duncan Temple Lang, Nick Ulle, Clark Fitzgerald, Matt Espe
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
