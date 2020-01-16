@@ -33,9 +33,6 @@ logical, should the packages required by the script be loaded?
 	logical, should the expressions be numbered.
 }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
 \value{
   Returns a \code{data.frame} consisting of,
   \item{filename}{The name of the file which is being read/loaded or
@@ -44,47 +41,17 @@ logical, should the packages required by the script be loaded?
   \item{expressionNum}{optional, if \code{addExpressionNum = TRUE}, adds
 	the expression number}
 }
-\references{
-}
+%\references{}
 \author{
 Duncan Temple Lang
 }
-\note{
-}
-
-
 \seealso{
+  \code{\link{getFilesRead}}
+  \code{\link[CodeDepends]{getVariableDepends}}
 }
 
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+%\examples{}
+\concept{static code analysis}
+\keyword{IO}
+\keyword{programming}
 
-## The function is currently defined as
-function (file, info = as(readScript(file), "ScriptInfo"), fileFunctionNames = FileFunctionNames(), 
-    prev = info, loadPackages = TRUE, addExpressionNum = TRUE) 
-{
-    tmp = vector("list", length(info))
-    for (i in seq(along = info)) tmp[[i]] = getDepend(info[[i]], 
-        fileFunctionNames = fileFunctionNames, prev = if (missing(prev)) 
-            info[seq_len(i - 1L)]
-        else prev, loadPackages = loadPackages)
-    i = !sapply(tmp, is.null)
-    if (!any(i)) {
-        tmp = data.frame(filename = character(), operation = character(), 
-            stringsAsFactors = FALSE)
-        if (addExpressionNum) 
-            tmp$expressionNum = integer()
-        return(tmp)
-    }
-    ans = as.data.frame(do.call(rbind, tmp[i]), stringsAsFactors = FALSE)
-    if (addExpressionNum) 
-        ans$expressionNum = rep(which(i), sapply(tmp[i], function(x) if (is.data.frame(x)) nrow(x) else 1))
-    ans
-  }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
