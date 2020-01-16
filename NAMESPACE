@@ -1,8 +1,8 @@
 import(CodeDepends)
 import(methods)
 
-#importFrom(rstatic, find_nodes, to_ast, as_language)
-import(rstatic)
+importFrom(rstatic, find_nodes, to_ast, as_language, Symbol, replace_nodes)
+#import(rstatic)
 importFrom(codetools, walkCode, makeCodeWalker, findGlobals)
 
 
