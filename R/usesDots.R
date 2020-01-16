@@ -14,7 +14,7 @@ function(node)
 {            
     idx = find_nodes(node, isDots)
     if(length(idx))
-        lapply(idx, function(i) node[[i]]$parent)
+        lapply(idx, function(i) i$parent)
     else
         list()
 }
