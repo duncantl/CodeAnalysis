@@ -175,8 +175,8 @@ to_fread = function(statement, select, remove_col.names = TRUE)
     transformed[[1]] = parse(text = "data.table::fread")[[1]] # quote(data.table::fread)
     # Sometimes R just makes things too easy! So happy with this:
     transformed[["select"]] = as.integer(select)
-    if(remove_col.names && !is.null(transformed[["col.names"]])){
+    if(remove_col.names && !is.null(transformed[["col.names"]]))
         transformed[["col.names"]] = NULL
-    }
+  
     transformed
 }
