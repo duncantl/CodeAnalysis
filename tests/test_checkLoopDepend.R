@@ -1,3 +1,4 @@
+if(FALSE) {
 # Testing code for forLoop.R
 library(CodeAnalysis)
 library(testthat)
@@ -282,3 +283,5 @@ l15 = quote(for (i in 1:max(ctrl$seed)) {
 })
 p15 = checkLoopDepend(l15)
 expect_true(p15[["result"]])
+} else
+    message("skipping test_checkLookDepend.R")
