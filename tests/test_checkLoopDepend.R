@@ -7,6 +7,10 @@ library(testthat)
 # - this case of assigning into a constant:
 #       for(i in 1:n) x[foo(i)] = 100
 #   Too unusual, I didn't bother to implement it.
+# Fails
+#
+# for(i in seq(along = x)[-1]) x[i] = 2*x[i-1]
+#
 
 
 if(FALSE)
