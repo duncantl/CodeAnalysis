@@ -37,3 +37,5 @@ exportMethods(csvTypeInfo)
 
 
 export(findCallsParam)
+export(getR6ClassInherits)
+
