@@ -1,6 +1,13 @@
 import(CodeDepends)
+import(methods)
 
-importFrom(rstatic, find_nodes)
+#importFrom(rstatic, find_nodes, to_ast, as_language)
+import(rstatic)
+importFrom(codetools, walkCode, makeCodeWalker, findGlobals)
+
+
+importFrom(graphics, plot)
+S3method(plot, R6ClassInherits)
 
 export(findLoopConcat)
 export(findUnusedArgs, findUnusedParams, findUnusedAssignments)
@@ -27,3 +34,6 @@ export(getFilesRead, findNSE, S3Assignments, mkClassGraph, findUsedOptions)
 
 export(csvTypeInfo)
 exportMethods(csvTypeInfo)
+
+
+export(findCallsParam)
