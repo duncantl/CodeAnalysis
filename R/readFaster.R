@@ -171,7 +171,8 @@ read_faster_work = function(expression, varname, colnames, readfunc)
 to_fread = function(statement, select, remove_col.names = TRUE)
 {
     transformed = statement
-    transformed[[1]] = quote(data.table::fread)
+                     # don't use quote(data.table::fread)  as R CMD check thinks data.table needs to be in Suggests: or Imports: but we don't actually call it, just reference it.
+    transformed[[1]] = parse(text = "data.table::fread")[[1]] # quote(data.table::fread)
     # Sometimes R just makes things too easy! So happy with this:
     transformed[["select"]] = as.integer(select)
     if(remove_col.names && !is.null(transformed[["col.names"]])){
