@@ -16,6 +16,10 @@ if(FALSE) {
              tmp = lapply(files, f)
              do.call(rbind, tmp)
          }
+
+
+  foo2 = function(x,f)    
+           f(x + 1) + 2
 }
 
 
@@ -30,11 +34,14 @@ findCallsParam =
     # Does't detect calls from C code of course. See the RCIndex package 
     # and NativeCodeAnalysis package for that..
     #
-function(fun)
+function(fun, asCalls = FALSE)
 {
    params = names(formals(fun))
    funa = to_ast(fun)
    v = find_nodes(funa, function(x) is(x, "Call") && is(x$fn, "Symbol") && x$fn$value %in% params)
-   vapply(v, function(x) x$fn$value, character(1))
+   if(asCalls)
+       v
+   else
+      unique(vapply(v, function(x) x$fn$value, character(1)))
 }
 
