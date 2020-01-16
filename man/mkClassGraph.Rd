@@ -36,4 +36,5 @@ if(require(CodeDepends)) {
 }
 }
 \keyword{programming}
+\keyword{methods}
 \concept{code analysis}
