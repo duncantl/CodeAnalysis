@@ -24,7 +24,7 @@ function(pkg, classes = getClasses(pkg), classDefs = lapply(classes, getClass))
 
 
 mkClassGraph =
-function(pkg, classes = getClasses(pkg), classDefs = structure(lapply(classes, getClass), names = classes))
+function(pkg, addIs = TRUE, classes = getClasses(pkg), classDefs = structure(lapply(classes, getClass), names = classes))
 {
     classes = getAllClasses(classes, classDefs)
     o = setdiff(classes, names(classDefs))
@@ -39,8 +39,66 @@ function(pkg, classes = getClasses(pkg), classDefs = structure(lapply(classes, g
                   })
     # what about the classes that are not inherited from or inherit. Omitted so need to add them.
     ans = do.call(rbind, df)
+    class(ans) = c("ClassHierarchy", "data.frame")
+    
+    if(addIs) {
+        as = getIsRelationships(pkg, classes)
+        ans2 = rbind(ans, as)
+        ans2$type = rep(c('inherits', 'as'), c(nrow(ans), nrow(as)))
+        class(ans2) = c("CoerceRelationships", class(ans))
+        attr(ans2, "definedClasses") = classes
+        ans = ans2
+    }
+    
     ans
 }
+
+getIsRelationships =
+function(ns, classNames = character())    
+{
+    if(is.character(ns)) {
+        if(grepl("^package:", ns))
+            ns = gsub("^package:", "", ns)
+        ns = getNamespace(ns)
+    }
+    
+    as = as.list(ns$`.__T__coerce:methods`)
+    targets = lapply(as, slot, "target")
+    ans = as.data.frame(do.call(rbind, targets), stringsAsFactors = FALSE, row.names = NULL)
+
+    if(length(classNames))
+        ans = ans[ans$from %in% classNames | ans$to %in% classNames, ]
+
+    ans
+}
+
+#setOldClass(c("ClassHierarchy", "data.frame"))
+setOldClass(c("CoerceRelationships", "ClassHierarchy", "data.frame"))
+
+setOldClass("igraph")
+setAs("ClassHierarchy", "igraph",
+      function(from) {
+          # drop the rows with NAs in either column, but use all of the
+          # rows to compute the names of the nodes. This allows for nodes that are unrelated
+          # to any other nodes to appear in the graph.
+         graph_from_data_frame(from[!is.na(from$from),], TRUE, unique(na.omit(c(from$from, from$to))))
+     })
+
+setAs("CoerceRelationships", "igraph",
+      function(from) {
+          # Create the graph and color the nodes based on whether the
+          # class name in from is in the explicitly defined class names.
+          # And use lty = 3 if the relationship is not an inheritance, but created by setAs().
+          # which is in the type column of the data.frame from.
+          nodes = unique(na.omit(c(from$from, from$to)))
+          w = !is.na(from$from)
+          g = graph_from_data_frame(from[w,], TRUE, nodes)
+          defs = attr(from, "definedClasses")
+          E(g)$lty = c(1, 3)[factor(from$type[w])]
+          V(g)$color = ifelse(nodes %in% defs, "green", "grey")          
+          g
+      })
+
 
 # g = mkClassGraph("package:CodeDepends")
 # plot(graph_from_data_frame(g[!is.na(g$from),], TRUE, unique(na.omit(c(g$from, g$to)))))

@@ -32,7 +32,7 @@ Duncan Temple Lang (?)
 if(require(CodeDepends)) {
   g = mkClassGraph("package:CodeDepends")
   if(require(igraph))
-     plot(graph_from_data_frame(g), cex.arrow.size = .3)
+     plot(as(g, "igraph"), cex.arrow.size = .3)
 }
 }
 \keyword{programming}
