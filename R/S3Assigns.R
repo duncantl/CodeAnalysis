@@ -19,7 +19,7 @@ function(fun, asNode = FALSE)
 isS3Assign =
 function(n)      
 {
-  is(n, "Call") && is(n$fn, "Symbol") && n$fn$name == "class<-"
+  is(n, "Call") && is(n$fn, "Symbol") && n$fn$value == "class<-"
 }
 
 extractS3Class =
