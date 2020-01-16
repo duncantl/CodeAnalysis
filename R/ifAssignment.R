@@ -40,7 +40,7 @@ function(node)
     node = to_ast(node)
     idx = find_nodes(node, is, "Assign")
     if(length(idx))
-        lapply(idx, function(i) node[[i]]$write)
+        lapply(idx, function(i) i$write)
     else
         list()
 }
@@ -49,5 +49,6 @@ function(node)
 # Determine if two AST nodes are the same eventhough they have different parents.
 setGeneric("equiv", function(x, y, ...)standardGeneric("equiv"))
 
-setMethod("equiv", c("Symbol", "Symbol"), function(x, y, ...) identical(x$name, y$name))
+#??? Is this in rstatic?
+setMethod("equiv", c("Symbol", "Symbol"), function(x, y, ...) identical(x$vale, y$value))
 
