@@ -13,7 +13,7 @@ fcorrect = function (a, b, w, .missingCall)
     a + b
 }
 
-fval = substituteDefaultValues(f)
+fval = CodeAnalysis:::substituteDefaultValues(f)
 
 comp = all.equal(fval, fcorrect, check.attributes=FALSE)
 
