@@ -62,9 +62,10 @@ function(fun, gVarsByFun)
     ofun = fun
     
     ast = to_ast(fun)
-    astTraverse(ast, updateCallsFun(gVarsByFun))
+    replace_nodes(ast, updateCallsFun(gVarsByFun), in_place = TRUE)    
+    #astTraverse(ast, updateCallsFun(gVarsByFun))
     
-    fun = eval(to_r(ast))
+    fun = eval(as_language(ast))
     environment(fun) = environment(ofun)
     fun
 }
@@ -79,16 +80,16 @@ function(gVarsByFun)
 {
     function(node) {
 
-        if(is(node, "Call") && node$fn$name %in% names(gVarsByFun)) {
-           extra = gVarsByFun[[ node$fn$name ]]
+        if(is(node, "Call") && is(node$fn, "Symbol")&& node$fn$value %in% names(gVarsByFun)) {
+           extra = gVarsByFun[[ node$fn$value ]]
            #XXX We may want to add .x = x rather than just x by position
            # but we need to know if the . was prepended to the variable name
            # or more generally what parameter each global corresponds to
-           id = names(node$args)
-           if(length(id) != length(node$args))
-               id = character(length(node$args))
-           node$args = append(node$args, lapply(extra, Symbol$new))
-           names(node$args) = c(id, paste0(".", extra))
+           id = names(node$args$contents)
+           if(length(id) != length(node$args$contents))
+               id = character(length(node$args$contents))
+           node$args$contents = append(node$args$contents, lapply(extra, Symbol$new))
+           names(node$args$contents) = c(id, paste0(".", extra))
         }
     }
 }
@@ -107,9 +108,9 @@ addParams =
 function(fun, varNames, addDot = TRUE)
 {
     ofun = fun    
-    newNames = paste0(".", varNames)
+    newNames = if(addDot) paste0(".", varNames) else varNames
     fun = changeParamName(fun, varNames, newNames)
-      # to_r(function() ...)  returns a call object for better or worse!
+      # as_language(function() ...)  returns a call object for better or worse!
       # So need to evaluate that and then set the environment
     fun = eval(fun)
     environment(fun) = environment(ofun)
@@ -166,8 +167,10 @@ function(fun, origName, newName = names(origName))
 {
     ast = to_ast(fun)
     map = structure(origName, names = newName)
-    astTraverse(ast, renameVarFun(map))
-    to_r(ast)
+    replace_nodes(ast, renameVarFun(map), in_place = TRUE)
+    # astTraverse(ast, renameVarFun(map))
+   
+    as_language(ast)
 }
 
 renameVarFun =
@@ -180,11 +183,12 @@ function(map)
 {
     function(node) {
         if(is(node, "Symbol")) {
-            i = match(node$name, map)
+            i = match(node$value, map)
             if(!is.na(i)) {
                 #node$set_basename(names(map)[i])
-                node$basename = names(map)[i]
+                node$value = names(map)[i]
             }
         }
+        node
     }
 }
