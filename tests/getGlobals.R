@@ -23,7 +23,7 @@ f2 = function(x = foo(1))
 }
 gv = getGlobals(f2)
 stopifnot(identical(gv$variables, character()))
-stopifnot(identical(gv$functions, "+"))
+stopifnot(identical(gv$functions, c("+", "*")))
 
 
 
@@ -35,7 +35,7 @@ f3 = function(x = foo(1), y = global)
 }
 gv = getGlobals(f3)
 stopifnot(identical(gv$variables, character()))
-stopifnot(identical(gv$functions, "+"))
+stopifnot(identical(gv$functions, c("+", "*")))
 
 
 f4 = function(x = foo(1), y = global)
@@ -46,7 +46,7 @@ f4 = function(x = foo(1), y = global)
 }
 gv = getGlobals(f4)
 stopifnot(identical(gv$variables, "global"))
-stopifnot(identical(gv$functions, "+"))
+stopifnot(identical(gv$functions, c("+", "*")))
 
 #########
 
@@ -171,6 +171,7 @@ stopifnot(identical(tmp, c("outer", "^")))
 
 #####################################
 # Tests for findCallsParam
+if(exists("findCallsParam")) { # XXXX
 
 cf = function(x, f) for(i in x) f(i)
 tmp = findCallsParam(cf)
@@ -180,10 +181,11 @@ cf = function(x, f) for(i in x) { x = f(i); y = g(x) }
 tmp = findCallsParam(cf)
 stopifnot(identical(tmp,  "f"))
 
+
 getGlobals(cf)$functions
 # Broken now with lazy evaluation of default parameters.
 #[Done] Needs to skip for and {.
-
+}
 
 
 # Check to see if we call a fn and then assign over its name we
@@ -235,7 +237,7 @@ function(x, y)
 
 # Should identify +, * and sin as global functions.
 gv = getGlobals(f)
-tmp = getGlobalFunctions(gv, TRUE)
+tmp = CodeDepends::getFunctionGlobals(gv, TRUE)
 stopifnot(identical(tmp, c("+", "*", "sin")))
 
 
