@@ -195,7 +195,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                  sapply(curFuns, function(id)
                                     varsByFun[[id]] <<- c(varsByFun[[id]], name))
           }
-         } else
+       } else if(typeof(e) == "externalptr") {
+           
+       }  else
           lapply(as.list(e)[-1], fun, w)
   }
 
@@ -247,7 +249,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       class = "GlobalUses")
 
   if(mergeSubFunGlobals) 
-      ans$functions = getGlobalFunctions(ans, TRUE)
+      ans$functions = getGlobalFunctions(ans, TRUE, TRUE)
 
   ans
 
@@ -279,7 +281,7 @@ function(x, mergeSubFuns = FALSE, asNames = TRUE, ...)
    }
 
     if(asNames)
-        unique(ans)
+        ans
     else
         table(ans)
 }
