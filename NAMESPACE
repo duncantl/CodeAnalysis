@@ -42,3 +42,5 @@ export(getR6ClassInherits)
 
 #XXXX
 #export(checkLoopDepend)
+
+export(findFunctionDefs)
