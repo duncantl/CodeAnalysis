@@ -52,13 +52,15 @@ function(x, funsReturningFuns = c("Vectorize"))
 }
 
 
+FunctionsReturningFunctions = "Vectorize"
+
 isCallTo =
     #
     #
     #
 function(x, funs)
 {
-    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% FunctionsReturningFunctions
+    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% funs
 }
 
 getArgFromCall =
@@ -153,3 +155,6 @@ function(x, asCharacter = FALSE, simpleVar = TRUE)
 }
 
 
+
+
+#inline
