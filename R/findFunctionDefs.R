@@ -126,17 +126,30 @@ function(x, asCharacter = FALSE)
         ans
 }
 
+
 getLHS =
-function(x, asCharacter = TRUE)    
+function(x, asCharacter = FALSE, simpleVar = TRUE)
+    UseMethod("getLHS")
+
+getLHS.default =
+function(x, asCharacter = FALSE, simpleVar = TRUE)    
+    NULL
+
+getLHS.expression =
+function(x, asCharacter = FALSE, simpleVar = TRUE)
 {
-    # Check is an assignment
-    # 1 -> x is of class <-, so parser already converted it.
-    if(!(class(x) %in% c("=", "->")))
-        return(NULL)
+    isAssign = sapply(x, class) %in% c("=", "<-")
+    tmp = x[isAssign]
+
+    if(simpleVar)
+        tmp = tmp[ sapply(tmp, function(x) is.name(x[[2]])) ]
     
-    ans = x[[2]]
+    tmp = lapply(tmp, `[[`, 2)
+
     if(asCharacter)
-        deparse(ans)
-    else
-        ans
+        tmp = sapply(tmp, as.character)
+
+    tmp
 }
+
+
