@@ -1,3 +1,13 @@
+#
+#  Given a function, we call findIfInFun() to get the If expressions.
+#  getIfValue() then gives us the return values from an If statement
+#  Finally callType() determines the type of each return value.
+#      i = findIfInFun(foo2)
+#      v = getIfValue(i[[1]])
+#   
+
+
+
 findIf =
 function(pkg, ns = getNamespace(pkg), vars = ls(ns, all = TRUE))
 {
@@ -9,10 +19,13 @@ function(pkg, ns = getNamespace(pkg), vars = ls(ns, all = TRUE))
 findIfInFun =
 function(f)
 {
-    if(!is.function(f))
+    if(!is.function(f) && !is(f, "Function"))
         return(list())
 
-    find_nodes(to_ast(f), function(x) is(x, "If"))
+    if(is.function(f))
+        f = to_ast(f)
+    
+    find_nodes(f, function(x) is(x, "If"))
 }
 
 
@@ -23,7 +36,10 @@ function(x)
 
 getIfValue.default =
 function(x)
+{
+    if(inherits(x, "Parenthesis")) cat("getIfValue.Parenthesis\n")
     x
+}
 
 getIfValue.Brace =
 function(x)
@@ -98,12 +114,13 @@ function(x, var = x$value)
 findAssignTo.Brace =
 function(x, var = x$value)
 {
-    #XXX  Need to recognize if() statements that assign var within the if() or else()
+    #XXX Need to recognize if() statements that assign var within the if() or else()
     #  lapply(x$contents, getIfValue)
-    w = sapply(x$contents, function(x) is(x, "Assignment") && is_symbol(x$write, var))
- browser()
-    if(any(w))
+    w = sapply(x$contents, function(x) inherits(x, c("Assignment", "Replacement1")) && is_symbol(x$write, var))
+    if(any(w)) {
+#        browser()
         return(x$contents[[which.max(w)]]$read)
+    }
 
     p = x$parent
     if(is(p, "If"))
@@ -118,12 +135,26 @@ function(x, var = x$value)
 
 findAssignTo.ArgumentList =
 function(x, var = x$value)
-    findAssignTo(x$parent$parent, var)
+    findAssignTo(x$parent, var)
 
+
+# Should this be the .default method?
 findAssignTo.Assignment = findAssignTo.Loop = findAssignTo.Return = findAssignTo.If = findAssignTo.Call =
 function(x, var = x$value)
-  findAssignTo(x$parent, var)    
+    findAssignTo(x$parent, var)
 
+
+findAssignTo.Parenthesis =
+function(x, var = x$value)
+{
+    if(length(x$args$contents) > 1)
+        warning("findAssignTo.Parenthesis with more than one element")
+    
+    findAssignTo(x$args$contents[[1]], var)
+}
+
+
+###############
 
 callType =
     #
@@ -243,8 +274,11 @@ function(call)
 getStructureCallType =
 function(call)
 {
-    k =  MatchCall(call, structure)
-    v = k[[1]]
+    k = MatchCall(call, structure)
+    # We need the arguments from the original call, not k which has no parent information
+    # Can't use all.equal
+#    i = which(sapply(call$args$contents, `==`, k$args$contents[[1]]))
+    v = k$args$contents[[1]]
     callType(v)
 }
 
@@ -286,8 +320,9 @@ function(call)
         return("numeric")        
     }
     
-    k =  MatchCall(call, get(fun))
-    v = k[[1]]
+    #    k = MatchCall(call, get(fun))
+    v = call$args$contents[[1]]
+#    v = k[[1]]
     if(is(v, "Literal"))
         tolower(class(v)[1])
     else
@@ -297,8 +332,8 @@ function(call)
 getAsCallType =
 function(call)
 {
-    k =  MatchCall(call, as)
-    v = k[[2]]$value
+    k = MatchCall(call, as)
+    v = k$args$contents[[2]]$value
 }
 
 
@@ -306,9 +341,10 @@ function(call)
 getDoCallType =
 function(call)
 {
-    k =  MatchCall(call, do.call)
-    v = k[[1]]
-#!!!!
+    k = MatchCall(call, do.call)
+    v = k$args$contents[[1]]
+    # This is the fn being called. So lookup its return type.
+    callType(Call$new(v))
 }
 
 
@@ -331,8 +367,10 @@ function(call)
 getSwitchCallType =
 function(call)
 {
-    k =  MatchCall(call, switch)
-    args = k$args$contents[-1]
+    # switch is a special so match.call and MatchCall don't work
+    #    k =  MatchCall(call, switch)
+    # Assume first argument is the value. Has to be the way switch() doesn't do regular argument matching.
+    args = call$args$contents[-1]
     types = lapply(args[!sapply(args, is, "EmptyArgument")], callType)
     ty = unique(unlist(types))
 #    browser()
@@ -353,13 +391,51 @@ function(from) {
     from
 }
 
+if(FALSE) {
+    # See ifAnalysis/matchCall.R
 MatchCall =
 function(call, def, ...)
 {
     w = sapply(call$args$contents, is_symbol, "...")
     if(any(w))
         call$args$contents = call$args$contents[!w]
-    match_call(call, def, ..)
+    ans = match_call(call, def, ...)
+
+    # could be multiple matches
+    o = sapply(ans$args$contents, function(a) which(sapply(call$args$contents, isEqual, a)))
+
+    if(is.list(o)) {
+    browser()        
+        idx = integer()
+        for(el in o) {
+            if(length(el) == 1)
+                idx = c(idx, el)
+            else {
+                idx = c(idx, min(setdiff(el, idx)))
+            }
+        }
+        o = idx
+    }
+
+    tmp = structure(call$args$contents[o], names = names(ans$args$contents))
+    call$args$contents = tmp
+    call
+}
+
+isEqual =
+function(a, b)
+{
+    if(is(a, "Null") && is(b, "Null"))
+        return(TRUE)
+
+    if(is(a, "Literal") && inherits(a, class(b)) && all(sapply(list(a, b), function(x) is.na(x$value))))
+        return(TRUE)    
+
+    if(!identical(class(a), class(b)))
+        return(FALSE)
+    
+    a == b
+}
 }
 
 
@@ -368,7 +444,8 @@ getSingleSubsetAssignType =
 function(x)
 {
 #    MatchCall(
- browser()
+#    browser()
+    "ANY"
 }
 
 
