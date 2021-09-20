@@ -147,10 +147,10 @@ function(x, var = x$value)
 findAssignTo.Parenthesis =
 function(x, var = x$value)
 {
-    if(length(x$args$contents) > 1)
-        warning("findAssignTo.Parenthesis with more than one element")
+#    if(length(x$args$contents) > 1)
+#        warning("findAssignTo.Parenthesis with more than one element")
     
-    findAssignTo(x$args$contents[[1]], var)
+    findAssignTo(x$parent, var)
 }
 
 
@@ -235,6 +235,15 @@ function(call)
         ifun = call$args[[1]]$fn$value
         return( InternalReturnTypes[[ifun]] )
     } else {
+
+        # check to see if this locally defined as a nested function.
+        ff = asFunction(call, outer = TRUE)
+        def = find_nodes(ff, function(x) is(x, "Assignment") && is_symbol(x$write, fun) && is(x$read, "Function"))
+        if(length(def) > 0) {
+           warning("analyze locally defined nested function ", fun)
+           return("<local function>")
+        }
+
         i = match(fun, names(FunReturnTypes))
         if(is.na(i)) {
             warning("no type information for ", fun)
@@ -384,11 +393,21 @@ asFunction =
     # from is an ASTNode. Get the Function object of which it is a part
     # by walking the parent chain to the Function.
     #
-function(from) {
-    while(!is(from$parent, "Function"))
+function(from, outer = FALSE) {
+    while(!is.null(from) && !is(from$parent, "Function"))
         from = from$parent
 
-    from
+    if(!is.null(from)) {
+        ans = from$parent
+        if(outer && !is.null(ans) ) {
+            tmp = asFunction(ans, TRUE)
+            if(!is.null(tmp))
+                ans = tmp
+        }
+        
+        ans
+    } else
+        from
 }
 
 if(FALSE) {
@@ -449,6 +468,30 @@ function(x)
 }
 
 
+
+getMatchArgType =
+function(x)
+{
+
+    # MatchCall() to make certain access the correct
+    tmp = if(length(x$args$contents) > 1)
+               x$args$contents[[2]]
+           else {
+               f = asFunction(x)
+               param = x$args$contents[[1]]$value
+               f$params$contents[[param]]$default
+           }
+
+    if(is(tmp, "Call"))
+        vals = tmp$args$contents
+    else
+        stop("problem")
+    
+    unique(tolower(sapply(vals, function(x) class(x)[1])))
+}
+
+
+
 FunReturnTypes =
     list(paste0 = "character",
          paste = "character",
@@ -459,6 +502,7 @@ FunReturnTypes =
          as.double = "numeric",
          as.logical = "logical",
          as.integer = "integer",
+         as.numeric = "numeric",         
          integer = "integer",
          numeric = "numeric",
          logical = "logical",
@@ -710,9 +754,15 @@ FunReturnTypes =
 
          switch = getSwitchCallType,
          
-         setwd = "character" # directory path.
+         setwd = "character", # directory path.
 
-         
+         prettyNum  = "character",
+         "attr<-" = "<input>",
+         rep = "<input>",
+
+         unloadNamespace = "NULL"         ,
+
+         match.arg = getMatchArgType
          )         
 
 
