@@ -1,5 +1,5 @@
 library(rstatic)
-source("ifFuns.R")
+source("~/GitWorkingArea/CodeAnalysis/explorations/ifAnalysis/ifFuns.R")
 
 recPackages = list.files(.libPaths()[2])
 
@@ -31,6 +31,7 @@ isCondLiteral = sapply(b2, function(x)  is(x$condition, "Logical"))
 
 vals = lapply(b3, getIfValue)
 
+types = lapply(b3, callType)
 
 # Look at assignments and check if the if-else are both assigning to the same variable.
 w = sapply(vals, function(x) all(sapply(x, is, "Assignment")))
