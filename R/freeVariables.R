@@ -1,7 +1,59 @@
+# TODO for VarietyTrial.xml
+#
+#  load and package for freeVariables
+#  [easy] find where the free variables are defined as suggestion for related script.
+#
+#  Constant propagation
+#
+#  move the code to find reading data into a function.
+#
+#  find code that writes results to files - saveRDS(), save.image(), save(), write.csv()
+#
+#  call graphs for functions.  We have the code for this.
+#
+#  URLs - default values of parameters in CodeDepends.
+
+
+
+
 # Need to identify variables that are updated before defined.
 # Handle source().
 # See updateAvgTemp.R and all_vt_comp which is updated before defined.
 # 
+
+
+updateInputs =
+    #
+    # Given a ScriptInfo object, find the elements corresponding to
+    # source() calls and for each of these call the fun() which
+    # is expected to modify the ScriptNodeInfo.
+    #
+function(inputs, predicate, update, ...)    
+{
+    w = sapply(inputs, predicate)
+    inputs[w] = lapply(inputs[w], update, ...)
+    inputs
+}
+
+updateLoads =
+    #
+    # Given a ScriptInfo object, find the elements corresponding to
+    # source() calls and for each of these call the fun() which
+    # is expected to modify the ScriptNodeInfo.
+    #
+function(inputs, fun, ...)    
+    updateInputs(inputs, function(x) isCallTo(x, "load"), fun, ...)
+
+updatePackages =
+    #
+    # Given a ScriptInfo object, find the elements corresponding to
+    # source() calls and for each of these call the fun() which
+    # is expected to modify the ScriptNodeInfo.
+    #
+function(inputs, fun, ...)    
+    updateInputs(inputs, function(x) isCallTo(x, c("require", "library")), fun, ...)
+
+    
 
 substituteSource =
     #
@@ -10,12 +62,8 @@ substituteSource =
     # is expected to modify the ScriptNodeInfo.
     #
 function(inputs, fun, ...)    
-{
-    isSource = sapply(inputs, isSourceCall)
+    updateInputs(inputs, isSourceCall, fun, ...)
 
-    inputs[isSource] = lapply(inputs[isSource], fun, ...)
-    inputs
-}
 
 updateSourceOutputs =
 function(x, baseFile) {
@@ -23,16 +71,49 @@ function(x, baseFile) {
     x
 }
 
+updateLoad =
+function(x, baseFile)
+{
+    file = relativeFile(x@code[[2]], baseFile)
+    if(!file.exists(file)) {
+        warning("could not load ", file, ": proceeding without reading it")
+        return(x)
+    }
+
+    env = new.env()
+    load(file, env)
+    
+    x@outputs = c(x@outputs, ls(env, all = TRUE))
+    x
+}
+
+updatePackage =
+function(x)    
+{
+
+    pkg = as.character(x@code[[2]])
+    if(system.file("DESCRIPTION", package = pkg) == "") {
+        warning("package ", pkg, " is not installed or can't be found. Skipping.")
+        return(x)
+    }
+    x@outputs = c(x@outputs, ls(getNamespace(pkg), all = TRUE))
+    x
+}
+
 isSourceCall =
 function(x)
+   isCallTo(x, "source")
+
+isCallTo =
+function(x, funName)
 {
     if(is(x, "ScriptNodeInfo"))
         x = x@code
     
     if(is(x, "R6"))
-        is(x, "Call") && is_symbol(x$fn, "source")
+        is(x, "Call") && is_symbol(x$fn) && x$fn$value %in% funName
     else 
-        is(x, "call") && is.name(x[[1]]) && as.character(x[[1]]) == "source"    
+        is(x, "call") && is.name(x[[1]]) && as.character(x[[1]]) %in% funName
 }
 
 
@@ -80,10 +161,34 @@ function(name, base)
 
 
 freeVariables =
-function(sc, inputs = getInputs(sc),
-         exclude = getSearchPathVariables())
+    #
+    #  load - TRUE/FALSE for whether to follow load() and readRDS commands and replace the outputs there with the names of the variables.
+    #  packages - TRUE/FALSE (not names of the packages) so that we check for variables in those packages identified by library/require.
+    #
+    #
+    #  fr = freeVariables("code/calc_weather_var.R")
+    #
+function(sc, load = TRUE, packages = TRUE, includeSource = TRUE,
+         exclude = getSearchPathVariables(), inputs = getInputs(sc))
 {
+
+    if(is.character(sc)) {
+        scriptName = sc
+        sc = readScript(sc)
+
+    }
+
+    if(includeSource)
+       sc = insertSource(scriptName, sc)
+
 #    inputs = substituteSource(inputs, updateSourceOutputs, sc@location)
+
+    if(load) 
+        inputs = updateLoads(inputs, updateLoad, sc@location)
+    
+    if(packages)  
+        inputs = updatePackages(inputs, updatePackage)
+
     
     defs = lapply(inputs, slot, "outputs")
     when = rep(seq(along.with = defs), sapply(defs, length))
@@ -96,11 +201,11 @@ function(sc, inputs = getInputs(sc),
     ans = unique(unlist(free))
 
     # Check the variables that are identified as not yet defined but may be being used as default values in functions.
-    browser()
     spurious = sapply(ans, isSpuriousFreeVar, inputs, when)
     # now check if the spurious ones are defined.
-    spurious = spurious & ans[spurious] %in% names(when)
+    spurious = spurious & ans %in% names(when)
     ans = ans[!spurious]
+
     
 #    if(length(exclude))
 #        ans = setdiff(ans, exclude)
@@ -110,21 +215,30 @@ function(sc, inputs = getInputs(sc),
 isSpuriousFreeVar =
 function(var, inputs, whenDef)
 {
+    
     u = sapply(inputs, function(x) var %in% x@inputs)
     any(sapply(inputs[ u ], isVarInDefaultValue, var))
 }
 
 isVarInDefaultValue =
+    # Can be anywhere in the function, not just a default value.
 function(use, var)
 {
+    return(isFunAssign(use@code))
+
+#    calls = find_nodes(to_ast(use@code), is_symbol, var)
+#    if(var == "calc_vars") browser()
+    return(all(sapply(calls, isApplyFunArg, var)))
+
+# Don't need this as not just looking at default argumemts.    
     u = use@code
+    
     if(!isFunAssign(u))
         return(FALSE)
 
-#    browser()
-#    fun = to_ast(use[[3]])
     any(sapply(u[[3]][[2]], function(x) (is.name(x) && as.character(x) == var) || length(find_nodes(to_ast(x), is_symbol, var))))
 }
+
 
 notDefBefore =
 function(vars, num, defWhen, code = NULL, exclude = character())
