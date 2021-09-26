@@ -364,12 +364,22 @@ getCallParam =
     # Given a call, gets the idx argument in the call after match.call.
     # The function must be available on the search path.
     #
-function(call, idx = 1)
+function(call, idx = 1, definitions = globalenv())
 {
-    if(is(call, "call")) 
-       match.call(get(as.character(call[[1]]), mode = "function"), call)[[idx + 1]]
+    fnName = if(is(call, "call"))
+                as.character(call[[1]])
+             else
+                 call$fn$value
+
+    fun = if(is.list(definitions) && fnName %in% names(definitions))
+             definitions[[ fnName ]]
+          else
+             get(fnName, mode = "function")
+
+    if(is(call, "call"))
+        match.call(fun, call)[[idx + 1]]
     else
-       as_language(match_call(call, get(call$fn$value, mode = "function"))$args$contents[[idx]])
+        as_language(match_call(call, fun)$args$contents[[idx]])
 }
 
 
@@ -393,3 +403,108 @@ function(x)
 
 
 
+
+
+
+###################################
+
+PrimitiveReadDataFuns = c("readLines", "read_excel", "read.csv", "read.table", "read.fwf", "excel_sheets")
+
+findReadDataFuns =
+function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+{
+    if(missing(funs))
+        return(primitiveFuns)
+    
+    UseMethod("findReadDataFuns")
+}
+
+
+findReadDataFuns.list =
+function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+{
+    xtra = names(funs)[sapply(funs, function(f) any(getGlobals(f)$functions %in% primitiveFuns))] # DEBUGGING EG.  Leave primtiveFuns as ReadDataFuns. or PrimitiveReadDataFuns. Also shows that not using global variables but parameter with default value which is global variable is better.
+    unique(c(primitiveFuns, xtra))
+}
+
+findReadDataFuns.environment =
+function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+    findReadDataFuns(as.list(funs), primitiveFuns, ...)
+
+findReadDataFuns.character =
+function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+{
+   findReadDataFuns(getFunctionDefs(funs), primitiveFuns = primitiveFuns)
+}
+
+
+PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize")
+
+findSaveDataFuns =
+    #
+    #
+    # ff = list(foo = function(f) save(1:10, file = f))
+    # findSaveDataFuns(ff)
+    #
+    #
+function(funs, ..., primitiveFuns = PrimitiveSaveDataFuns)
+{
+    if(missing(funs))
+        return(primitiveFuns)
+    
+    findReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+}
+
+####################
+
+getFunctionDefs =
+    # Read a file, an environment, a parse tree and find the top-level
+    # function definitions
+function(x, ...)
+ UseMethod("getFunctionDefs")
+
+getFunctionDefs.character =
+function(x, ...)
+{
+    if(file.exists(x)) {
+
+        info = file.info(x)
+        if(info$isdir[1]) {
+            files = list.files(x, pattern = "\\.[RrSsQq]$", full.names = TRUE)
+            tmp = lapply(files, getFunctionDefs)
+            tt = table(unlist(lapply(tmp, names)))
+            if(any(tt > 1))
+                warning("multiple definitions for functions ", paste(names(tt)[tt > 1], collapse = ", "))
+            return(unlist(tmp))
+        }
+    }
+    
+   e =  if(file.exists(x))
+            parse(x)
+        else
+            parse(text = x)
+
+  getFunctionDefs(e)
+}
+
+getFunctionDefs.expression =
+function(x, ...)
+{
+    w = sapply(x, isFunAssign)
+    env = new.env()
+    lapply(x[w], eval, env)
+    as.list(env)
+}
+
+
+#################################
+
+
+findCallsToFunctions =
+function(allCalls, funNames, argIndices = 1L, definitions = NULL)
+{    
+  rcalls = lapply(allCalls, function(calls)
+                               calls[sapply(calls, function(x) x$fn$value) %in% funNames])
+
+  unlist(lapply(unlist(rcalls), getCallParam, definitions = definitions))
+}
