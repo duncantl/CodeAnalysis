@@ -200,11 +200,13 @@ function(sc, load = TRUE, packages = TRUE, includeSource = TRUE,
     free = lapply(seq(along.with = inputs), function(i) notDefBefore(c(inputs[[i]]@inputs, inputs[[i]]@updates), i, when, inputs[[i]]@code, exclude))
     ans = unique(unlist(free))
 
-    # Check the variables that are identified as not yet defined but may be being used as default values in functions.
-    spurious = sapply(ans, isSpuriousFreeVar, inputs, when)
-    # now check if the spurious ones are defined.
-    spurious = spurious & ans %in% names(when)
-    ans = ans[!spurious]
+    if(length(ans)) {
+        # Check the variables that are identified as not yet defined but may be being used as default values in functions.
+        spurious = sapply(ans, isSpuriousFreeVar, inputs, when)
+        # now check if the spurious ones are defined.
+        spurious = spurious & ans %in% names(when)
+        ans = ans[!spurious]
+    }
 
     
 #    if(length(exclude))
@@ -257,7 +259,7 @@ function(vars, num, defWhen, code = NULL, exclude = character())
 
 isFunAssign =
 function(x)
-   class(x) %in% c("=", "<-") && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function"
+   class(x) %in% c("=", "<-") && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" # add the following ?? && is.name(x[[2]])
 
 getSearchPathVariables =
     #
@@ -366,24 +368,41 @@ getCallParam =
     #
 function(call, idx = 1, definitions = globalenv())
 {
-    fnName = if(is(call, "call"))
+    rlang = is(call, "call")
+    fnName = if(rlang)
                 as.character(call[[1]])
              else
                  call$fn$value
 
+    env = globalenv()
+    if(is.environment(definitions))
+        env = definitions
+    
     fun = if(is.list(definitions) && fnName %in% names(definitions))
              definitions[[ fnName ]]
           else
-             get(fnName, mode = "function")
+             get(fnName, env, mode = "function")
 
-    if(is(call, "call"))
-        match.call(fun, call)[[idx + 1]]
+    ans = if(rlang) 
+             match.call(fun, call)[idx]
+          else 
+              lapply(match_call(call, fun)$args$contents[idx], paramValue)
+
+    if(length(idx) == 1)
+        ans[[1]]
     else
-        as_language(match_call(call, fun)$args$contents[[idx]])
+        ans
 }
 
 
-
+paramValue =
+function(v)
+{
+    if(is(v, "Literal"))
+        as_language(v)
+    else
+        findLiteralValue(v)
+}
 
 
 
@@ -402,6 +421,37 @@ function(x)
 }
 
 
+# Instead of propagating the constants before analysis, for now we will
+# find a Symbol and walk back through the script to see if we have a literal value
+# This is for an rstatic AST object.
+
+findLiteralValue =
+function(sym)
+{
+        # Assume an argument in an ArgumentList so get to the call.
+   call = sym$parent$parent
+
+   idx = where_is(asToplevelExpr(call))
+   
+   script = asScript(call)
+   before = script$contents[rev(seq_len(idx - 1))]
+   lit = sapply(before, function(x) is(x, "Assignment") && x$write == sym && is(x$read, "Literal"))
+   if(any(lit))
+       as_language(before[[ which(lit)[1] ]]$read)
+   else
+       sym
+}
+
+asToplevelExpr =
+function(x)
+{
+    if(is.null(x$parent))
+        return(x)
+    
+    while(!is.null(x$parent$parent))
+        x = x$parent
+    x
+}
 
 
 
@@ -438,7 +488,9 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 }
 
 
-PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize")
+PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv")
+# cat? but with a file = ...
+#
 
 findSaveDataFuns =
     #
@@ -501,10 +553,65 @@ function(x, ...)
 
 
 findCallsToFunctions =
+    #
+    #  allCalls = getAllCalls("code")
+    # a = findCallsToFunctions(allCalls, findSaveDataFuns(), definitions = funs, argIndices = "file")
+    #
+    # a = findCallsToFunctions("code", findSaveDataFuns(), definitions = funs, argIndices = "file")
+    #
 function(allCalls, funNames, argIndices = 1L, definitions = NULL)
-{    
-  rcalls = lapply(allCalls, function(calls)
-                               calls[sapply(calls, function(x) x$fn$value) %in% funNames])
+{
+    if(is.character(allCalls)) 
+        allCalls = getAllCalls(allCalls)
+    
+    rcalls = lapply(allCalls, function(calls)
+                                  calls[sapply(calls, function(x) x$fn$value) %in% funNames])
 
-  unlist(lapply(unlist(rcalls), getCallParam, definitions = definitions))
+    rcalls = unlist(rcalls)
+    if(length(argIndices))
+        unlist(lapply(rcalls, getCallParam, argIndices, definitions = definitions))
+    else
+        rcalls
+}
+
+
+getAllCalls =
+function(x, ...)
+    UseMethod("getAllCalls")
+
+getAllCalls.character =
+    #
+    #
+    # Note that we separate directory and getting list.files
+    #  and then processing the vector so that the caller can specify
+    # a collection of files not just the directory.
+    # This allows them to filter some out.
+    #
+    #
+    #
+function(x, ...)
+{
+    if(file.info(x)$isdir) 
+        x = list.files(x, pattern = "\\.[RrSsQq]$", full.names = TRUE)
+
+    if(length(x) > 1)
+        return(structure(lapply(x, getAllCalls), names = basename(x)))
+
+    getAllCalls(parse(x), ...)
+}
+
+getAllCalls.expression =
+function(x, ...)
+    find_nodes(to_ast(x), is, "Call")
+
+
+
+
+rlangType =
+function(x)
+{
+    if(inherits(x, c("logical", "integer", "numeric", "character")))
+        class(x)
+    else
+        class(rstatic::as_language(x))  
 }
