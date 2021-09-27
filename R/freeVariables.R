@@ -1,17 +1,35 @@
 # TODO for VarietyTrial.xml
 #
-#  load and package for freeVariables
-#  [easy] find where the free variables are defined as suggestion for related script.
+# To remove from use in VarietyTrial.xml as too low-level
+#   ifFunAssign?
+#   isIfFalse
+#   rlangType
 #
-#  Constant propagation
+#   findReadDataFuns? findWriteDataFuns?
 #
-#  move the code to find reading data into a function.
+###############################
 #
-#  find code that writes results to files - saveRDS(), save.image(), save(), write.csv()
-#
+#  function for finding functions that call graphics device functions - mirroring findReadDataFuns()
+#  in getGraphics
+#  functions for finding the files for read and write functions calls.
 #  call graphs for functions.  We have the code for this.
 #
-#  URLs - default values of parameters in CodeDepends.
+#  [easy] find where the free variables are defined as suggestion for related script.
+#
+#  exports
+#  man pages
+#
+# √ getSourceInfo
+#
+# √ load and package for freeVariables
+#
+# √ Constant propagation - worked around for now.
+#
+# √ move the code to find reading data into a function.
+#
+# √ find code that writes results to files - saveRDS(), save.image(), save(), write.csv()
+#
+# √  URLs - default values of parameters in CodeDepends.  Worked around it here.
 
 
 
@@ -24,9 +42,9 @@
 
 updateInputs =
     #
-    # Given a ScriptInfo object, find the elements corresponding to
-    # source() calls and for each of these call the fun() which
-    # is expected to modify the ScriptNodeInfo.
+    # Given a ScriptInfo object, find the elements that predicate identifies as relevant
+    #  and for each of these call the fun() which
+    # is expected to modify the corresponding ScriptNodeInfo.
     #
 function(inputs, predicate, update, ...)    
 {
@@ -38,7 +56,7 @@ function(inputs, predicate, update, ...)
 updateLoads =
     #
     # Given a ScriptInfo object, find the elements corresponding to
-    # source() calls and for each of these call the fun() which
+    # load() calls and for each of these call the fun() which
     # is expected to modify the ScriptNodeInfo.
     #
 function(inputs, fun, ...)    
@@ -47,7 +65,7 @@ function(inputs, fun, ...)
 updatePackages =
     #
     # Given a ScriptInfo object, find the elements corresponding to
-    # source() calls and for each of these call the fun() which
+    # library/require() calls and for each of these call the fun() which
     # is expected to modify the ScriptNodeInfo.
     #
 function(inputs, fun, ...)    
@@ -100,6 +118,39 @@ function(x)
     x
 }
 
+
+getSourceInfo =
+function(x, ...)    
+    UseMethod("getSourceInfo")
+
+
+getSourceInfo.character =
+function(x, ...)    
+{
+    if(length(x) > 1)
+        return(do.call(rbind, lapply(x, getSourceInfo)))
+
+    if(file.info(x)$isdir)
+        return(getSourceInfo(getRFiles(x)))
+
+    getSourceInfo(parse(x), x)
+}
+
+getSourceInfo.expression =
+function(x, filename, ...)    
+{
+    w = sapply(x, isSourceCall)
+    if(any(w)) 
+        ans = cbind(rep(filename, sum(w)), sapply(x[w], getCallParam, 1L))
+    else
+        ans = matrix(NA, 0, 2)
+
+    colnames(ans) = c("from", "sourced")
+    ans
+        
+}
+
+
 isSourceCall =
 function(x)
    isCallTo(x, "source")
@@ -134,6 +185,10 @@ function(file, code = parse(file), done = character(), asScript = TRUE)
     tmp = lapply(code[w], function(x) {
                                 fi = as.character(x[[2]])
                                 fi = relativeFile(fi, file)
+                                if(!file.exists(fi)) {
+                                    warning("the file ", fi, "does not exist. Skipping the source() substitute.")
+                                    return(x)
+                                }
                                 insertSource(fi, parse(fi), done)
                             })
 
@@ -154,8 +209,14 @@ relativeFile =
 function(name, base)
 {
     # temporary
-   file.path( dirname(base), name)
+    name =  path.expand(name)
+    if(grepl("^/", name))
+        return(name)
+
+    file.path( dirname(base), name)
 }
+
+
 ################
 
 
@@ -171,11 +232,10 @@ freeVariables =
 function(sc, load = TRUE, packages = TRUE, includeSource = TRUE,
          exclude = getSearchPathVariables(), inputs = getInputs(sc))
 {
-
+    scriptName = NA
     if(is.character(sc)) {
         scriptName = sc
         sc = readScript(sc)
-
     }
 
     if(includeSource)
@@ -346,12 +406,16 @@ function(x)
 ##############
 
 GraphicDeviceFuns = c("png", "pdf", "jpeg", "svg", "cairo", "quartz", "pictex", "cairo_pdf", "cairo_ps", "bitmap")
+#XXX  Make a function that mirrors the findReadDataFuns .
 
 getGraphicsDeviceCalls =
    # Find calls to (known) graphics devices.    
 function(f, omitNotRunCode = FALSE, graphicDeviceFuns = GraphicDeviceFuns)
 {
-    e = to_ast(parse(f))
+    if(is.character(f))
+        f = parse(f)
+    
+    e = to_ast(f)
     if(omitNotRunCode)
         e = dropNotRunCode(e)
     
@@ -360,6 +424,52 @@ function(f, omitNotRunCode = FALSE, graphicDeviceFuns = GraphicDeviceFuns)
 }
 
 
+
+
+generalCharacterMethod =
+function(x, fun, ...)
+{
+    if(length(x) > 1)
+        return(unlist(lapply(x, fun, ...)))
+
+    if(file.info(x)$isdir)
+        return(fun(getRFiles(x), ...))
+
+    fun(parse(x), x, ...)
+}
+    
+
+
+#XXX Pass in the names of the graphics functions.
+getGraphicsOutputFiles =
+function(x, ...)
+    UseMethod("getGraphicsOutputFiles")
+
+getGraphicsOutputFiles.character =
+function(x, ...)
+{
+    if(length(x) > 1)
+        return(unlist(lapply(x, getGraphicsOutputFiles, ...)))
+
+    if(file.info(x)$isdir)
+        return(getGraphicsOutputFiles(getRFiles(x), ...))
+
+    getGraphicsOutputFiles(parse(x), x, ...)
+}
+
+getGraphicsOutputFiles.character =
+function(x, ...)
+    generalCharacterMethod(x, getGraphicsOutputFiles, ...)
+
+getGraphicsOutputFiles.expression =
+function(x, filename, ...)
+{
+    calls = getGraphicsDeviceCalls(x)
+    ans = sapply(calls, getCallParam, 1L)
+    names(ans) = rep(filename, length(ans))
+    ans
+}
+    
 ##################
 getCallParam =
     #
@@ -384,7 +494,7 @@ function(call, idx = 1, definitions = globalenv())
              get(fnName, env, mode = "function")
 
     ans = if(rlang) 
-             match.call(fun, call)[idx]
+             match.call(fun, call)[idx + 1]
           else 
               lapply(match_call(call, fun)$args$contents[idx], paramValue)
 
@@ -473,13 +583,15 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 findReadDataFuns.list =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 {
-    xtra = names(funs)[sapply(funs, function(f) any(getGlobals(f)$functions %in% primitiveFuns))] # DEBUGGING EG.  Leave primtiveFuns as ReadDataFuns. or PrimitiveReadDataFuns. Also shows that not using global variables but parameter with default value which is global variable is better.
+    # DEBUGGING EG.  Leave primtiveFuns as ReadDataFuns. or PrimitiveReadDataFuns.
+    # Also shows that not using global variables but parameter with default value which is global variable is better.
+    xtra = names(funs)[sapply(funs, function(f) any(getGlobals(f)$functions %in% primitiveFuns))] 
     unique(c(primitiveFuns, xtra))
 }
 
 findReadDataFuns.environment =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
-    findReadDataFuns(as.list(funs), primitiveFuns, ...)
+    findReadDataFuns(as.list(funs), primtiveFuns = primitiveFuns, ...)
 
 findReadDataFuns.character =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
@@ -488,18 +600,26 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 }
 
 
+getInputFiles =
+function(x, ...)    
+  UseMethod("getInputFiles")
+
+
+getInputFiles =
+function(x, ...)    
+
 PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv")
 # cat? but with a file = ...
 #
 
-findSaveDataFuns =
+findWriteDataFuns =
     #
     #
     # ff = list(foo = function(f) save(1:10, file = f))
-    # findSaveDataFuns(ff)
+    # findWriteDataFuns(ff)
     #
     #
-function(funs, ..., primitiveFuns = PrimitiveSaveDataFuns)
+function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
 {
     if(missing(funs))
         return(primitiveFuns)
@@ -522,7 +642,7 @@ function(x, ...)
 
         info = file.info(x)
         if(info$isdir[1]) {
-            files = list.files(x, pattern = "\\.[RrSsQq]$", full.names = TRUE)
+            files = getRFiles(x)
             tmp = lapply(files, getFunctionDefs)
             tt = table(unlist(lapply(tmp, names)))
             if(any(tt > 1))
@@ -559,7 +679,7 @@ findCallsToFunctions =
     #
     # a = findCallsToFunctions("code", findSaveDataFuns(), definitions = funs, argIndices = "file")
     #
-function(allCalls, funNames, argIndices = 1L, definitions = NULL)
+function(allCalls, funNames, argIndices = integer(), definitions = NULL)
 {
     if(is.character(allCalls)) 
         allCalls = getAllCalls(allCalls)
@@ -592,7 +712,7 @@ getAllCalls.character =
 function(x, ...)
 {
     if(file.info(x)$isdir) 
-        x = list.files(x, pattern = "\\.[RrSsQq]$", full.names = TRUE)
+        x = getRFiles(x)
 
     if(length(x) > 1)
         return(structure(lapply(x, getAllCalls), names = basename(x)))
@@ -615,3 +735,47 @@ function(x)
     else
         class(rstatic::as_language(x))  
 }
+
+
+
+
+###############
+
+getURLs =
+    #
+    # This is a slow way of doing this if we have already done some of the computations.
+    # So we need to allow this to be called in different ways.
+    # However, we still have to make up for the "error" in CodeDepends not processing the default values of parameters.
+    #
+function(dir)    
+{
+    if(!file.exists(dir))
+        stop("no such file ", dir)
+
+    if(length(dir) > 1)
+        return(unique(unlist(lapply(dir, getURLs))))
+    
+    if(file.info(dir)$isdir) 
+        ff = getRFiles(dir)
+    else
+        ff = dir
+    
+    sc = lapply(ff, function(f) getInputs(readScript(f)))
+    strings = unlist(lapply(sc, function(f) lapply(f, function(x) x@strings)))
+
+    # Because CodeDepends doesn't handle strings properly in default arguments of parameters
+    funs = unlist(getFunctionDefs(dir))
+    tmp = unlist(lapply(funs, function(x) find_nodes(to_ast(x), function(x) is(x, "Character") && grepl("^(http|ftp)", x$value))))
+    xtra = unlist(sapply(tmp, function(x) x$value))
+
+    grep("^(http|ftp)", unique(c(strings, xtra)), value = TRUE)
+}
+
+
+
+getRFiles =
+function(dir, pattern = '\\.[RrSsQq]$')
+   list.files(dir, pattern, full.names = TRUE)
+
+
+
