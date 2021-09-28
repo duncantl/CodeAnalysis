@@ -19,6 +19,9 @@
 #  exports
 #  man pages
 #
+#  get{Input,Output,Graphic}Files to take the scripts or parsed documents.
+#
+#
 # √ getSourceInfo
 #
 # √ load and package for freeVariables
@@ -496,7 +499,7 @@ function(call, idx = 1, definitions = globalenv())
              get(fnName, env, mode = "function")
 
     ans = if(rlang) 
-             match.call(fun, call)[if(is.numeric(idx) idx + 1 else idx]
+             match.call(fun, call)[if(is.numeric(idx)) idx + 1 else idx]
           else 
              lapply(match_call(call, fun)$args$contents[idx], paramValue)
 
@@ -603,7 +606,7 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 findReadDataFuns.expression =
     # a parsed file
 function(funs,..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
-    findReadDataFuns(as.list(funs), primtiveFuns = primitiveFuns, ...)
+    findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 
 getInputFiles =
@@ -618,9 +621,13 @@ getInputFiles.expression =
 function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
 {
     ans = findCallsToFunctions(getAllCalls(x), readFunNames, 1L, ...)
-    names(ans) = rep(filename, length(ans))
+    if(length(ans))
+        names(ans) = rep(filename, length(ans))
     ans
 }
+
+
+
 
 getOutputFiles =
 function(x, ...)    
@@ -718,10 +725,10 @@ function(allCalls, funNames, argIndices = integer(), definitions = NULL)
         allCalls = getAllCalls(allCalls)
     
     rcalls = lapply(allCalls, function(calls) {
-                                  if(is(calls, "ListOfCalls"))
-                                      calls[sapply(calls, function(x) x$fn$value) %in% funNames]
-                                  else if(calls$fn$value %in% funNames)
-                                      calls
+                                      if(is(calls, "ListOfCalls"))
+                                                  calls[sapply(calls, function(x) x$fn$value) %in% funNames]
+                                      else if(is(calls$fn, "Symbol") && calls$fn$value %in% funNames)
+                                          calls
                               })
 
     rcalls = unlist(rcalls)
