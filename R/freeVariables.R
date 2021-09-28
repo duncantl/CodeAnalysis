@@ -19,9 +19,9 @@
 #
 #  get{Input,Output,Graphic}Files
 #     + take the scripts or √ parsed documents.
-#     + √ take all of the Call objects - getAllCalls()
 #     + allow to either include/ignore calls inside if(FALSE)
-#     + when a directory, and missing readDataFuns argument, call findWriteDataFuns().
+#     + √ take all of the Call objects - getAllCalls()
+#     + √ when a directory, and missing readDataFuns argument, √ call findWriteDataFuns().
 #
 # √ function for finding functions that call graphics device functions - mirroring findReadDataFuns() =  findGraphicsDevFuns
 #
@@ -327,7 +327,12 @@ function(vars, num, defWhen, code = NULL, exclude = character())
 
 isFunAssign =
 function(x)
-   class(x) %in% c("=", "<-") && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" # add the following ?? && is.name(x[[2]])
+{
+    if(is(x, "R6"))
+        is(x, "Assignment") && is(x$write, "Symbol") && is(x$read, "Function")
+    else
+        class(x) %in% c("=", "<-") && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" # add the following ?? && is.name(x[[2]])
+}
 
 getSearchPathVariables =
     #
@@ -458,14 +463,17 @@ function(x, fun, ..., .funNamesFun = character())
 
     if(file.info(x)$isdir) {
         files = getRFiles(x)
-        if(length(.funNamesFun)) {
+        if(length(.funNamesFun) && !(.funNamesFun[[2]] %in% names(list(...)))) {
+            # Is this worth the complexity to reduce the amount of duplicated code????
+
             # If the parameter names readFunNames and writeFunNames had the same parameter name across functions
             # we could simplify this code to have no switch and no 3rd version of fun(getRFiles(x), ...)
             funDefs = getFunctionDefs(x)
             funNames = .funNamesFun[[1]](funDefs)
             return(switch(.funNamesFun[[2]],
-                   "read" = fun(files, readFunNames = funNames, definitions = funDefs, ...),
-                   "write" = fun(files, writeFunNames = funNames, definitions = funDefs, ...)))
+                   "readFunNames" = fun(files, readFunNames = funNames, definitions = funDefs, ...),
+                   "writeFunNames" = fun(files, writeFunNames = funNames, definitions = funDefs, ...),
+                   stop("Duncan made a mistake in the .funNamesFun setup")))
         }
         return(fun(getRFiles(x), ...))
     }
@@ -496,7 +504,7 @@ function(x, ...)
 
 getGraphicsOutputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getGraphicsOutputFiles, ..., .funNamesFun = list(findGraphicsDevFuns, "write"))
+    generalCharacterMethod(x, getGraphicsOutputFiles, ..., .funNamesFun = list(findGraphicsDevFuns, "writeFunNames"))
 
 getGraphicsOutputFiles.expression =
 function(x, filename, ...)
@@ -589,6 +597,14 @@ function(sym)
        sym
 }
 
+asScript =
+function(x)
+{
+    while(!is.null(x$parent))
+        x = x$parent
+    x
+}
+
 asToplevelExpr =
 function(x)
 {
@@ -656,7 +672,7 @@ function(x, ...)
 
 getInputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getInputFiles, ..., .funNamesFun = list(findReadDataFuns, "read"))
+    generalCharacterMethod(x, getInputFiles, ..., .funNamesFun = list(findReadDataFuns, "readFunNames"))
 
 getInputFiles.expression =
 function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
@@ -686,7 +702,7 @@ function(x, ...)
 
 getOutputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getOutputFiles, ..., .funNamesFun = list(findWriteDataFuns, "write"))
+    generalCharacterMethod(x, getOutputFiles, ..., .funNamesFun = list(findWriteDataFuns, "writeFunNames"))
 
 getOutputFiles.expression =
 function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
@@ -727,6 +743,8 @@ function(x, ...)
  UseMethod("getFunctionDefs")
 
 getFunctionDefs.character =
+    #
+    #XXX vectorize in x.  See/use generalCharacterMethod ?
 function(x, ...)
 {
     if(file.exists(x)) {
@@ -878,3 +896,24 @@ function(dir, pattern = '\\.[RrSsQq]$')
 
 
 
+
+
+usedInCode =
+function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir))
+{
+    asts = lapply(rfiles, function(f) to_ast(parse(f)))
+    names(asts) = basename(rfiles)
+browser()    
+    if(dropIfFalse)
+        asts = lapply(asts, dropNotRunCode)
+    
+    if(notInToplevelFunctions)
+        asts2 = lapply(asts, function(x) x$contents[ !sapply(x$contents, isFunAssign) ]) 
+    
+    allSyms = unlist(lapply(unlist(asts2), function(x) sapply(find_nodes(x, is, "Symbol"), function(x) x$value)))
+}
+
+
+getSymbolValues =
+function(x)
+    sapply(find_nodes(x, is, "Symbol"), function(x) x$value)
