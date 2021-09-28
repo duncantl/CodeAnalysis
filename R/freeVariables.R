@@ -9,9 +9,7 @@
 #
 ###############################
 #
-#  function for finding functions that call graphics device functions - mirroring findReadDataFuns()
-#  in getGraphics
-#  functions for finding the files for read and write functions calls.
+#  in getGraphics ?????
 #  call graphs for functions.  We have the code for this.
 #
 #  [easy] find where the free variables are defined as suggestion for related script.
@@ -19,8 +17,15 @@
 #  exports
 #  man pages
 #
-#  get{Input,Output,Graphic}Files to take the scripts or parsed documents.
+#  get{Input,Output,Graphic}Files
+#     + take the scripts or parsed documents.
+#     + take all of the Call objects - getAllCalls()
+#     + allow to ignore calls inside if(FALSE)
+#     + when a directory, and missing readDataFuns argument, call findWriteDataFuns().
 #
+# √ function for finding functions that call graphics device functions - mirroring findReadDataFuns() =  findGraphicsDevFuns
+#
+# √ functions for finding the files in read and write functions calls.
 #
 # √ getSourceInfo
 #
@@ -32,14 +37,14 @@
 #
 # √ find code that writes results to files - saveRDS(), save.image(), save(), write.csv()
 #
-# √  URLs - default values of parameters in CodeDepends.  Worked around it here.
+# √ URLs - default values of parameters in CodeDepends.  Worked around it here.
 
 
 
 
 # Need to identify variables that are updated before defined.
-# Handle source().
-# See updateAvgTemp.R and all_vt_comp which is updated before defined.
+# Handle source(). ??
+# Wrong:  See updateAvgTemp.R and all_vt_comp which is updated before defined.  But actually defined in prep_stan_data.R which is source()d.
 # 
 
 
@@ -408,12 +413,28 @@ function(x)
 
 ##############
 
-GraphicDeviceFuns = c("png", "pdf", "jpeg", "svg", "cairo", "quartz", "pictex", "cairo_pdf", "cairo_ps", "bitmap")
+PrimitiveGraphicDeviceFuns = c("png", "pdf", "jpeg", "svg", "cairo", "quartz", "pictex", "cairo_pdf", "cairo_ps", "bitmap")
 #XXX  Make a function that mirrors the findReadDataFuns .
+
+findGraphicsDevFuns =
+    #
+    # ff = list(foo = function(f) save(1:10, file = f))
+    # findWriteDataFuns(ff)
+    #
+function(funs, ..., primitiveFuns = c(PrimitiveGraphicDeviceFuns, ...))
+{
+    if(missing(funs))
+        return(primitiveFuns)
+    
+    findReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+}
+
+
+
 
 getGraphicsDeviceCalls =
    # Find calls to (known) graphics devices.    
-function(f, omitNotRunCode = FALSE, graphicDeviceFuns = GraphicDeviceFuns)
+function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFuns)
 {
     if(is.character(f))
         f = parse(f)
@@ -790,6 +811,9 @@ getURLs =
     # This is a slow way of doing this if we have already done some of the computations.
     # So we need to allow this to be called in different ways.
     # However, we still have to make up for the "error" in CodeDepends not processing the default values of parameters.
+    #
+    # XX Make more efficient.
+    #
     #
 function(dir)    
 {
