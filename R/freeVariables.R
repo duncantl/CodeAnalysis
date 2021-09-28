@@ -18,9 +18,9 @@
 #  man pages
 #
 #  get{Input,Output,Graphic}Files
-#     + take the scripts or parsed documents.
-#     + take all of the Call objects - getAllCalls()
-#     + allow to ignore calls inside if(FALSE)
+#     + take the scripts or √ parsed documents.
+#     + √ take all of the Call objects - getAllCalls()
+#     + allow to either include/ignore calls inside if(FALSE)
 #     + when a directory, and missing readDataFuns argument, call findWriteDataFuns().
 #
 # √ function for finding functions that call graphics device functions - mirroring findReadDataFuns() =  findGraphicsDevFuns
@@ -451,13 +451,24 @@ function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFu
 
 
 generalCharacterMethod =
-function(x, fun, ...)
+function(x, fun, ..., .funNamesFun = character())
 {
     if(length(x) > 1)
         return(unlist(lapply(x, fun, ...)))
 
-    if(file.info(x)$isdir)
+    if(file.info(x)$isdir) {
+        files = getRFiles(x)
+        if(length(.funNamesFun)) {
+            # If the parameter names readFunNames and writeFunNames had the same parameter name across functions
+            # we could simplify this code to have no switch and no 3rd version of fun(getRFiles(x), ...)
+            funDefs = getFunctionDefs(x)
+            funNames = .funNamesFun[[1]](funDefs)
+            return(switch(.funNamesFun[[2]],
+                   "read" = fun(files, readFunNames = funNames, definitions = funDefs, ...),
+                   "write" = fun(files, writeFunNames = funNames, definitions = funDefs, ...)))
+        }
         return(fun(getRFiles(x), ...))
+    }
 
     fun(parse(x), x, ...)
 }
@@ -485,7 +496,7 @@ function(x, ...)
 
 getGraphicsOutputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getGraphicsOutputFiles, ...)
+    generalCharacterMethod(x, getGraphicsOutputFiles, ..., .funNamesFun = list(findGraphicsDevFuns, "write"))
 
 getGraphicsOutputFiles.expression =
 function(x, filename, ...)
@@ -630,24 +641,43 @@ function(funs,..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
     findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 
+
+if(FALSE) {
+    i1 = getInputFiles("code")
+    i2 = getInputFiles(getAllCalls("code"))
+    i3 = getInputFiles(parse("code/getPOWER.R"))
+    i4 = getInputFiles(getAllCalls("code/getPOWER.R"))    
+}
+
+
 getInputFiles =
 function(x, ...)    
   UseMethod("getInputFiles")
 
 getInputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getInputFiles, ...)
+    generalCharacterMethod(x, getInputFiles, ..., .funNamesFun = list(findReadDataFuns, "read"))
 
 getInputFiles.expression =
 function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
+    getInputFiles(getAllCalls(x), filename = filename, readFunNames = readFunNames, ...)
+
+
+getInputFiles.ListOfCalls =
+function(x, filename = NA, readFunNames = findReadDataFuns(), ...)
 {
-    ans = findCallsToFunctions(getAllCalls(x), readFunNames, 1L, ...)
+    ans = findCallsToFunctions(x, readFunNames, 1L, ...)
     if(length(ans))
         names(ans) = rep(filename, length(ans))
     ans
 }
 
-
+getInputFiles.DirectoryCalls =
+function(x, readFunNames = findReadDataFuns(), ...)
+{
+    ans = mapply(getInputFiles, x, names(x), MoreArgs = list(readFunNames, ...), SIMPLIFY = FALSE)
+    structure(unlist(ans), names = rep(names(x), sapply(ans, length)))
+}
 
 
 getOutputFiles =
@@ -656,7 +686,7 @@ function(x, ...)
 
 getOutputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getOutputFiles, ...)
+    generalCharacterMethod(x, getOutputFiles, ..., .funNamesFun = list(findWriteDataFuns, "write"))
 
 getOutputFiles.expression =
 function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
@@ -670,7 +700,7 @@ function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
 
 
 PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv")
-# cat? but with a file = ...
+# cat? but only with a file = ... argument
 #
 
 findWriteDataFuns =
@@ -776,11 +806,12 @@ getAllCalls.character =
     #
 function(x, ...)
 {
-    if(file.info(x)$isdir) 
+    isDir = file.info(x)$isdir
+    if(isDir) 
         x = getRFiles(x)
 
     if(length(x) > 1)
-        return(structure(lapply(x, getAllCalls), names = basename(x)))
+        return(structure(lapply(x, getAllCalls), names = basename(x), class = if(isDir) "DirectoryCalls" else "list"))
 
     getAllCalls(parse(x), ...)
 }
