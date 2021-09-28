@@ -445,6 +445,7 @@ getGraphicsOutputFiles =
 function(x, ...)
     UseMethod("getGraphicsOutputFiles")
 
+if(FALSE) {
 getGraphicsOutputFiles.character =
 function(x, ...)
 {
@@ -455,6 +456,7 @@ function(x, ...)
         return(getGraphicsOutputFiles(getRFiles(x), ...))
 
     getGraphicsOutputFiles(parse(x), x, ...)
+}
 }
 
 getGraphicsOutputFiles.character =
@@ -494,9 +496,9 @@ function(call, idx = 1, definitions = globalenv())
              get(fnName, env, mode = "function")
 
     ans = if(rlang) 
-             match.call(fun, call)[idx + 1]
+             match.call(fun, call)[if(is.numeric(idx) idx + 1 else idx]
           else 
-              lapply(match_call(call, fun)$args$contents[idx], paramValue)
+             lapply(match_call(call, fun)$args$contents[idx], paramValue)
 
     if(length(idx) == 1)
         ans[[1]]
@@ -595,18 +597,49 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 
 findReadDataFuns.character =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
-{
    findReadDataFuns(getFunctionDefs(funs), primitiveFuns = primitiveFuns)
-}
+
+
+findReadDataFuns.expression =
+    # a parsed file
+function(funs,..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+    findReadDataFuns(as.list(funs), primtiveFuns = primitiveFuns, ...)
 
 
 getInputFiles =
 function(x, ...)    
   UseMethod("getInputFiles")
 
+getInputFiles.character =
+function(x, ...)
+    generalCharacterMethod(x, getInputFiles, ...)
 
-getInputFiles =
+getInputFiles.expression =
+function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
+{
+    ans = findCallsToFunctions(getAllCalls(x), readFunNames, 1L, ...)
+    names(ans) = rep(filename, length(ans))
+    ans
+}
+
+getOutputFiles =
 function(x, ...)    
+  UseMethod("getOutputFiles")
+
+getOutputFiles.character =
+function(x, ...)
+    generalCharacterMethod(x, getOutputFiles, ...)
+
+getOutputFiles.expression =
+function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
+{
+    ans = findCallsToFunctions(getAllCalls(x), writeFunNames, "file", ...)
+    if(length(ans) > 0)
+        names(ans) = rep(filename, length(ans))
+    ans
+}
+    
+
 
 PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv")
 # cat? but with a file = ...
@@ -684,8 +717,12 @@ function(allCalls, funNames, argIndices = integer(), definitions = NULL)
     if(is.character(allCalls)) 
         allCalls = getAllCalls(allCalls)
     
-    rcalls = lapply(allCalls, function(calls)
-                                  calls[sapply(calls, function(x) x$fn$value) %in% funNames])
+    rcalls = lapply(allCalls, function(calls) {
+                                  if(is(calls, "ListOfCalls"))
+                                      calls[sapply(calls, function(x) x$fn$value) %in% funNames]
+                                  else if(calls$fn$value %in% funNames)
+                                      calls
+                              })
 
     rcalls = unlist(rcalls)
     if(length(argIndices))
@@ -722,7 +759,7 @@ function(x, ...)
 
 getAllCalls.expression =
 function(x, ...)
-    find_nodes(to_ast(x), is, "Call")
+   structure( find_nodes(to_ast(x), is, "Call"), class = "ListOfCalls" )
 
 
 
