@@ -616,7 +616,17 @@ function(x)
     x
 }
 
-
+asFunction =
+function(x)
+{
+    while(!is.null(x)) {
+        if(is(x, "Function"))
+            return(x)
+        x = x$parent
+    }
+    
+    NULL
+}
 
 
 ###################################
@@ -899,21 +909,98 @@ function(dir, pattern = '\\.[RrSsQq]$')
 
 
 usedInCode =
-function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir))
+function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir),
+          fun = function(x) x$value)
 {
     asts = lapply(rfiles, function(f) to_ast(parse(f)))
     names(asts) = basename(rfiles)
-browser()    
+
     if(dropIfFalse)
         asts = lapply(asts, dropNotRunCode)
     
     if(notInToplevelFunctions)
-        asts2 = lapply(asts, function(x) x$contents[ !sapply(x$contents, isFunAssign) ]) 
+        asts = lapply(asts, function(x) x$contents[ !sapply(x$contents, isFunAssign) ])
+
+    if(is.null(fun))
+        fun = function(x) x
     
-    allSyms = unlist(lapply(unlist(asts2), function(x) sapply(find_nodes(x, is, "Symbol"), function(x) x$value)))
+    allSyms = unlist(lapply(unlist(asts),
+                            function(x)
+                             sapply(find_nodes(x,
+                                               function(x)
+                                                  is(x, "Symbol") && !(is(x$parent, "Assignment") && x$parent$write == x)),
+                                    fun)))
 }
 
 
 getSymbolValues =
 function(x)
     sapply(find_nodes(x, is, "Symbol"), function(x) x$value)
+
+
+usedAsFunction =
+function(x, parent = x$parent)    
+{
+    if(is(x, "Parameter"))
+        return(FALSE)
+    else if(is(parent, "ArgumentList")) {
+        p = parent$parent
+        if(is(p, "SubsetDollar"))
+            return(FALSE)
+        
+        if(is(p, "Call")) {
+            fun = p$fn$value
+
+            if(fun %in% c("$", "$<-", "~", "[", "[[", "==", "|", "||", "&", "&&", "list", "c", "paste", "paste0", "+",
+                           "-","*", "/", "%in%", "%/%", "unique", "as.numeric", "as.integer", "plot"))
+                return(FALSE)
+            
+
+            if(!grepl("apply", fun))
+                return(NA)
+
+            # May not be able to find the function definition if it is defined locally within a function
+            # e.g. stats::dendrapply
+            mcall = match_call(p, get(fun))
+            return(identical(mcall$args$contents$FUN, x))
+        }
+    } else if(is(parent, "Assignment")) 
+        return(parent$write != x)
+    else if(is(parent, "Call"))
+        return(x == parent$fn )
+    else if(is(parent, "Return"))
+        return(FALSE)
+    else if(is(parent, "Loop") && x == parent$iterator)
+        return(FALSE)#XXXXX
+    else if(is(parent, "If") && x == parent$condition)
+        return(FALSE)
+    else if(is(parent, "Brace")) # do we need to see if it is the result and then used as a function later.
+        return(FALSE)            
+
+    # Other cases:
+    # default value of a parameter
+    # variable in a for loop. Need see if used as a function in the loop.
+    # value looping over.
+    browser()
+}
+
+
+isParamUsedAsFun =
+    #
+    #
+    #  isParamUsedAsFun("FUN", dendrapply)
+    #
+function(param, fun)
+{
+    if(!is(fun, "ASTNode"))
+        fun = to_ast(fun)
+    k = find_nodes(fun, function(x) is(x, "Call") && is_symbol(x$fn, param))
+    if(length(k) > 0)
+        return(TRUE)
+
+    # Next, see if it is used in a call to a function that is know
+    k = find_nodes(fun, function(x) !is(x, "Parameter") && is_symbol(x, param))
+    w = sapply(k, notUsedAsFunction)
+
+    any(!w)
+}
