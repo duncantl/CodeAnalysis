@@ -654,7 +654,7 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 
 findReadDataFuns.environment =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
-    findReadDataFuns(as.list(funs), primtiveFuns = primitiveFuns, ...)
+    findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 findReadDataFuns.character =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
@@ -985,8 +985,11 @@ function(x, parent = x$parent)
 }
 
 
+
+
 isParamUsedAsFun =
     #
+    # See findCallsParam()!!! Don't recreate the wheel.
     #
     #  isParamUsedAsFun("FUN", dendrapply)
     #
@@ -1000,7 +1003,7 @@ function(param, fun)
 
     # Next, see if it is used in a call to a function that is know
     k = find_nodes(fun, function(x) !is(x, "Parameter") && is_symbol(x, param))
-    w = sapply(k, notUsedAsFunction)
+    w = sapply(k, usedAsFunction)
 
     any(!w)
 }

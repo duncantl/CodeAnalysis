@@ -33,6 +33,9 @@ vals = lapply(b3, getIfValue)
 
 types = lapply(b3, callType)
 
+# b3$outer9 - type is empty, but should have got "list" or NULL
+# b3$eigen{7,8,9}  calls to .Internal.  stop1 also .Internal()
+
 # Look at assignments and check if the if-else are both assigning to the same variable.
 w = sapply(vals, function(x) all(sapply(x, is, "Assignment")))
 w2 = sapply(vals[w], function(x) length(unique(sapply(x, function(x) x$write$value)))) > 1

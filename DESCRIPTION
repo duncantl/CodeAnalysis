@@ -26,4 +26,3 @@ Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
 Imports: CodeDepends, rstatic (>= 0.0.0.9055), methods, codetools
 Suggests: igraph, testthat
-

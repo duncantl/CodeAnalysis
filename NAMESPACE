@@ -1,5 +1,6 @@
-import(CodeDepends)
-import(methods)
+importFrom(CodeDepends, getInputs, findWhenUnneeded, readScript, getVariableDepends)
+importFrom(methods,
+          is, "body<-", new, slot, getClass, getClasses, as)
 
 importFrom(rstatic, find_nodes, to_ast, as_language, Symbol, replace_nodes)
 #import(rstatic)
@@ -49,3 +50,35 @@ export(findFunctionDefs)
 export(isCallTo)
 export(getArgFromCall)
 
+export(getIfCond, getIfTrue, getIfFalse)
+
+
+export(pkgSymbolsUsed)
+
+
+
+
+# From the  exploration of the variety_trial_analysis project.
+# Some duplicates!
+export(getFunctionDefs)# same as findFunctionDefs and findFunctionDefs takes the name of a file, but getFunctionDefs doesn't yet.
+
+
+# Needed??
+export(isFunAssign)
+export(isIfFalse)
+export(rlangType)
+
+export(getURLs)
+export(freeVariables)
+export(findReadDataFuns, findWriteDataFuns, findGraphicsDevFuns)
+#export(getGraphicsDeviceCalls)
+#export(findCallsToFunctions)
+
+export(getInputFiles, getOutputFiles, getGraphicsOutputFiles)
+
+export(getAllCalls)
+export(getSourceInfo)
+
+
+export(callGraph)
+exportMethods(callGraph)

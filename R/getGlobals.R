@@ -12,11 +12,11 @@ getGlobals =
     #  Actually it is more correct and comprehensive than findGlobals.
     #  It recognizes when variables are defined locally and identifies uses of it before that as globals.
     # 
-    # It also attempts to deal with 
+    # It also attempts to deal with ....??????
     #
     # We didn't use the code walker mechanism in codetools as it doesn't appear to give us a relatively simple means
     # to push and pop function calls. But this could be just that I haven't wrapped my head around it.
-    # But also, it is a slightly akward interface and undocumented.
+    # But also, it is a slightly awkward interface, undocumented and states it is not to be used/relied upon - after 10-15 years!
     #
     # Todo:  process nested function definitions and determine their local variables
     #
@@ -41,7 +41,7 @@ getGlobals =
 function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, 
          skip = c(".R", ".typeInfo", ".signature", ".pragma"),
          .debug = TRUE, .assert = TRUE,
-         localVars = character(), mergeSubFunGlobals = TRUE)
+         localVars = character(), mergeSubFunGlobals = TRUE, old = TRUE) # remove old when we are sure it works
 {
 
   if(is.logical(.debug))
@@ -78,7 +78,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       i = switch(funName,
              do.call = match("what", names(e2)),
              aggregate = if(length(e2) > 3) 4 else NA, # taking some liberties here matching not by name but known position for methods. See ?aggregate.
-             match("FUN", names(e2)))
+             grep("fun", names(e2), ignore.case = TRUE)) # match(c("fun", "FUN"), names(e2)))
       if(!is.na(i) && (is.character(e2[[i]]) || is.name(e2[[i]]))) {
           if(!(as.character(e2[[i]]) %in% localVars))
               addFunName(e2[[i]])
@@ -93,7 +93,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       popFuns = FALSE
       if(is.name(e) && as.character(e) == "")  # typically a formal argument that has no default value.
           return(FALSE)
-
       
       if(is(e, "if")) {
           if(e[[2]] == FALSE) {
@@ -112,7 +111,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       if(class(e) == "for") 
           localVars <<- c(localVars, as.character(e[[2]]))
 
-          
       if(is.call(e)) {
            if(is.call(e[[1]]))  # e.g. x$bob()
                return(lapply(e, fun,  w))
@@ -160,10 +158,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           els = as.list(e)[-1]
           if(funName == "$") # remove the literal name
               els = els[-2]
-          else if (funName %in% c("apply", "eapply", "sweep", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep")) {
+          else if (funName %in% c("apply", "eapply", "sweep", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep") || grepl("apply", funName, ignore.case = TRUE)) {
                 els = procIndirectFunCall(e, funName)
           }
-
            
           lapply(els, fun, w)
           if(popFuns)
@@ -204,7 +201,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   if(is.call(f) && as.character(f[[1]]) == "function") 
      f = eval(f, globalenv())
 
-
   if(is.function(f)) {
     params = formals(f)
     defaultValuesProcessed = structure(rep(FALSE, length(params)), names = names(params))
@@ -213,13 +209,18 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
     defaultValuesProcessed = logical()
   }
   
-  
   if(typeof(f) == "closure") {
 
       if(!.ignoreDefaultArgs) {
-            # process the parameters that have no default value.
-         localVars = names(params)[sapply(params, function(x) is.name(x) && x == "")]
-         # lapply(params, fun, fun)
+          # process the parameters. Why did I only work on those that have no default value???
+          #  Seems to give the wrong answer.
+          # Since this is inside .ignoreDefaultArgs, were we processing those parameters with
+          # default values separately?
+if(old)          
+    localVars = names(params)[sapply(params, function(x) is.name(x) && x == "")]
+else
+    localVars = names(params)
+          # lapply(params, fun, fun)
          f = body(f)
      }
   } 
@@ -252,7 +253,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       ans$functions = getGlobalFunctions(ans, TRUE, TRUE)
 
   ans
-
 }
 
 

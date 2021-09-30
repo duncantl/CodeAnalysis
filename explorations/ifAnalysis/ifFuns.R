@@ -236,6 +236,13 @@ function(call)
         return( InternalReturnTypes[[ifun]] )
     } else {
 
+        # Check if the function is a parameer
+        ff = asFunction(call)
+        if(fun %in% names(ff$params)) {
+           warning("analyze locally provided function as parameter ", fun)
+           return("<function parameter>")            
+        }
+
         # check to see if this locally defined as a nested function.
         ff = asFunction(call, outer = TRUE)
         def = find_nodes(ff, function(x) is(x, "Assignment") && is_symbol(x$write, fun) && is(x$read, "Function"))
@@ -400,6 +407,7 @@ function(from, outer = FALSE) {
     if(!is.null(from)) {
         ans = from$parent
         if(outer && !is.null(ans) ) {
+            # this slows things down considerably.  Fix it later.
             tmp = asFunction(ans, TRUE)
             if(!is.null(tmp))
                 ans = tmp
@@ -507,14 +515,14 @@ FunReturnTypes =
          numeric = "numeric",
          logical = "logical",
          character = "character",
-         stop = "NULL",
+         stop = "ERROR", # was "NULL"
          length = "integer",
          make.names = "character", # verify
-         all.equal.character = c("character", "logical"),
-         all.equal.list = c("character", "logical"),
-         all.equal.raw = c("character", "logical"),         
-         all.equal = c("character", "logical"),
-         all.equal.numeric = c("character", "logical"),
+         all.equal.character = c("character|logical"),
+         all.equal.list = c("character|logical"),
+         all.equal.raw = c("character|logical"),         
+         all.equal = c("character|logical"),
+         all.equal.numeric = c("character|logical"),
          attr.all.equal = "character",     #XXX can this return logical.
          identical = "logical",
 
@@ -677,6 +685,7 @@ FunReturnTypes =
 
          kappa = "numeric",
          .kappa_tri = "numeric",
+         kappa.qr = "numeric",   # return value is call to to .kapp_tri        
 
          ceiling = "numeric",
          floor = "numeric",
@@ -762,7 +771,19 @@ FunReturnTypes =
 
          unloadNamespace = "NULL"         ,
 
-         match.arg = getMatchArgType
+         .bincode = 'integer',
+         match.arg = getMatchArgType,
+         dyn.load = "list", # class DLLInfo
+
+         NextMethod = "ANY",
+         t = "matrix",
+         Map = "ANY", # Really determined by the argument f and its return type along with the ...   
+         cbind = "matrix|data.frame",
+         rbind = "matrix|data.frame",
+         as.octmode = "character|integer|octmode",
+         .Date = "<input>", # adds a class
+         on.exit = "NULL",
+         storage.mode = "integer"
          )         
 
 

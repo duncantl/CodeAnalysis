@@ -1,5 +1,7 @@
 if(FALSE) {
-  getIfValue(findIfInFun(foo)[[1]])
+    getIfValue(findIfInFun(foo)[[1]])
+
+    i = findIfInFun(foo)[[1]]
 }
 
 foo =

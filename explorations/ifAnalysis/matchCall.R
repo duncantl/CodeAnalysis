@@ -1,6 +1,6 @@
 library(rstatic)
 
-MatchCall =
+match_call = MatchCall =
 function(call, definition, expand.dots = TRUE)
 {
 
