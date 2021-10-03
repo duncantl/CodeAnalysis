@@ -3,8 +3,11 @@ getAllFunctionDefs =
     # def = quote(f <- function(x) {  y = x; g = function(w) w + x; g(3)}) 
     # getAllFunctionDefs(def)
     #
-    #  def = quote(f <- function(x) {  y = x; if(FALSE) g = function(w) w + x; g(3)}) 
-    #
+    #  def = quote(f <- function(x) {  y = x; if(FALSE) g = function(w) w + x; g(3)})
+    # Anonymous fns
+    # def2 = quote(function(x) lapply(x[sapply(x, function(x) class(x)[1]) == "bob"], function(x) x+1))
+    #   first function is assigned to a name
+    # def2 = quote(f <- function(x) lapply(x[sapply(x, function(x) class(x)[1]) == "bob"], function(x) x+1))    
     # TODO
     # 1. [test more on a script]  identify if(FALSE) and skip
     # 2. keep state of assignments and use as names - correctly.
@@ -34,8 +37,8 @@ function(recursive = TRUE)
    }
     addFun = function(e, w) {
         defs[[ length(defs) + 1L ]] <<- e
-        id = getAsName(assignTo[[1]])
-        browser()        
+        id = if(length(assignTo) > 0) getAsName(assignTo[[1]]) else NA
+#        browser()        
         names(defs)[length(defs)] <<- id
         if(recursive) {
             walkCode(e[[2]], w)
@@ -58,12 +61,14 @@ function(recursive = TRUE)
              isAssign = is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-")
              if(isAssign) 
                  pushAssign(x[[2]])
+             else
+                 pushAssign(NA)
 
              
              for(ee in as.list(x))
                  if(!missing(ee))
                      walkCode(ee, w)
-             if(isAssign)
+#             if(isAssign)
                  popAssign()
            }
         
@@ -83,6 +88,9 @@ function(recursive = TRUE)
 getAsName =
 function(e)
 {
+    if(is.logical(e) && is.na(e))
+        return(NA)
+    
     switch(typeof(e),
            "character" = e,
            "symbol" = as.character(e),
