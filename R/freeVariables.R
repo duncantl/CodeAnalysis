@@ -330,12 +330,20 @@ isFunAssign =
     # toSymbol - logical value. If TRUE, left hand side must be a simple symbol/name
     #  otherwise can be a call, e.g., obj$x = function () 1
     #
+    # MISSING:
+    # Rodam uses reference classes and defines functions within these.
+    # RVenn defines only S4 generics and methods, no top-leve functions.
+    # [added] The package RapidPolygonLookup uses var = structure(function().., ex = function())    
+    # [added] Rlab assigns to a character, not a symbol e.g. "US" <- function()
 function(x, toSymbol = TRUE)
 {
     if(is(x, "R6"))
-        is(x, "Assignment") && (!toSymbol || is(x$write, "Symbol")) && is(x$read, "Function")
+        is(x, "Assignment") && (!toSymbol || is(x$write, "Symbol") || is(x$write, "Character")) && is(x$read, "Function")
     else
-        class(x) %in% c("=", "<-") && (!toSymbol || is.name(x[[2]])) && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" 
+        class(x) %in% c("=", "<-") &&
+           (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) && is.call(x[[3]]) &&
+           is.name(x[[3]][[1]]) && (x[[3]][[1]] == "function"  ||
+           (x[[3]][[1]] == "structure" && is.call(x[[3]][[2]]) && is.name(x[[3]][[2]][[1]]) && x[[3]][[2]][[1]] == "function"))
 }
 
 getSearchPathVariables =
@@ -767,9 +775,13 @@ function(x, unlist = TRUE, ...)
         if(info$isdir[1]) {
             files = getRFiles(x)
             tmp = lapply(files, getFunctionDefs, ...)
-            tt = table(unlist(lapply(tmp, names)))
-            if(any(tt > 1))
-                warning("multiple definitions for functions ", paste(names(tt)[tt > 1], collapse = ", "))
+
+            if(!("recursive" %in% names(list(...))) && list(...)$recursive) {
+                tt = table(unlist(lapply(tmp, names)))
+                if(any(tt > 1))
+                    warning("multiple definitions for functions ", paste(names(tt)[tt > 1], collapse = ", "))
+            }
+
             return(if(unlist) unlist(tmp) else structure(tmp, names = files))
         }
     }
@@ -787,16 +799,26 @@ function(x, ...)
     getFunctionDefs( as.list(x), ...)
 
 getFunctionDefs.list =
-function(x, ...)
-    x[ sapply(x, is.function) ]
+function(x, recursive = FALSE, ...)
+{
+    ans = x[ sapply(x, is.function) ]
+    if(recursive)
+        c(ans, unlist(lapply(ans, getAllFunctionDefs, ...), recursive = FALSE))
+    else
+        ans
+}
 
 
 
 getFunctionDefs.expression =
-function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, ...)
+function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FALSE, ...)
 {
     if(length(x) == 0)
         return(list())
+
+    if(recursive)
+        return(getAllFunctionDefs(x, recursive = TRUE, ...))
+    
     w = sapply(x, isFunAssign, toSymbol = toSymbol)
 
     if(toSymbol) {

@@ -1,5 +1,11 @@
 getAllFunctionDefs =
     #
+    # [done] currently setup for an expression not evaluated code.
+    # [done] Also connect to getFunctionDefs and its methods for directories/files, environment, expression.
+    #    use getFunctionDefs(, recursive = TRUE)
+    #  So no need to export this function.
+    #
+    #
     # Compare to getFunctionDefs. This optionall descends recursively
     # to find nested functions.  So it does a lot more work than finding the
     # top-level functions.
@@ -46,16 +52,31 @@ function(recursive = TRUE, nesting = TRUE)
     nestInfo = list()
     
     leaf = function(e, w) {
-#        message("leaf: ", class(e), e)
-        if(typeof(e) == "expression")
+        #        message("leaf: ", class(e), e)
+        ty = typeof(e)
+        if(ty == "expression")
             w$call(e, w)
+        else if(ty == "pairlist")
+            w$call(e, w)        
+        else if(ty == "closure") {
+            addFun(e, w)
+#            procDefinedFun(e, w)
+        }
        NULL
-   }
+    }
+
+    procDefinedFun =
+        function(e, w) {
+            walkCode(formals(e), w)
+            walkCode(body(e), w)   
+        }
+    
     addFun = function(e, w) {
         defs[[ length(defs) + 1L ]] <<- e
-        id = if(length(assignTo) > 0) getAsName(assignTo[[1]]) else NA
 
+        id = if(length(assignTo) > 0) getAsName(assignTo[[1]]) else NA
         names(defs)[length(defs)] <<- id
+        
         if(nesting) {
             nestLevel <<- c(nestLevel , curDepth)
             nestInfo[[ length(nestInfo) + 1L ]] <<- assignTo
@@ -63,8 +84,12 @@ function(recursive = TRUE, nesting = TRUE)
         }
         
         if(recursive) {
-            walkCode(e[[2]], w)
-            walkCode(e[[3]], w)
+            if(typeof(e) == "closure")
+                procDefinedFun(e, w)
+            else {
+                walkCode(e[[2]], w)
+                walkCode(e[[3]], w)
+            }
         }
         if(nesting)
             curDepth <<- curDepth - 1L        
@@ -82,6 +107,8 @@ function(recursive = TRUE, nesting = TRUE)
 #             message("call: ", class(x), " ", x)
              if(isIfFalse(x))
                  return()
+             if(typeof(x) == "closure")
+                 browser()
 
              isAssign = is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-")
              if(isAssign) 
@@ -99,7 +126,7 @@ function(recursive = TRUE, nesting = TRUE)
         
         
     list(handler = function(e, w) {
-#        message("handler: ", class(e), e)        
+        #        message("handler: ", class(e), e)
                       if(e == "function")
                           addFun
                       else
