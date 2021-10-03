@@ -331,7 +331,7 @@ function(x)
     if(is(x, "R6"))
         is(x, "Assignment") && is(x$write, "Symbol") && is(x$read, "Function")
     else
-        class(x) %in% c("=", "<-") && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" # add the following ?? && is.name(x[[2]])
+        class(x) %in% c("=", "<-") && is.name(x[[2]]) && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" 
 }
 
 getSearchPathVariables =
@@ -755,18 +755,18 @@ function(x, ...)
 getFunctionDefs.character =
     #
     #XXX vectorize in x.  See/use generalCharacterMethod ?
-function(x, ...)
+function(x, unlist = TRUE, ...)
 {
     if(file.exists(x)) {
 
         info = file.info(x)
         if(info$isdir[1]) {
             files = getRFiles(x)
-            tmp = lapply(files, getFunctionDefs)
+            tmp = lapply(files, getFunctionDefs, ...)
             tt = table(unlist(lapply(tmp, names)))
             if(any(tt > 1))
                 warning("multiple definitions for functions ", paste(names(tt)[tt > 1], collapse = ", "))
-            return(unlist(tmp))
+            return(if(unlist) unlist(tmp) else structure(tmp, names = files))
         }
     }
     
@@ -775,16 +775,28 @@ function(x, ...)
         else
             parse(text = x)
 
-  getFunctionDefs(e)
+  getFunctionDefs(e, ...)
 }
 
-getFunctionDefs.expression =
+getFunctionDefs.environment =
 function(x, ...)
+    getFunctionDefs( as.list(x), ...)
+
+getFunctionDefs.list =
+function(x, ...)
+    x[ sapply(x, is.function) ]
+
+
+
+getFunctionDefs.expression =
+function(x, env = new.env(parent = globalenv()), ...)
 {
+    if(length(x) == 0)
+        return(list())
     w = sapply(x, isFunAssign)
-    env = new.env()
+
     lapply(x[w], eval, env)
-    as.list(env)
+    as.list(env, all.names = TRUE)
 }
 
 
