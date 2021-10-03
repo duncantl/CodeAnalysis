@@ -1,4 +1,12 @@
 getAllFunctionDefs =
+    #
+    # Compare to getFunctionDefs. This optionall descends recursively
+    # to find nested functions.  So it does a lot more work than finding the
+    # top-level functions.
+    # We can get nesting information for each function - the depth of nesting and the names of the ancestor/containing functions when they have names and are not anonymous funcions.
+    # 
+    #
+    #
     # x is an expression, e.g.,  from parse(file).
     # def = quote(f <- function(x) {  y = x; g = function(w) w + x; g(3)}) 
     # getAllFunctionDefs(def)
@@ -102,11 +110,14 @@ function(recursive = TRUE, nesting = TRUE)
          .funs = function() {
                      if(nesting) {
                          attr(defs, "nestLevel") = nestLevel
-                         attr(defs, "nestInfo") = lapply(nestInfo, function(x) rev(sapply(x, getAsName)))
+                         attr(defs, "nestInfo") = lapply(nestInfo, function(x) naOmit(rev(sapply(x, getAsName))))
                      }
                      defs
              })
 }
+naOmit =
+function(x)
+    x[!is.na(x)]
 
 getAsName =
 function(e)
