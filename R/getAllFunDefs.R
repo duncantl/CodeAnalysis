@@ -11,23 +11,31 @@ getAllFunctionDefs =
     # TODO
     # 1. [test more on a script]  identify if(FALSE) and skip
     # 2. keep state of assignments and use as names - correctly.
-    # 
+    #
 function(x, walker = mkFunFinder(...), ...)
 {
     walkCode(x, walker)
     walker$.funs()
 }
 
+    if(FALSE) {
+        e = parse("../tests/getAllFunDefs.R")
+        getAllFunctionDefs(e)
+    }
+
 mkFunFinder =
     #
     # recursive - logical. If TRUE, process parameters and body of function objects looking
     #  for nested function definitions.
     #
-function(recursive = TRUE)
+function(recursive = TRUE, nesting = TRUE)
 {
     defs = list()
 
     assignTo = character()
+    nestLevel = integer()
+    curDepth = 1L
+    nestInfo = list()
     
     leaf = function(e, w) {
 #        message("leaf: ", class(e), e)
@@ -38,12 +46,21 @@ function(recursive = TRUE)
     addFun = function(e, w) {
         defs[[ length(defs) + 1L ]] <<- e
         id = if(length(assignTo) > 0) getAsName(assignTo[[1]]) else NA
-#        browser()        
+
         names(defs)[length(defs)] <<- id
+        if(nesting) {
+            nestLevel <<- c(nestLevel , curDepth)
+            nestInfo[[ length(nestInfo) + 1L ]] <<- assignTo
+            curDepth <<- curDepth + 1L
+        }
+        
         if(recursive) {
             walkCode(e[[2]], w)
             walkCode(e[[3]], w)
         }
+        if(nesting)
+            curDepth <<- curDepth - 1L        
+
         NULL
     }
 
@@ -54,7 +71,7 @@ function(recursive = TRUE)
 
     
     call = function(x, w){
-             message("call: ", class(x), " ", x)
+#             message("call: ", class(x), " ", x)
              if(isIfFalse(x))
                  return()
 
@@ -82,7 +99,13 @@ function(recursive = TRUE)
                   },
          leaf = leaf,
          call = call,
-         .funs = function() defs)
+         .funs = function() {
+                     if(nesting) {
+                         attr(defs, "nestLevel") = nestLevel
+                         attr(defs, "nestInfo") = lapply(nestInfo, function(x) rev(sapply(x, getAsName)))
+                     }
+                     defs
+             })
 }
 
 getAsName =
