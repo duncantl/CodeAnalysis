@@ -326,12 +326,16 @@ function(vars, num, defWhen, code = NULL, exclude = character())
 }
 
 isFunAssign =
-function(x)
+    #
+    # toSymbol - logical value. If TRUE, left hand side must be a simple symbol/name
+    #  otherwise can be a call, e.g., obj$x = function () 1
+    #
+function(x, toSymbol = TRUE)
 {
     if(is(x, "R6"))
-        is(x, "Assignment") && is(x$write, "Symbol") && is(x$read, "Function")
+        is(x, "Assignment") && (!toSymbol || is(x$write, "Symbol")) && is(x$read, "Function")
     else
-        class(x) %in% c("=", "<-") && is.name(x[[2]]) && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" 
+        class(x) %in% c("=", "<-") && (!toSymbol || is.name(x[[2]])) && is.call(x[[3]]) && is.name(x[[3]][[1]]) && x[[3]][[1]] == "function" 
 }
 
 getSearchPathVariables =
@@ -789,14 +793,25 @@ function(x, ...)
 
 
 getFunctionDefs.expression =
-function(x, env = new.env(parent = globalenv()), ...)
+function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, ...)
 {
     if(length(x) == 0)
         return(list())
-    w = sapply(x, isFunAssign)
+    w = sapply(x, isFunAssign, toSymbol = toSymbol)
 
-    lapply(x[w], eval, env)
-    as.list(env, all.names = TRUE)
+    if(toSymbol) {
+        lapply(x[w], eval, env)
+        as.list(env, all.names = TRUE)
+    } else {
+        defs = x[w]
+        funs = lapply(x[w], function(e) eval(e[[3]], env))
+        names(funs) = sapply(x[w], function(e)
+                                     if(is.name(e[[2]]))
+                                        as.character(e[[2]])
+                                     else
+                                        paste(deparse(e[[2]]), collapse = ""))
+        funs
+    }
 }
 
 
