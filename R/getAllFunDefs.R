@@ -1,10 +1,12 @@
 getAllFunctionDefs =
-    # x is an expression from parse(file).
+    # x is an expression, e.g.,  from parse(file).
     # def = quote(f <- function(x) {  y = x; g = function(w) w + x; g(3)}) 
     # getAllFunctionDefs(def)
     #
+    #  def = quote(f <- function(x) {  y = x; if(FALSE) g = function(w) w + x; g(3)}) 
+    #
     # TODO
-    # 1. identify if(FALSE) and skip
+    # 1. [test more on a script]  identify if(FALSE) and skip
     # 2. keep state of assignments and use as names - correctly.
     # 
 function(x, walker = mkFunFinder(...), ...)
@@ -46,7 +48,10 @@ function(recursive = TRUE)
                   },
          leaf = leaf,
          call = function(x, w){
-                     message("call: ", class(x), " ", x)
+             message("call: ", class(x), " ", x)
+             if(isIfFalse(x))
+                 return()
+             
                      for (ee in as.list(x))
                          if (!missing(ee))
                              walkCode(ee, w)
