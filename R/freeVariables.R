@@ -341,9 +341,39 @@ function(x, toSymbol = TRUE)
         is(x, "Assignment") && (!toSymbol || is(x$write, "Symbol") || is(x$write, "Character")) && is(x$read, "Function")
     else
         class(x) %in% c("=", "<-") &&
-           (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) && is.call(x[[3]]) &&
-           is.name(x[[3]][[1]]) && (x[[3]][[1]] == "function"  ||
-           (x[[3]][[1]] == "structure" && is.call(x[[3]][[2]]) && is.name(x[[3]][[2]][[1]]) && x[[3]][[2]][[1]] == "function"))
+            (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) &&
+                is.call(x[[3]]) && is.name(x[[3]][[1]]) &&
+                    (x[[3]][[1]] == "function"  || (x[[3]][[1]] == "structure" && is.call(x[[3]][[2]]) && is.name(x[[3]][[2]][[1]]) && x[[3]][[2]][[1]] == "function") ||
+                           (x[[3]][[1]] == "local" && evalsToFunction(x[[3]][[2]])))
+}
+
+
+evalsToFunction =
+    #
+    # for analyzing the expression in local() to see if it returns a function.
+    #
+function(e)
+{
+    expr = e # original in case we need it.
+    if(inherits(e, "{"))
+        e = as.list(e)
+
+    res = e[[ length(e) ]]
+    if(is.call(res) && is.name(res[[1]]) && as.character(res[[1]]) == "function")
+        return(TRUE)
+
+    if(is.name(res)) {
+        i = lapply(expr, getInputs)
+        var = as.character(res)
+        w = sapply(i, function(x) var %in% x@outputs)
+        if(any(w)) {
+            x = i[[ which.max(w) ]]
+            return(isFunAssign(x))
+        }
+    }
+
+    FALSE
+    
 }
 
 getSearchPathVariables =
@@ -767,22 +797,30 @@ function(x, ...)
 getFunctionDefs.character =
     #
     #XXX vectorize in x.  See/use generalCharacterMethod ?
-function(x, unlist = TRUE, ...)
+function(x, unlist = TRUE, recursive = FALSE, ...)
 {
     if(file.exists(x)) {
 
         info = file.info(x)
         if(info$isdir[1]) {
             files = getRFiles(x)
-            tmp = lapply(files, getFunctionDefs, ...)
+            tmp = lapply(files, getFunctionDefs, recursive = recursive, ...)
 
-            if(!("recursive" %in% names(list(...))) && list(...)$recursive) {
+            if(!recursive) { # !("recursive" %in% names(list(...))) && list(...)$recursive) {
                 tt = table(unlist(lapply(tmp, names)))
                 if(any(tt > 1))
                     warning("multiple definitions for functions ", paste(names(tt)[tt > 1], collapse = ", "))
             }
 
-            return(if(unlist) unlist(tmp) else structure(tmp, names = files))
+            return(if(unlist) {
+                     ans = structure(unlist(tmp), names = unlist(lapply(tmp, names)))
+                     if(recursive && length(ans)) {
+                         attr(ans, "nestLevel") = unlist(lapply(tmp, attr, "nestLevel"), recursive = FALSE)
+                         attr(ans, "nestInfo") = unlist(lapply(tmp, attr, "nestInfo"), recursive = FALSE)
+                     }
+                     ans
+                   } else
+                     structure(tmp, names = files))
         }
     }
     
@@ -791,20 +829,29 @@ function(x, unlist = TRUE, ...)
         else
             parse(text = x)
 
-  getFunctionDefs(e, ...)
+  getFunctionDefs(e, recursive = recursive, ...)
 }
 
 getFunctionDefs.environment =
 function(x, ...)
-    getFunctionDefs( as.list(x), ...)
+    getFunctionDefs( as.list(x, all = TRUE), ...)
 
 getFunctionDefs.list =
 function(x, recursive = FALSE, ...)
 {
     ans = x[ sapply(x, is.function) ]
-    if(recursive)
-        c(ans, unlist(lapply(ans, getAllFunctionDefs, ...), recursive = FALSE))
-    else
+    if(recursive) {
+        tmp = lapply(ans, getAllFunctionDefs, recursive = TRUE, ...)
+                #  put the names on the result. 
+        tmp = mapply(function(x, nm) { names(x)[1] = nm; x}, tmp, names(tmp), SIMPLIFY = FALSE)
+        tmp2 = unlist(tmp, recursive = FALSE)
+        names(tmp2) = unlist(lapply(tmp, names))
+        if(!is.null(tmp2)) {
+            attr(tmp2, "nestLevel") = unlist(lapply(tmp, attr, "nestLevel"))
+            attr(tmp2, "nestInfo") = lapply(tmp, attr, "nestInfo")
+        }
+        tmp2
+    } else
         ans
 }
 
@@ -835,7 +882,63 @@ function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FA
         funs
     }
 }
+#XXX Get the names on the elements in this and the .function method
+getFunctionDefs.call = `getFunctionDefs.<-` =
+function(x, ...)
+{
+    if(isFunAssign(x)) {
+        ans = getFunctionDefs(x[[3]], ...)
+#        browser()
+        names(ans)[1] = as.character(x[[2]])
+        ans
+    } else if(is.name(x[[1]]) && as.character(x[[1]]) == "function") {
+#        browser()
+        unlist(c(x, getFunctionDefs(eval(x), ...)))
+    } else
+        unlist( lapply(as.list(x), getFunctionDefs, ...) )
+}
 
+getFunctionDefs.function =
+function(x, ...)
+{
+    p = lapply(formals(x), getFunctionDefs, ...)
+    unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), ...)))
+}
+
+if(FALSE)
+getFunctionDefs.default =
+function(x, ...)
+   getFunctionDefs( as.list(x), ...)
+
+`getFunctionDefs.{` = `getFunctionDefs.=` = getFunctionDefs.if = getFunctionDefs.while = getFunctionDefs.for = `getFunctionDefs.(` =
+function(x, ...)
+{
+    drop = switch(class(x), "for" = c(1,2), 1)
+    ans = lapply(x[- drop], getFunctionDefs, ...)
+    ans[sapply(ans, length) > 0]
+}
+
+
+
+
+getFunctionDefs.NULL = getFunctionDefs.numeric = getFunctionDefs.logical = getFunctionDefs.integer = getFunctionDefs.character = getFunctionDefs.name =
+function(x, ...)
+    list()
+
+
+if(FALSE) {
+    # Think about adding these
+getFunctionDefs.default =
+function(x, ...)
+    lapply(as.list(x), getFunctionDefs, ...)
+# NULL
+
+
+
+getFunctionDefs.call =
+function(x, ...)
+   lapply(x, getFunctionDefs, ...)
+}
 
 #################################
 
@@ -1055,4 +1158,19 @@ function(param, fun)
     w = sapply(k, usedAsFunction)
 
     any(!w)
+}
+
+
+
+
+showSig =
+function(f, p = formals(f))
+{
+    sprintf("function(%s)",
+    paste(names(p), sapply(p, function(v) {
+                           if(is.name(v) && as.character(v) == "")
+                             ""
+                           else
+                             paste0("= ", paste(deparse(v), collapse = ""))
+      }), collapse = ", "))
 }
