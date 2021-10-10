@@ -6,7 +6,7 @@ getAllFunctionDefs =
     #  So no need to export this function.
     #
     #
-    # Compare to getFunctionDefs. This optionall descends recursively
+    # Compare to getFunctionDefs. This optionally descends recursively
     # to find nested functions.  So it does a lot more work than finding the
     # top-level functions.
     # We can get nesting information for each function - the depth of nesting and the names of the ancestor/containing functions when they have names and are not anonymous funcions.
@@ -158,3 +158,27 @@ function(e)
            "call" = paste(deparse(e), collapse = ""),
            "")
 }
+
+
+
+mkDataFrame =
+function(info)
+{
+    if("nestLevel" %in% names(attributes(info))) {
+        ans = data.frame(funName = names(info),
+                         nestLevel = attr(info, "nestLevel"))
+                    # was        nestNames = unlist(attr(info, "nestInfo"))
+        ans$nestNames = attr(info, "nestInfo")
+        ans$defn = unname(info)
+    } else {
+        ans = data.frame(funName = unlist(lapply(info, names)),
+                         nestLevel = unlist(lapply(info, attr, "nestLevel")),
+                         nestNames = unlist(lapply(info, function(x) lapply(attr(x, "nestInfo"), paste, collapse = ","))))
+   
+
+        ans$defn = unname(unlist(info, recursive = FALSE))
+    }
+
+    ans
+}
+
