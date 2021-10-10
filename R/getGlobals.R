@@ -39,7 +39,7 @@ getGlobals =
     # Doesn't identify do.call, optim, etc.  But for optim, we have findCallsParam().
     #
 function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, 
-         skip = c(".R", ".typeInfo", ".signature", ".pragma"),
+         skip = c(".R", ".typeInfo", ".signature", ".pragma", ".Internal", ".Primitive"),  #XX we probably want to process the arguments within .Internal except the first which is the call.
          .debug = TRUE, .assert = TRUE,
          localVars = character(), mergeSubFunGlobals = TRUE, old = TRUE) # remove old when we are sure it works
 {
@@ -68,20 +68,33 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                      funs <<- c(funs, as.character(id))
                }
 
-  procIndirectFunCall = function(e, funName = as.character(e[[1]]), def = get(funName)) {
+  procIndirectFunCall = function(e, funName = as.character(e[[1]]), def = tryCatch(get(funName), error = function(e) NULL)) {
       # remove ... from e as match.call
       #   ... used in a situation where it does not exist
       w = sapply(e, function(x) is.name(x) && x == "...")
       if(any(w))
           e = e[!w]
+
+      # XXX
+      # The function def may not be globally visible but may be defined within a function.
+      # e.g., sApply in tools/R/QC.R  codocClasses.
+      # Wouldn't we have caught this assignment in the function. Should we pass these via an extra argument
+      #  Maybe use def = list()  and look in there for the defn.
+      if(is.null(def))
+          return(e)
+      
       e2 = match.call(def, e)
       i = switch(funName,
-             do.call = match("what", names(e2)),
-             aggregate = if(length(e2) > 3) 4 else NA, # taking some liberties here matching not by name but known position for methods. See ?aggregate.
-             grep("fun", names(e2), ignore.case = TRUE)) # match(c("fun", "FUN"), names(e2)))
-      if(!is.na(i) && (is.character(e2[[i]]) || is.name(e2[[i]]))) {
-          if(!(as.character(e2[[i]]) %in% localVars))
-              addFunName(e2[[i]])
+                 do.call = match("what", names(e2)),
+                 aggregate = if(length(e2) > 3) 4 else NA, # taking some liberties here matching not by name but known position for methods. See ?aggregate.
+                 body = 2L,
+                 match.call = 2L,
+                 formals = 2L,
+                 grep("fun$", names(e2), ignore.case = TRUE)) # match(c("fun", "FUN"), names(e2)))
+
+      if(!is.na(i) && (is.character(e2[[i]]) || is.name(e2[[i]]) || isColonCall(e2[[i]]))) {
+          if(!((val <- deparse(e2[[i]])) %in% localVars))  # as.character rather than deparse()
+              addFunName(val)
           e2[-i]
       } else
           e2
@@ -112,12 +125,22 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           localVars <<- c(localVars, as.character(e[[2]]))
 
       if(is.call(e)) {
-           if(is.call(e[[1]]))  # e.g. x$bob()
-               return(lapply(e, fun,  w))
+          if(is.call(e[[1]])) {  # e.g. x$bob()
+              fn = e[[1]]
+              if(is.name(fn[[1]]) && isColonCall(fn)) { ### (as.character(fn[[1]]) == "::" || as.character(fn[[1]]) == ":::")) {
+                  addFunName(deparse(fn))
+                  e = e[-1]
+              }
+              return(lapply(e, fun,  w))
+           }
 
-           funName = as.character(e[[1]])
-#if(funName == 'foo') browser()
-           if(funName == "function") {
+          funName = as.character(e[[1]])
+
+          if(funName == "::" || funName == ":::") {
+              addFunName(deparse(e))
+              return(NULL)    # Return or keep going?  Return or will get pkg/first element of :: in variables.
+
+          } else if(funName == "function") {
                #XXX Should be able to get the name of this if it is available.
               subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip, .ignoreDefaultArgs = .ignoreDefaultArgs)
               if(length(curAssignName) > 0)
@@ -126,14 +149,19 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           } else if(funName %in% c('<-', '=')) {
               if(is.name(e[[2]]))
                   curAssignName <<- c(as.character(e[[2]]), curAssignName)
+
+              if(is.call(e[[3]]) && is.name(e[[3]][[1]]) && (as.character(e[[3]][[1]]) == "::" || as.character(e[[3]][[1]]) == ":::") && is.name(e[[3]][[2]]) && is.name(e[[3]][[3]])) {
+                  vars <<- c(vars, deparse(e[[3]]))
+              } else
+                  fun(e[[3]], fun)
               
-              fun(e[[3]], fun)
               e = e[-3]
               if(is.name(e[[2]]))              
                   curAssignName = curAssignName[-1]
               
               if(is.name(e[[2]]))
                   localVars <<- c(localVars, as.character(e[[2]]))
+              
            } else {
               if(funName %in% skip) {
                  i = length(skippedExpressions) + 1L
@@ -158,7 +186,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           els = as.list(e)[-1]
           if(funName == "$") # remove the literal name
               els = els[-2]
-          else if (funName %in% c("apply", "eapply", "sweep", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep") || grepl("apply", funName, ignore.case = TRUE)) {
+          else if (funName %in% c("apply", "eapply", "sweep", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "match.call") || grepl("apply", funName, ignore.case = TRUE)) {
                 els = procIndirectFunCall(e, funName)
           }
            
@@ -183,7 +211,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           if(!(name %in% localVars)) {
              if(name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
              } else {
-#                 browser()
+                 #                 browser()
+                 #                 if(name  == "xml2" || name == "codetools") browser()
+                if(name  == "utils") browser()
                  vars <<- c(vars, name)
              }
 
@@ -196,7 +226,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            
        }  else
           lapply(as.list(e)[-1], fun, w)
-  }
+  } # end of fun = function() {}
 
   if(is.call(f) && as.character(f[[1]]) == "function") 
      f = eval(f, globalenv())
@@ -216,7 +246,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           #  Seems to give the wrong answer.
           # Since this is inside .ignoreDefaultArgs, were we processing those parameters with
           # default values separately?
-if(old)          
+if(old) #XXXX  remove when we are certain the new/non-old way is okay.         
     localVars = names(params)[sapply(params, function(x) is.name(x) && x == "")]
 else
     localVars = names(params)
@@ -254,6 +284,11 @@ else
 
   ans
 }
+
+
+isColonCall =
+function(e)      
+   is.call(e) && is.name(e[[1]]) && as.character(e[[1]]) %in% c("::", ":::")
 
 
 getGlobalFunctions =
