@@ -17,7 +17,7 @@ isUsedOption =
 function(node)
 {
     is(node, "Call") && is(node$fn, "Symbol") && ((node$fn$value == "getOption" || (node$fn$value == "options" && length(node$args) > 0)) ) ||
-        (node$fn$value %in% c("$", "[[", "[") && is(node$args[[1]], "Call") && is(node$args[[1]]$fn, "Symbol") && node$args[[1]]$fn$value == "options")
+        (node$fn$value %in% c("$", "[[", "[") && length(node$args$contents) > 0 && is(node$args$contents[[1]], "Call") && is(node$args$contents[[1]]$fn, "Symbol") && node$args$contents[[1]]$fn$value == "options")
 }
 
 
