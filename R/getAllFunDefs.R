@@ -26,16 +26,16 @@ getAllFunctionDefs =
     # 1. [test more on a script]  identify if(FALSE) and skip
     # 2. keep state of assignments and use as names - correctly.
     #
-function(x, walker = mkFunFinder(...), ...)
+function(x, walker = mkFunFinder(recursive, nesting), recursive = TRUE, nesting = TRUE, ...)
 {
     walkCode(x, walker)
     walker$.funs()
 }
 
-    if(FALSE) {
-        e = parse("../tests/getAllFunDefs.R")
-        getAllFunctionDefs(e)
-    }
+if(FALSE) {
+    e = parse("../tests/getAllFunDefs.R")
+    getAllFunctionDefs(e)
+}
 
 mkFunFinder =
     #
