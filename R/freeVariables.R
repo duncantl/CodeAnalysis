@@ -797,8 +797,11 @@ function(x, ...)
 getFunctionDefs.character =
     #
     #XXX vectorize in x.  See/use generalCharacterMethod ?
-function(x, unlist = TRUE, recursive = FALSE, ...)
+function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
 {
+    if(!parse)
+        return(NULL)
+    
     if(file.exists(x)) {
 
         info = file.info(x)
@@ -820,7 +823,7 @@ function(x, unlist = TRUE, recursive = FALSE, ...)
                      }
                      ans
                    } else
-                     structure(tmp, names = files))
+                     structure(tmp, names = files, class = "FunctionsByFile"))
         }
     }
     
@@ -829,7 +832,7 @@ function(x, unlist = TRUE, recursive = FALSE, ...)
         else
             parse(text = x)
 
-  getFunctionDefs(e, recursive = recursive, ...)
+  getFunctionDefs(e, recursive = recursive, parse = FALSE, ...)
 }
 
 getFunctionDefs.environment =
@@ -884,26 +887,28 @@ function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FA
 }
 #XXX Get the names on the elements in this and the .function method
 getFunctionDefs.call = `getFunctionDefs.<-` =
-function(x, ...)
+function(x, parse = FALSE, ...)
 {
     if(isFunAssign(x)) {
-        ans = getFunctionDefs(x[[3]], ...)
-#        browser()
+        ans = getFunctionDefs(x[[3]], parse = parse, ...)
         names(ans)[1] = as.character(x[[2]])
         ans
     } else if(is.name(x[[1]]) && as.character(x[[1]]) == "function") {
-#        browser()
-        unlist(c(x, getFunctionDefs(eval(x), ...)))
+        unlist(c(x, getFunctionDefs(eval(x), parse = parse, ...)))
     } else
-        unlist( lapply(as.list(x), getFunctionDefs, ...) )
+        unlist( lapply(as.list(x), getFunctionDefs, parse = parse, ...) )
 }
 
+
+
 getFunctionDefs.function =
-function(x, ...)
+function(x, parse = FALSE, ...)  #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
 {
-    p = lapply(formals(x), getFunctionDefs, ...)
-    unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), ...)))
+    p = lapply(formals(x), getFunctionDefs, parse = parse, ...)
+    unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), parse = parse, ...)))
 }
+
+
 
 if(FALSE)
 getFunctionDefs.default =
@@ -921,7 +926,7 @@ function(x, ...)
 
 
 
-getFunctionDefs.NULL = getFunctionDefs.numeric = getFunctionDefs.logical = getFunctionDefs.integer = getFunctionDefs.character = getFunctionDefs.name =
+getFunctionDefs.NULL = getFunctionDefs.numeric = getFunctionDefs.logical = getFunctionDefs.integer = getFunctionDefs.name =
 function(x, ...)
     list()
 
@@ -984,8 +989,11 @@ getAllCalls.character =
     #
     #
     #
-function(x, ...)
+function(x, parse = TRUE, ...)
 {
+    if(!parse)
+        return(NULL)
+    
     isDir = file.info(x)$isdir
     if(isDir) 
         x = getRFiles(x)
@@ -1164,9 +1172,9 @@ function(param, fun)
 
 
 showSig =
-function(f, p = formals(f))
+function(f, p = formals(f), name = "function")
 {
-    sprintf("function(%s)",
+    sprintf("%s(%s)", name,
     paste(names(p), sapply(p, function(v) {
                            if(is.name(v) && as.character(v) == "")
                              ""
