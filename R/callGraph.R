@@ -38,3 +38,16 @@ setMethod("callGraph", "list",
               class(edges) = c("CallGraphEdges", class(edges))
               edges
           })
+
+setOldClass(c("FunctionsByFile", "list"))
+
+setMethod("callGraph", "FunctionsByFile",
+          function(obj, withinPackage = TRUE, ...) {
+              ans = callGraph(structure(unlist(obj), names = unlist(lapply(obj, names)))) # callNextMethod() #  withinPackage, ...)
+              fnFileMap = structure(rep(basename(names(obj)), sapply(obj, length)),
+                                    names = unlist(lapply(obj, names)))
+browser()              
+              ans$callerFile = fnFileMap[ ans[, 1] ]
+              ans$calledFile = fnFileMap[ ans[, 2] ]
+              ans
+          })
