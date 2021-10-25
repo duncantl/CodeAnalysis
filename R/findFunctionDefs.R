@@ -158,3 +158,27 @@ function(x, asCharacter = FALSE, simpleVar = TRUE)
 
 
 #inline
+
+getIfCond = function(code) code[[2]]
+getIfTrue = function(code) code[[3]]
+getIfFalse = function(code) if(length(code) > 3) code[[4]] else NULL
+
+
+cleanConstantIfs =
+    #
+    #
+    # This should use constant propogation.
+    #
+function(code)
+{
+      if(is.character(code) && file.exists(code))
+          code = parse(code)
+
+      isIf = which(sapply(code, is, "if"))
+      if(length(isIf) == 0)
+          return(code)
+
+      ifs = code[isIf]
+      conds = lapply(ifs, getIfCond)
+      
+}
