@@ -52,12 +52,13 @@ function(self = FALSE, ctr = 0L)
             if(!self) return(NULL)
         }
 
-         ctr <<- ctr+1L
+         ctr <<- ctr + 1L
          els[[ctr]] <<- x
 
         NULL
     }
     call = function(x, w) { if(self) w$leaf(x)
+ ##                           if(is(x, "if")) browser()
                             for (ee in as.list(x))
                                 if (!missing(ee))
                                     walkCode(ee, w)
@@ -134,7 +135,7 @@ function(f, count = 0)
     f2 = asFunction(f$parent)
     if(!is.null(f2))
         return(getNested(f2, count + 1))
-    count
+
 }
 
 if(FALSE) {
@@ -236,4 +237,84 @@ function(x, deparse = FALSE, varName = FALSE)
         else
             ""
         }
+}
+
+
+
+
+
+findOS =
+function(code, w = mkOSWalker(), ...)
+{
+    walkCode(code, w)
+    w$.results(...)
+}
+
+mkOSWalker =
+function()
+{
+
+    list(leaf,
+         call,
+         handler = function(x, e) NULL)
+}
+
+
+
+
+
+
+
+################################################
+
+mkLiteralCollector =
+function(ignoreParams = TRUE)
+{
+    values = list()
+    leaf = function(x, w, ...) {
+        if(inherits(x, "srcref"))
+            return(NULL)
+        
+        ty = typeof(x)
+        if(ty == "pairlist" && !ignoreParams) {
+#            browser()
+            lapply(x, walkCode, w)
+            return(NULL)
+        } else if(ty == "closure") {
+            # ignore default values as literals here are okay.
+            if(!ignoreParams)
+                walkCode(formals(x), w) 
+            walkCode(body(x), w)
+        }
+
+        if(isLiteral(x, ty)) {
+            values[[ length(values) + 1L]] <<- x
+        }
+
+        NULL
+    }
+    call = function(x, w) { 
+                            for (ee in as.list(x))
+                                if (!missing(ee))
+                                    walkCode(ee, w)
+                        }
+    list(handler = function(x, w) NULL ,
+         call = call,
+         leaf = leaf,
+         .values = function() values)
+
+}
+
+isLiteral =
+function(x, type = typeof(x))
+{
+    # "logical", 
+   type %in% c("integer", "numeric", "character", "complex", "double")
+}
+
+findLiterals =
+function(code, walker = mkLiteralCollector(ignoreParams, ...), ignoreParams = TRUE, ...)
+{
+    walkCode(code, walker)
+    walker$.values()
 }
