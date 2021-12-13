@@ -20,6 +20,9 @@ function(kode, keepAssignments = FALSE, funsReturningFuns = c("Vectorize") )
      kode = parse(kode)
   w = sapply(kode, isFunctionDef)
 
+  if(length(w) == 0)
+      return(list())
+
   ans = kode[w]
   names(ans) = sapply(ans, function(x) if(is.name(x[[2]])) as.character(x[[2]]) else "")
 
