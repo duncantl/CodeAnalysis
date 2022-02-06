@@ -19,9 +19,12 @@ function(funNames)
 
     call = function(x, w) {
         isName = is.name(x[[1]])
-        if(isName && as.character(x[[1]]) %in% funNames) {
+        if(isName && (length(funNames) == 0 || as.character(x[[1]]) %in% funNames)) {
             calls[[length(calls) + 1L]] <<- x
+        } else if(is.call(x[[1]]) && is.name(x[[1]][[1]]) && as.character(x[[1]][[1]]) %in% c("::", ":::") && deparse(x[[1]]) %in% funNames) {
+                calls[[length(calls) + 1L]] <<- x
         }
+        
 
         els = as.list(x)
         if(isName && as.character(x[[1]]) %in% c(".Internal", ".Primitive")) 
@@ -37,7 +40,7 @@ function(funNames)
 }
 
 findCallsTo =
-function(code, funNames, walker = mkCallWalker(funNames))
+function(code, funNames = character(), walker = mkCallWalker(funNames))
 {
     walkCode(code, walker)
     walker$ans()
