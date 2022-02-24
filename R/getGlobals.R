@@ -90,21 +90,38 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           return(e)
       
       e2 = match.call(def, e)
+
+      if(length(e2) == 1 && funName == "match.call") {
+          warning("cannot currently determine function in empty call to match.call()")
+          return(NA) # need to know the name of the function in which match.call() is being invoked.
+      }
+      
+      
       i = switch(funName,
                  do.call = match("what", names(e2)),
-          aggregate = if(length(e2) > 3) 4 else NA, # taking some liberties here matching not by name but known position for methods. See ?aggregate.
-          Filter=,
-          Negate=,
-          Find=,
-          Position=,
-          Map=,
-          Reduce=,
+                 aggregate = if(length(e2) > 3) 4 else NA, # taking some liberties here matching not by name but known position for methods. See ?aggregate.
+                 Filter=,
+                 Negate=,
+                 Find=,
+                 Position=,
+                 Map=,
+                 Reduce=,
                  body = 2L,
                  match.call = 2L,
                  formals = 2L,
                  grep("fun$", names(e2), ignore.case = TRUE)) # match(c("fun", "FUN"), names(e2)))
 
-      if(!is.na(i) && (is.character(tmp <- e2[[i]]) || is.name(tmp) || isColonCall(tmp))) {
+
+      if(length(i) == 0) { # grep("fun$") not matching so FUN not in call but probably in fn defn with a default parameter
+          i = grep("fun$", names(formals(def)), ignore.case = TRUE)
+          if(length(i))
+              formals(def)[[i]]
+          else {
+              warning("couldn't identify function in ", deparse(e2))
+              NA
+          }
+          
+      } else if(!is.na(i) && (is.character(tmp <- e2[[i]]) || is.name(tmp) || isColonCall(tmp))) {
           if(!((val <- deparse(tmp)) %in% localVars))  # as.character rather than deparse()
               addFunName(val)
           e2[-i]
@@ -196,7 +213,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           els = as.list(e)[-1]
           if(funName == "$") # remove the literal name
               els = els[-2]
-          else if (funName %in% c("apply", "eapply", "sweep", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position") || grepl("apply", funName, ignore.case = TRUE)) 
+          else if (funName %in% c("apply", "eapply", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position") || grepl("apply", funName, ignore.case = TRUE)) 
                 els = procIndirectFunCall(e, funName)
 
            
