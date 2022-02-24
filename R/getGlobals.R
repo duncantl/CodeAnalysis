@@ -91,9 +91,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       
       e2 = match.call(def, e)
 
-      if(length(e2) == 1 && funName == "match.call") {
-          warning("cannot currently determine function in empty call to match.call()")
-          return(NA) # need to know the name of the function in which match.call() is being invoked.
+      if(length(e2) == 1 && funName %in% c("match.call", "formals")) {
+          warning("cannot currently determine function in empty call to ", funName)
+          return(NA) # need to know the name of the function in which match.call()/formals() is being invoked.
       }
       
       
