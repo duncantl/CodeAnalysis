@@ -100,6 +100,7 @@ independentUpdate = function(node, v, ivar, fixed_globals = character())
 #' There are several possible ways for a dependency to come up.
 #' This functions stops and returns as soon as it finds one reason that the order matters.
 #' The design errs on the side of being conservative; if it's not clear whether there is a dependency or not, it will report the dependency.
+#' This is not actually the case - reports false positives!
 #'
 #' @param forloop for loop language object
 #' @param checkIterator logical check that the iterator is a function call that is guaranteed to produce only unique values.
@@ -113,12 +114,11 @@ checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq"
 {
 
     forloop = rstatic::to_ast(forloop)
-    body = forloop$body
-    ivar = forloop$variable
-
-    if(!is(forloop, "For")){
+    if(!is(forloop, "For"))
         stop("Not a for loop.")
-    }
+
+    body = forloop$body
+    ivar = forloop$variable    
 
     deps = CodeDepends::getInputs(rstatic::as_language(body))
     changed = c(deps@outputs, deps@updates)
@@ -143,6 +143,7 @@ checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq"
         # Indeed, there's really never any reason to redefine the iteration variable rather than just use a new variable.
     }
 
+    #?? What is the meaning of fixed_globals? Why does it include ivar (i) which is not fixed?
     global_updates = intersect(deps@inputs, deps@updates)
     fixed_globals = setdiff(deps@inputs, changed)
 
@@ -201,7 +202,9 @@ checkUnique = function(iterator, uniqueFuncs)
 }
 
 
-checkVariableDependency = function(v, body, ivar, fixed_globals)
+checkVariableDependency =
+    #??? Comments describing what this does.
+function(v, body, ivar, fixed_globals)
 {
     vs = rstatic::Symbol$new(v)
     assigns_over_var = findAssignsOverVar(body, vs)
@@ -216,6 +219,7 @@ checkVariableDependency = function(v, body, ivar, fixed_globals)
     all_updates = findAllUpdates(body, vs)
     ok_updates = find_nodes(body, independentUpdate, vs, ivar, fixed_globals)
     bad_updates = setdiff(all_updates, ok_updates)
+# ok and bad are not helpful terms that convey why they are ok/bad.
 
     if(0 < length(bad_updates)){
         bad_up = body[[bad_updates[[1L]]]]
@@ -226,6 +230,8 @@ checkVariableDependency = function(v, body, ivar, fixed_globals)
             , reasonCode = "COMPLEX_UPDATE"
         ))
     }
+
+    # So this says everything is fine eventhough it may not be.  So (false) positive is the default.
     list(
         result = TRUE
         , reason = "passed variable dependency tests"
