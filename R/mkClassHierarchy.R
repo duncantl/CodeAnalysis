@@ -10,15 +10,29 @@ function(classes, classDefs = lapply(classes, getClass))
 }
 
 mkClassHier =
-function(pkg, classes = getClasses(pkg), classDefs = lapply(classes, getClass))
+function(pkg, classes = getClasses(pkg), classDefs = structure(lapply(classes, getClass), names = classes))
 {
+    if(!grepl("^package:", pkg))
+        pkg = paste0("package:", pkg)
+    
     classes = getAllClasses(classes, classDefs)
     ans = matrix(0, length(classes), length(classes), dimnames = list(classes, classes))
+
     for(k in classes) {
         def = getClass(k)
         from = names(def@contains)[sapply(def@contains, slot, "distance") == 1]
+        w = !(from %in% colnames(ans))
+        if(any(w)) {
+            ans = cbind(ans, matrix(0, nrow(ans), sum(w), dimnames = list(rownames(ans), from[w])))
+        }
         ans[k, from] = 1
     }
+
+    # add as rows too to make square, i.e. all 0s
+    m = setdiff(colnames(ans), rownames(ans))
+    if(length(m))
+        ans = rbind(ans, matrix(0, length(m), ncol(ans), dimnames = list(m, colnames(ans))))
+    
     ans
 }
 
@@ -26,6 +40,9 @@ function(pkg, classes = getClasses(pkg), classDefs = lapply(classes, getClass))
 mkClassGraph =
 function(pkg, addIs = TRUE, classes = getClasses(pkg), classDefs = structure(lapply(classes, getClass), names = classes))
 {
+    if(!grepl("^package:", pkg))
+        pkg = paste0("package:", pkg)
+    
     classes = getAllClasses(classes, classDefs)
     o = setdiff(classes, names(classDefs))
     if(length(o))
@@ -92,7 +109,7 @@ setAs("CoerceRelationships", "igraph",
           # which is in the type column of the data.frame from.
           nodes = unique(na.omit(c(from$from, from$to)))
           w = !is.na(from$from)
-          g = graph_from_data_frame(from[w,], TRUE, nodes)
+          g = graph_from_data_frame(from[w, c("from", "to")], TRUE, nodes)
           defs = attr(from, "definedClasses")
           E(g)$lty = c(1, 3)[factor(from$type[w])]
           V(g)$color = ifelse(nodes %in% defs, "green", "grey")          
