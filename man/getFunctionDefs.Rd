@@ -1,5 +1,6 @@
 \name{getFunctionDefs}
 \alias{getFunctionDefs}
+\alias{findFunctionDefs}
 \title{
 Get function definitions in R code files
 }

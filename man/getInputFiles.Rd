@@ -1,7 +1,10 @@
 \name{getInputFiles}
 \alias{getInputFiles}
+\alias{getInputFiles,ScriptInfo-method}
+\alias{getInputFiles,ScriptNodeInfo-method}
+\alias{getInputFiles,character-method}
 \alias{getOutputFiles}
-\alias{getGraphicsOutpuFiles}
+\alias{getGraphicsOutputFiles}
 \title{Find the file names that are read or written in R code}
 \description{
   These functions analyze R code to find the names of the files

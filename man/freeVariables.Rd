@@ -10,7 +10,8 @@
   \code{\link[codetools]{findGlobals}} but for R scripts rather than functions.
  }
 \usage{
-freeVariables(sc, load = TRUE, packages = TRUE, includeSource = TRUE, exclude = getSearchPathVariables(), inputs = getInputs(sc))
+freeVariables(sc, load = TRUE, packages = TRUE, includeSource = TRUE,
+              exclude = getSearchPathVariables(), inputs = getInputs(sc))
 }
 \arguments{
   \item{sc}{the R code, either created via \code{\link[base]{parse}} or
@@ -22,7 +23,10 @@ freeVariables(sc, load = TRUE, packages = TRUE, includeSource = TRUE, exclude = 
   names of the variables that become available to the code when a packge
 is loaded via \code{\link{library}} or \code{\link{require}} calls in
 the code.}
-  \item{includeSource}{}
+  \item{includeSource}{a logical value controlling whether 
+   this function processes calls to \code{\link[base]{source}} in the code analysis by
+    replacing the call to \code{source} with the contents of the file that would be
+     \code{source}'d.}
   \item{exclude}{which variables to exclude from the undefined
     variables, but treat as being externally defined.}
   \item{inputs}{typically not provided but the \code{ScriptInfo}

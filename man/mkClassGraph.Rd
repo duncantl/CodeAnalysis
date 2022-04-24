@@ -7,11 +7,13 @@
   the inheritance relationships between between a collection of S4 classes.
 }
 \usage{
-mkClassGraph(pkg, classes = getClasses(pkg),
+mkClassGraph(pkg, addIs = TRUE, classes = getClasses(pkg),
               classDefs = structure(lapply(classes, getClass), names = classes))
 }
 \arguments{
   \item{pkg}{the name of the R package in which to find the S4 class definitions}
+  \item{addIs}{a logical value controlling whether we also add the explicit 'is' relationships
+    defined via \code{\link[methods]{setIs}}.}
   \item{classes}{the names of the S4 classes of interest}
   \item{classDefs}{the definitions of the S4 classes of interest}
 }

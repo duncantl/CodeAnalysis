@@ -12,8 +12,9 @@
 getSourceInfo(x, ...)
 }
 \arguments{
-  \item{x}{}
-  \item{\dots}{}
+  \item{x}{the R code to process. This cane be the name of a file, the parsed code,
+    an expression.}
+  \item{\dots}{additional arguments passed to methods. Currently not used.}
 }
 \value{
   a 2-column matrix with each row containing
@@ -23,9 +24,7 @@ getSourceInfo(x, ...)
 \author{
 Duncan Temple Lang
 }
-\seealso{
-}
-\examples{
-}
+\seealso{}
+\examples{}
 \concept{meta-programming}
 \concept{static code analysis}

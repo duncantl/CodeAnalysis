@@ -7,16 +7,19 @@
   to any object. These are S3 class definitions.
 }
 \usage{
-S3Assignments(fun, asNode = FALSE)
+S3Assignments(code, walker = mkS3AssignWalker(...), ...)
 }
 \arguments{
-  \item{fun}{the R code to search for S3 class assignments}
-  \item{asNode}{a logical value controlling
-    whether the function returns the \code{rstatic} nodes
-    in the abstract syntax tree in which the assignments to the class
-    are made, or alternativel (\code{FALSE}) the names of the classes.
-  The latter can include \code{NA} values indicating non-literal values
-  for the class names.}
+  \item{code}{the R code to search for S3 class assignments}
+  \item{walker}{the \code{codetools}-related object that processes the AST
+    to identify and collect the S3 assignments.}
+  \item{\dots}{additional arguments passed to \code{mkS3AssignWalker}}
+%  \item{asNode}{a logical value controlling
+%    whether the function returns the \code{rstatic} nodes
+%    in the abstract syntax tree in which the assignments to the class
+%    are made, or alternativel (\code{FALSE}) the names of the classes.
+%  The latter can include \code{NA} values indicating non-literal values
+%  for the class names.}
 }
 \value{
   If \code{asNode} is \code{FALSE}, a character vector

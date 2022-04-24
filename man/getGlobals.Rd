@@ -15,9 +15,9 @@
 }
 \usage{
 getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
-           skip = c(".R", ".typeInfo", ".signature", ".pragma"),
+           skip = c(".R", ".typeInfo", ".signature", ".pragma", ".Internal", ".Primitive"),
            .debug = TRUE, .assert = TRUE, localVars = character(),
-           mergeSubFunGlobals = TRUE)
+           mergeSubFunGlobals = TRUE, old = TRUE)
 }
 \arguments{
   \item{f}{the function to be analyzed}
@@ -43,6 +43,8 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
  \item{mergeSubFunGlobals}{a logical scalar value that
    controls whether we merge the global functions used in any function
   defined within this functions \code{f} into the answer or keep them separate.}
+\item{old}{ a logical value controlling whether we use the old mechanism or the new mechanism.
+  Will be removed in the future when we decide on correct approach.}
 }
 \value{
   A list of class \code{GlobalUses} with numerous elements:

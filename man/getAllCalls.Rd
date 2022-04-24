@@ -16,7 +16,7 @@ getAllCalls(x, ...)
 A list of \code{rstatic} \code{Call} objects.
 }
 \references{
-\code{\link{rstatic}}
+\code{rstatic} package \url{https://github.com/nick-ulle/rstatic.git}
 }
 \author{Duncan Temple Lang}
 
