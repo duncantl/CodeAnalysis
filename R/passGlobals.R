@@ -1,6 +1,6 @@
 #
 # The purpose of this is to take a collection of functions
-# the reference non-local/global variables and to modify the
+# that reference non-local/global variables and to modify the
 # functions to take these as parameters.  Then we update the
 # calls to these functions to add these global variables to the calls.
 # Then we iterate again to see if the functions that contain the newly modified
