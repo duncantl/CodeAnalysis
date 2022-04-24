@@ -1,6 +1,6 @@
 Package: CodeAnalysis
 Title: Tools for Static Analysis of R code
-Version: 0.1-2
+Version: 0.2-0
 Description: This package provides a (growing) collection of 
  functions that analyze R code and identify particular idioms
  or characteristics. Some of these functions modify the code
@@ -24,5 +24,5 @@ Description: This package provides a (growing) collection of
 Author: Duncan Temple Lang, Nick Ulle, Clark Fitzgerald, Matt Espe
 Maintainer: Duncan Temple Lang <duncan@r-project.org>
 License: BSD_3_clause + file LICENSE
-Imports: CodeDepends, rstatic (>= 0.0.0.9055), methods, codetools
-Suggests: igraph, testthat
+Imports: CodeDepends, rstatic (>= 0.0.0.9055), methods, codetools, igraph, tools, stats
+Suggests: testthat, XML

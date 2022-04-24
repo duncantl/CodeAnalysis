@@ -1,8 +1,11 @@
+import(igraph)
+importFrom(tools, file_ext)
+importFrom(stats, na.omit)
 importFrom(CodeDepends, getInputs, findWhenUnneeded, readScript, getVariableDepends)
 importFrom(methods,
-          is, "body<-", new, slot, getClass, getClasses, as)
+           is, "body<-", new, slot, getClass, getClasses, as)
 
-importFrom(rstatic, find_nodes, to_ast, as_language, Symbol, replace_nodes)
+importFrom(rstatic, find_nodes, to_ast, as_language, Symbol, replace_nodes, where_is, match_call, is_symbol, children, "children<-")
 #import(rstatic)
 importFrom(codetools, walkCode, makeCodeWalker, findGlobals)
 
@@ -52,7 +55,6 @@ export(getArgFromCall)
 
 export(getIfCond, getIfTrue, getIfFalse)
 
-
 export(pkgSymbolsUsed)
 
 
@@ -61,7 +63,8 @@ export(pkgSymbolsUsed)
 # From the  exploration of the variety_trial_analysis project.
 # Some duplicates!
 export(getFunctionDefs)# same as findFunctionDefs and findFunctionDefs takes the name of a file, but getFunctionDefs doesn't yet.
-
+S3method(getFunctionDefs, character)
+S3method(getFunctionDefs, expression)
 
 # Needed??
 export(isFunAssign)
@@ -82,3 +85,10 @@ export(getSourceInfo)
 
 export(callGraph)
 exportMethods(callGraph)
+
+
+
+export(findCallsTo)
+export(findAssignsTo)
+
+
