@@ -28,8 +28,11 @@ function(code, ...)
   lapply(code, findAssignsInLoop, ...)
 }
 
+#XXX This is not a replacement method, but a method for objects of class <-
+# Added value just to keep R CMD check happy, but probably need to use S4 classes to avoid
+# treating this as a replacement operator.
 `findAssignsInLoop.<-` = `findAssignsInLoop.=` =
-function(code, ...)
+function(code, ..., value)
 {    
 
 }
