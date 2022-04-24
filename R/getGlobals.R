@@ -176,18 +176,28 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                   names(subFunInfo)[length(subFunInfo)] = curAssignName[1]
               return(TRUE)
           } else if(funName %in% c('<-', '=')) {
+              
               if(is.name(e[[2]]))
+                     # simple assignment on LHS.
                   curAssignName <<- c(as.character(e[[2]]), curAssignName)
 
+              
               if(is.call(tmp <- e[[3]]) && is.name(tmp2 <- tmp[[1]]) && (as.character(tmp2) == "::" || as.character(tmp2) == ":::") && is.name(e[[3]][[2]]) && is.name(e[[3]][[3]])) {
+                   # RHS is of the form  pkg::sym
                   vars <<- c(vars, deparse(tmp))
               } else
-                  fun(tmp, fun)
+                  fun(tmp, fun)  # process the RHS.
               
               e = e[-3]
               if(is.name(tmp <- e[[2]])) {             
                   curAssignName = curAssignName[-1]
                   localVars <<- c(localVars, as.character(tmp))
+              } else if(is.call(e[[2]])) {
+                  # Put the <- in the name of the function being called.
+                  # !! Need to handle pkg::fun and pkg:::fun.
+                  # browser()
+                  funName = paste0(as.character(e[[2]][[1]]), "<-")
+                  e[[2]][[1]] = as.name(funName)
               }
               
            } else {
@@ -214,7 +224,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           els = as.list(e)[-1]
           if(funName == "$") # remove the literal name
               els = els[-2]
-          else if (funName %in% c("apply", "eapply", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position") || grepl("apply", funName, ignore.case = TRUE)) 
+          else if (funName %in% c("apply", "eapply", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "body<-", "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position") || grepl("apply", funName, ignore.case = TRUE)) 
                 els = procIndirectFunCall(e, funName)
 
            
