@@ -1,4 +1,12 @@
+FunctionsReturningFunctions = "Vectorize"
+
 findFunctionDefs =
+    #
+    # XXX Probably want getFunctionDefs(), not this one.
+    # getFunctionDefs() is generic and handles all sorts of different inputs
+    #  and is recursive so finds functions in functions.
+    #
+    # This does understand calls that return functions
     #
     # Find top-level function definitions of the form
     #   g = function()...
@@ -14,11 +22,12 @@ findFunctionDefs =
     #
     # f = findFunctionDefs("TOY.R")
     #
-function(kode, keepAssignments = FALSE, funsReturningFuns = c("Vectorize") )
+function(kode, keepAssignments = FALSE, funsReturningFuns = FunctionsReturningFunctions, eval = FALSE)
 {
   if(is.character(kode) && file.exists(kode))
-     kode = parse(kode)
-  w = sapply(kode, isFunctionDef)
+      kode = parse(kode)
+  
+  w = sapply(kode, isFunctionDef, funsReturningFuns)
 
   if(length(w) == 0)
       return(list())
@@ -28,20 +37,27 @@ function(kode, keepAssignments = FALSE, funsReturningFuns = c("Vectorize") )
 
   if(!keepAssignments)
       ans = lapply(ans, `[[`, 3)
-      
+
+  if(isTRUE(eval))
+      eval = globalenv()
+
+  if(is.environment(eval))
+      ans = lapply(ans, base::eval, eval)
+  
   ans
 }
 
 
 isFunctionDef =
-function(x, funsReturningFuns = c("Vectorize")) 
+function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
     is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) && (as.character(x[[3]][[1]]) == "function" || as.character(x[[3]][[1]]) %in% funsReturningFuns)
 }
 
 findIndirectFunctions =
-# need better name    
-function(code, funsReturningFuns = c("Vectorize")) 
+    # need better name
+    # Looks for calls to functions named in funsReturningFuns
+function(code, funsReturningFuns = FunctionsReturningFunctions)
 {
   if(is.character(code) && file.exists(code))
      code = parse(code)
@@ -49,13 +65,13 @@ function(code, funsReturningFuns = c("Vectorize"))
 }
 
 isIndirectFunctionDef =
-function(x, funsReturningFuns = c("Vectorize")) 
+function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
     is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) && as.character(x[[3]][[1]]) %in% funsReturningFuns
 }
 
 
-FunctionsReturningFunctions = "Vectorize"
+
 
 isCallTo =
     #
@@ -156,8 +172,6 @@ function(x, asCharacter = FALSE, simpleVar = TRUE)
 
     tmp
 }
-
-
 
 
 #inline
