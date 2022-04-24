@@ -9,8 +9,6 @@ substituteDefaultValues =
     # take a function and insert the expressions for the default values
     # of any parameters that have them into the body of the code.
     #
-    # 
-    #
 function(f, removeDefaults = TRUE, sc = new("Script", as.list(body(f))[-1]), info = getInputs(sc))
 {
     hasDef = sapply(formals(f), isDefaultValue)
