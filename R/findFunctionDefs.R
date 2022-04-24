@@ -60,19 +60,22 @@ findIndirectFunctions =
 function(code, funsReturningFuns = FunctionsReturningFunctions)
 {
   if(is.character(code) && file.exists(code))
-     code = parse(code)
-  w = sapply(kode, isIndirectFunctionDef)
+      code = parse(code)
+  
+  w = sapply(code, isIndirectFunctionDef)
 }
 
 isIndirectFunctionDef =
 function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
-    is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) && as.character(x[[3]][[1]]) %in% funsReturningFuns
+    is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) &&
+         as.character(x[[3]][[1]]) %in% funsReturningFuns
 }
 
 
 
-
+if(FALSE) {
+# See freeVariables.R for richer version.
 isCallTo =
     #
     #
@@ -81,6 +84,8 @@ function(x, funs)
 {
     is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% funs
 }
+}
+
 
 getArgFromCall =
     #
