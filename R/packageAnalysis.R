@@ -134,7 +134,9 @@ function(f, count = 0)
 {
     f2 = asFunction(f$parent)
     if(!is.null(f2))
-        return(getNested(f2, count + 1))
+        return(countNestedFunctionLevel(f2, count + 1))
+
+    count
 
 }
 
@@ -242,7 +244,7 @@ function(x, deparse = FALSE, varName = FALSE)
 
 
 
-
+if(FALSE)  {
 findOS =
 function(code, w = mkOSWalker(), ...)
 {
@@ -250,15 +252,15 @@ function(code, w = mkOSWalker(), ...)
     w$.results(...)
 }
 
+
 mkOSWalker =
 function()
 {
-
     list(leaf,
          call,
          handler = function(x, e) NULL)
 }
-
+}
 
 
 
