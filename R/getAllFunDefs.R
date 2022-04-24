@@ -1,5 +1,8 @@
 getAllFunctionDefs =
     #
+    # ??? How does this relate/differ from getFunctionDefs() ?
+    #
+    #
     # [done] currently setup for an expression not evaluated code.
     # [done] Also connect to getFunctionDefs and its methods for directories/files, environment, expression.
     #    use getFunctionDefs(, recursive = TRUE)
@@ -7,8 +10,8 @@ getAllFunctionDefs =
     #
     #
     # Compare to getFunctionDefs. This optionally descends recursively
-    # to find nested functions.  So it does a lot more work than finding the
-    # top-level functions.
+    # to find nested functions. (getFunctionDefs() seems to do this also now.)
+    #  So it does a lot more work than finding the top-level functions.
     # We can get nesting information for each function - the depth of nesting and the names of the ancestor/containing functions when they have names and are not anonymous funcions.
     # 
     #
