@@ -74,7 +74,7 @@ setMethod("callGraph", "list",
               edges
           })
 
-setAs("CallGraphEdges", "igraph", function(from)  graph_from_edge_list(as.matrix(from)))
+setAs("CallGraphEdges", "igraph", function(from)  igraph::graph_from_edgelist(as.matrix(from)))
 
 setOldClass(c("FunctionsByFile", "list"))
 
