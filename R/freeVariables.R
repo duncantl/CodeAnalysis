@@ -109,7 +109,7 @@ function(x, baseFile)
     env = new.env()
     load(file, env)
     
-    x@outputs = c(x@outputs, ls(env, all = TRUE))
+    x@outputs = c(x@outputs, ls(env, all.names = TRUE))
     x
 }
 
@@ -122,7 +122,7 @@ function(x)
         warning("package ", pkg, " is not installed or can't be found. Skipping.")
         return(x)
     }
-    x@outputs = c(x@outputs, ls(getNamespace(pkg), all = TRUE))
+    x@outputs = c(x@outputs, ls(getNamespace(pkg), all.names = TRUE))
     x
 }
 
@@ -160,19 +160,19 @@ function(x, filename, ...)
 
 
 isSourceCall =
-function(x)
-   isCallTo(x, "source")
+function(code)
+   isCallTo(code, "source")
 
 isCallTo =
-function(x, funName)
+function(code, funName)
 {
-    if(is(x, "ScriptNodeInfo"))
-        x = x@code
+    if(is(code, "ScriptNodeInfo"))
+        x = code@code
     
-    if(is(x, "R6"))
-        is(x, "Call") && is_symbol(x$fn) && x$fn$value %in% funName
+    if(is(code, "R6"))
+        is(code, "Call") && is_symbol(code$fn) && code$fn$value %in% funName
     else 
-        is(x, "call") && is.name(x[[1]]) && as.character(x[[1]]) %in% funName
+        is(code, "call") && is.name(code[[1]]) && as.character(code[[1]]) %in% funName
 }
 
 
@@ -285,7 +285,6 @@ function(sc, load = TRUE, packages = TRUE, includeSource = TRUE,
 isSpuriousFreeVar =
 function(var, inputs, whenDef)
 {
-    
     u = sapply(inputs, function(x) var %in% x@inputs)
     any(sapply(inputs[ u ], isVarInDefaultValue, var))
 }
@@ -295,7 +294,14 @@ isVarInDefaultValue =
 function(use, var)
 {
     return(isFunAssign(use@code))
+}
 
+if(FALSE) {
+    # Following code was in the body of isVarInDefaultValue above
+    # but we return() immediately before this.
+    # But codetools doesn't recognize that the code cannot be reached and reports
+    # undefined variables.
+{    
 #    calls = find_nodes(to_ast(use@code), is_symbol, var)
 #    if(var == "calc_vars") browser()
     return(all(sapply(calls, isApplyFunArg, var)))
@@ -308,7 +314,7 @@ function(use, var)
 
     any(sapply(u[[3]][[2]], function(x) (is.name(x) && as.character(x) == var) || length(find_nodes(to_ast(x), is_symbol, var))))
 }
-
+}
 
 notDefBefore =
 function(vars, num, defWhen, code = NULL, exclude = character())
