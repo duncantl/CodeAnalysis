@@ -2,6 +2,14 @@
 \alias{findCallsTo}
 \alias{findCallsToFunctions}
 \alias{findAssignsTo}
+\alias{findAssignsTo,function-method}
+\alias{findAssignsTo,\{-method}
+\alias{findAssignsTo,if-method}
+\alias{findAssignsTo,list-method}
+\alias{findAssignsTo,<--method}
+\alias{findAssignsTo,=-method}
+\alias{findAssignsTo,call-method}
+\alias{findAssignsTo,name-method}
 \alias{isCallTo}
 \title{Find all calls to given functions or all assignments to specific variables}
 \description{

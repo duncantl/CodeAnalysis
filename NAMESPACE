@@ -91,6 +91,7 @@ exportMethods(callGraph)
 
 export(findCallsTo)
 export(findAssignsTo)
+exportMethods(findAssignsTo)
 
 
 S3method(plot, CallGraphEdges)
