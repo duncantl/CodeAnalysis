@@ -6,7 +6,7 @@ findFunctionDefs =
     # getFunctionDefs() is generic and handles all sorts of different inputs
     #  and is recursive so finds functions in functions.
     #
-    # This does understand calls that return functions
+    # This does understand calls that return functions, e.g., Vectorize(f)
     #
     # Find top-level function definitions of the form
     #   g = function()...
@@ -49,9 +49,11 @@ function(kode, keepAssignments = FALSE, funsReturningFuns = FunctionsReturningFu
 
 
 isFunctionDef =
+    # An assignment of a function.
 function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
-    is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) && (as.character(x[[3]][[1]]) == "function" || as.character(x[[3]][[1]]) %in% funsReturningFuns)
+    is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) &&
+        (as.character(x[[3]][[1]]) == "function" || as.character(x[[3]][[1]]) %in% funsReturningFuns)
 }
 
 findIndirectFunctions =
@@ -84,7 +86,8 @@ function(x, funs)
 {
     is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% funs
 }
-}
+
+} # enf of if(FALSE)
 
 
 getArgFromCall =
@@ -188,7 +191,6 @@ getIfFalse = function(code) if(length(code) > 3) code[[4]] else NULL
 
 cleanConstantIfs =
     #
-    #
     # This should use constant propogation.
     #
 function(code)
@@ -196,11 +198,21 @@ function(code)
       if(is.character(code) && file.exists(code))
           code = parse(code)
 
-      isIf = which(sapply(code, is, "if"))
-      if(length(isIf) == 0)
+      isIf = sapply(code, is, "if")
+      if(!any(isIf))
           return(code)
 
-      ifs = code[isIf]
-      conds = lapply(ifs, getIfCond)
-      
+#      ifs = code[isIf]
+#      conds = lapply(ifs, getIfCond)
+
+      code[isIf] = lapply(code[isIf],
+                         function(x) {
+                             cond = getIfCond(x)
+                             if(isFALSE(cond))
+                                 NULL
+                             else
+                                 x
+                         })
+
+      code[!sapply(code, is.null)]
 }
