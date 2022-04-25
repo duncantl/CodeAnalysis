@@ -1,5 +1,3 @@
-
-
 setGeneric("callGraph", 
            function(obj, ...)
               standardGeneric("callGraph"))
@@ -74,7 +72,16 @@ setMethod("callGraph", "list",
               edges
           })
 
+setOldClass(c("CallGraphEdges", "data.frame"))
 setAs("CallGraphEdges", "igraph", function(from)  igraph::graph_from_edgelist(as.matrix(from)))
+
+plot.CallGraphEdges =
+function(x, y, ...)
+{
+   plot(igraph::graph_from_edgelist(as.matrix(x)), ...)
+}
+
+
 
 setOldClass(c("FunctionsByFile", "list"))
 
@@ -98,8 +105,9 @@ setMethod("callGraph", "function",
 }
 
 setMethod("callGraph", "function",
-          function(obj, withinPackage = FALSE, recursive = FALSE, name = deparse(substitute(obj)),
-                    environment = environment(obj), ...) {
+          function(obj, withinPackage = FALSE, recursive = FALSE,
+                   name = deparse(substitute(obj)),
+                   environment = environment(obj), ...) {
               # was makeCallGraph(obj)
               
               calls = getGlobals(obj)$functions
