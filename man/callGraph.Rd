@@ -6,6 +6,8 @@
 \alias{callGraph,list-method}
 \alias{callGraph,environment-method}
 \alias{callGraph,function-method}
+\alias{callGraph,expression-method}
+\alias{callGraph,\{-method}
 \alias{plot.CallGraphEdges}
 \title{Create a Function Call Graph}
 \description{

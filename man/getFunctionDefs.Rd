@@ -4,6 +4,7 @@
 \alias{getFunctionDefs,function-method}
 \alias{getFunctionDefs,expression-method}
 \alias{getFunctionDefs,character-method}
+\alias{getFunctionDefs,environment-method}
 \alias{getFunctionDefs,list-method}
 \alias{getFunctionDefs,complex-method}
 \alias{getFunctionDefs,integer-method}
@@ -17,7 +18,7 @@
 \alias{getFunctionDefs,\{-method}
 \alias{getFunctionDefs,(-method}
 \alias{getFunctionDefs,=-method}
-\alias{getFunctionDefs,"<--method"}
+\alias{getFunctionDefs,<--method}
 \alias{findFunctionDefs}
 \title{
 Get function definitions in R code files, functions, environments, namespaces.
