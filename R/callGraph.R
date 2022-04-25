@@ -9,12 +9,32 @@ setMethod("callGraph", "character",
              if(length(obj) == 1 && grepl("^package:", obj))
                  return(callGraph(getNamespace(gsub("^package:", "", obj)), ...))
 
-             callGraph(lapply(findFunctionDefs(obj), eval), asNames = asNames, ...)
-             
+              fdefs = findFunctionDefs(obj)
+              if(length(fdefs))
+                  callGraph(lapply(fdefs, eval), asNames = asNames, ...)
+              else {
+                  # treat obj as R command as a string. Maybe multiple expressions.
+                  expr = parse(text = obj)
+                  callGraph(expr)
+              }
+              
+                  
 #            if(!asNames) {
 #                file.exists(obj)
 #            }
          })
+
+tmp =
+function(obj, ...) {
+    if(length(obj) == 1)
+        callGraph(obj[[1]], ...)
+    else
+       do.call(rbind, lapply(obj, callGraph, ...))
+}
+
+setMethod("callGraph", "{", tmp)
+setMethod("callGraph", "expression", tmp)
+
 
 setMethod("callGraph", "environment",
                      # should be Namespace
