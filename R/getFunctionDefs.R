@@ -1,13 +1,13 @@
 ####################
 
-getFunctionDefs =
+setGeneric("getFunctionDefs",
     # Read a file, an environment, a parse tree and find the top-level
     # function definitions
     # How does this compare/differ from findFunctionDefs()
 function(x, ...)
- UseMethod("getFunctionDefs")
+ standardGeneric("getFunctionDefs"))
 
-getFunctionDefs.character =
+setMethod("getFunctionDefs", "character",
     #
     #XXX vectorize in x.  See/use generalCharacterMethod ?
 function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
@@ -46,13 +46,13 @@ function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
             parse(text = x)
 
   getFunctionDefs(e, recursive = recursive, parse = FALSE, ...)
-}
+})
 
-getFunctionDefs.environment =
+setMethod("getFunctionDefs", "environment",
 function(x, ...)
-    getFunctionDefs( as.list(x, all = TRUE), ...)
+    getFunctionDefs( as.list(x, all = TRUE), ...))
 
-getFunctionDefs.list =
+setMethod("getFunctionDefs", "list",
 function(x, recursive = FALSE, ...)
 {
     ans = x[ sapply(x, is.function) ]
@@ -69,11 +69,11 @@ function(x, recursive = FALSE, ...)
         tmp2
     } else
         ans
-}
+})
 
 
 
-getFunctionDefs.expression =
+setMethod("getFunctionDefs", "expression",
 function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FALSE, ...)
 {
     if(length(x) == 0)
@@ -97,10 +97,11 @@ function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FA
                                         paste(deparse(e[[2]]), collapse = ""))
         funs
     }
-}
+})
+
 #XXX Get the names on the elements in this and the .function method
-getFunctionDefs.call = `getFunctionDefs.<-` =
-function(x, parse = FALSE, ...)
+
+tmp = function(x, parse = FALSE, ...)
 {
     if(isFunAssign(x)) {
         ans = getFunctionDefs(x[[3]], parse = parse, ...)
@@ -111,16 +112,19 @@ function(x, parse = FALSE, ...)
     } else
         unlist( lapply(as.list(x), getFunctionDefs, parse = parse, ...) )
 }
+setMethod("getFunctionDefs", "call", tmp)
+#XXX Need to setOlClass("<-")
+setMethod("getFunctionDefs", "<-", tmp)
 
 
-
-getFunctionDefs.function =
+setMethod("getFunctionDefs", "function",
 function(x, parse = FALSE, ...)  #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
 {
 # browser()
     p = lapply(formals(x), getFunctionDefs, parse = parse, ...)
     unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), parse = parse, ...)))
-}
+})
+
 
 #getFunctionDefs.default =
 #function(x, ...)
@@ -128,12 +132,20 @@ function(x, parse = FALSE, ...)  #XXXX if don't have parse here, problems with 2
 
 
 # Are the getFunctionDef - (no s) - legit?
-getFunctionDefs.complex = getFunctionDefs.integer = getFunctionDef.logical = getFunctionDef.character = getFunctionDef.numeric = getFunctionDefs.name =
-function(x, ...)
+#getFunctionDef.logical = getFunctionDef.character = getFunctionDef.numeric =
+#getFunctionDefs.complex = getFunctionDefs.integer = getFunctionDefs.name =
+    
+tmp = function(x, ...)
         list()
+setMethod("getFunctionDefs", "complex", tmp)
+setMethod("getFunctionDefs", "integer", tmp)
+setMethod("getFunctionDefs", "logical", tmp)
+setMethod("getFunctionDefs", "numeric", tmp)
+setMethod("getFunctionDefs", "name", tmp)
+setMethod("getFunctionDefs", "NULL", tmp)
 
 
-`getFunctionDefs.{` = `getFunctionDefs.=` = getFunctionDefs.if = getFunctionDefs.while = getFunctionDefs.for = `getFunctionDefs.(` =
+tmp =     
 function(x, ...)
 {
     drop = switch(class(x), "for" = c(1,2), 1)
@@ -141,10 +153,15 @@ function(x, ...)
     ans[sapply(ans, length) > 0]
 }
 
+#`getFunctionDefs.{` = `getFunctionDefs.=` = getFunctionDefs.if = getFunctionDefs.while = getFunctionDefs.for = `getFunctionDefs.(` =
 
-getFunctionDefs.NULL = getFunctionDefs.numeric = getFunctionDefs.logical = getFunctionDefs.integer = getFunctionDefs.name =
-urfunction(x, ...)
-    list()
+setMethod("getFunctionDefs", "{", tmp)
+setMethod("getFunctionDefs", "=", tmp)
+setMethod("getFunctionDefs", "if", tmp)
+setMethod("getFunctionDefs", "while", tmp)
+setMethod("getFunctionDefs", "for", tmp)
+setMethod("getFunctionDefs", "(", tmp)
+
 
 
 if(FALSE) {
