@@ -122,9 +122,13 @@ function(x, parse = FALSE, ...)  #XXXX if don't have parse here, problems with 2
     unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), parse = parse, ...)))
 }
 
+#getFunctionDefs.default =
+#function(x, ...)
+#  list()
 
 
-getFunctionDefs.complex = getFunctionDefs.integer = getFunctionDef.logical = getFunctionDef.character = getFunctionDef.numeric = 
+# Are the getFunctionDef - (no s) - legit?
+getFunctionDefs.complex = getFunctionDefs.integer = getFunctionDef.logical = getFunctionDef.character = getFunctionDef.numeric = getFunctionDefs.name =
 function(x, ...)
         list()
 
@@ -138,9 +142,8 @@ function(x, ...)
 }
 
 
-
 getFunctionDefs.NULL = getFunctionDefs.numeric = getFunctionDefs.logical = getFunctionDefs.integer = getFunctionDefs.name =
-function(x, ...)
+urfunction(x, ...)
     list()
 
 
@@ -158,7 +161,7 @@ function(x, ...)
 # NULL
 
 
-getFunctionDefs.call =
+getFunctionDefs.call =   # see above.
 function(x, ...)
    lapply(x, getFunctionDefs, ...)
 }

@@ -65,6 +65,16 @@ export(pkgSymbolsUsed)
 export(getFunctionDefs)# same as findFunctionDefs and findFunctionDefs takes the name of a file, but getFunctionDefs doesn't yet.
 S3method(getFunctionDefs, character)
 S3method(getFunctionDefs, expression)
+S3method(getFunctionDefs, "function")
+S3method(getFunctionDefs, environment)
+S3method(getFunctionDefs, list)
+S3method(getFunctionDefs, call)
+S3method(getFunctionDefs, name)
+S3method(getFunctionDefs, logical)
+S3method(getFunctionDefs, integer)
+S3method(getFunctionDefs, numeric)
+S3method(getFunctionDefs, complex)
+
 
 # Needed??
 export(isFunAssign)
