@@ -6,6 +6,7 @@
 \alias{callGraph,list-method}
 \alias{callGraph,environment-method}
 \alias{callGraph,function-method}
+\alias{plot.CallGraphEdges}
 \title{Create a Function Call Graph}
 \description{
   This generic and methods creates a call graph (or data.frame of the caller and callee)
@@ -33,6 +34,12 @@ Duncan Temple Lang
 \code{\link[CodeDepends]{makeCallGraph}}
 }
 \examples{
+
+g = callGraph(quote(lm(mpg ~ wt + log(disp), mtcars)), recursive = 2)
+plot(g)
+
+g2 = as(g, "igraph")
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory (show via RShowDoc("KEYWORDS")):
