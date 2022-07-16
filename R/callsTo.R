@@ -41,7 +41,9 @@ function(funNames)
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
 
+
 findCallsTo =
+    # How is this related to findCallsToFunctions()?
 function(code, funNames = character(), walker = mkCallWalker(funNames))
 {
     if(is(code, "getAnywhere")) {
@@ -49,6 +51,7 @@ function(code, funNames = character(), walker = mkCallWalker(funNames))
             stop("more than one function in the getAnywhere object")
         code = code$objs[[1]]
     }
+    
     
     walkCode(code, walker)
     walker$ans()
