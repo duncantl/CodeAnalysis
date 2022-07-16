@@ -49,7 +49,7 @@ Possible Running Examples:
 1. Identify repetitive blocks of code, i.e. the same code evaluated in multiple
    places with just one argument changed. Find expressions that differ only
    by one term and that look like they should be in a loop.
-1. [basics done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
+1. [see getGlobals() lot done] findGlobals() alternative that handles, e.g.,  pkg::fun as a 
    single entity and not ::, pkg, fun.
    See explorations/findGlobals.R.  (Nick: also done in rstatic, see
    [here](https://github.com/nick-ulle/rstatic/blob/master/R/collapse_namespaces.R))
