@@ -7,6 +7,9 @@ f <- function(x) {
 if(FALSE)
     f = function(y) y+1
 
+if(FALSE)
+    h = function(y) y+1
+
 f = function(x) sin(x^2)
 
 
