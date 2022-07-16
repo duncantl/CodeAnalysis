@@ -1,6 +1,15 @@
-+ findFunctionDefs() doesn't handle  name = name2 = function() ...
++ findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
    + only captures name and not name2
-   + RDCOMEvents/eventServer.S
+   + e.g. RDCOMEvents/eventServer.S
+   + shouldn't need recursive = TRUE to find name in name = name2 = function() ..
+
+
++ getFunctionDefs() - have it find functions in setMethod()
+   + √ already works with recursive = TRUE.
+   + perhaps put better name on these methods and generics.
+     + need state, or ability to go back up tree.
+
++ false positive for global variables in R CMD check for textConnection("bob", local = TRUE); bob
 
 + fix callGraph(fun) and the name used is obj.
 
