@@ -1,3 +1,13 @@
++ findFunctionDefs() doesn't handle  name = name2 = function() ...
+   + only captures name and not name2
+   + RDCOMEvents/eventServer.S
+
++ fix callGraph(fun) and the name used is obj.
+
++ implement findOS()/mkOSWalker for finding code that depends on the platform/OS
+
++ If a function has a literal extrernalptr inlined, then getGlobals() fails in lapply(els, fun, w)
+
 + Fix mkGlobalsLocal() to optionally not add a default value to a parameter
    e.g. not replace Jvar with .Jvar = Jvar
 
