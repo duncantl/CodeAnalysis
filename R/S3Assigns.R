@@ -25,7 +25,7 @@ function(recursive = TRUE)
             walkCode(formals(x), w) 
             walkCode(body(x), w)
         } else if(ty == "call" && is.name(x[[1]]) && as.character(x[[1]]) == "function") {
-            browser()
+            #browser()
             walkCode(eval(x), w)
         } 
 
