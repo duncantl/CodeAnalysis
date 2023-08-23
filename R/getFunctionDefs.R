@@ -1,4 +1,8 @@
 ####################
+#
+#  Does this work recursively if passed a function object.
+#  Yes, if recursive = TRUE.
+#
 
 setGeneric("getFunctionDefs",
     # Read a file, an environment, a parse tree and find the top-level
@@ -118,6 +122,7 @@ setMethod("getFunctionDefs", "<-", tmp)
 
 
 setMethod("getFunctionDefs", "function",
+          #XXXX implement recursive = TRUE
 function(x, parse = FALSE, ...)  #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
 {
 # browser()
