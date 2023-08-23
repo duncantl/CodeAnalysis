@@ -35,7 +35,6 @@ function(funNames)
             if (!missing(ee))
                 walkCode(ee, w)
         }
-        
     }    
 
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
