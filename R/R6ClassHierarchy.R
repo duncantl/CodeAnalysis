@@ -7,7 +7,7 @@ function(pkg, ns = getNamespace(pkg))
 
     inh = lapply(names(ty)[w],
                     function(id)
-                       c(class = id, parentClass = as.character(ns[[id]]$inherit)))
+                       c(class = id, parentClass = as.character(ns[[id]]$inherit))) # or get_inherit()$classname or getclassnames() for all of the super class names.
 
     w2 = sapply(inh, function(x) length(unique(x))) > 1
 
