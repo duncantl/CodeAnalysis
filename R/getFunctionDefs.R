@@ -123,11 +123,13 @@ setMethod("getFunctionDefs", "<-", tmp)
 
 setMethod("getFunctionDefs", "function",
           #XXXX implement recursive = TRUE
-function(x, parse = FALSE, ...)  #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
+          # This seems to be the only operation.
+          # If not recursive, should simply return NULL as this is the function definition.
+function(x, parse = FALSE, recursive = FALSE, ...)  #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
 {
 # browser()
-    p = lapply(formals(x), getFunctionDefs, parse = parse, ...)
-    unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), parse = parse, ...)))
+    p = lapply(formals(x), getFunctionDefs, parse = parse, recursive = recursive, ...)
+    unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), parse = parse, recursive = recursive, ...)))
 })
 
 
