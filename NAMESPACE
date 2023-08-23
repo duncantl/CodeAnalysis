@@ -1,3 +1,4 @@
+# Imports
 import(igraph)
 importFrom(tools, file_ext)
 importFrom(stats, na.omit)
@@ -8,9 +9,10 @@ importFrom(methods,
 importFrom(rstatic, find_nodes, to_ast, as_language, Symbol, replace_nodes, where_is, match_call, is_symbol, children, "children<-")
 #import(rstatic)
 importFrom(codetools, walkCode, makeCodeWalker, findGlobals)
-
-
 importFrom(graphics, plot)
+
+# Exports from this package
+
 S3method(plot, R6ClassInherits)
 
 export(findLoopConcat)
@@ -26,30 +28,20 @@ export(mkGlobalsLocal)
 
 export(getDepends)
 
-
 export(loadCode)
 
-
 export(getFilesRead, findNSE, S3Assignments, mkClassGraph, findUsedOptions)
-
-
-
 
 export(csvTypeInfo)
 exportMethods(csvTypeInfo)
 
-
 export(findCallsParam)
 export(getR6ClassInherits)
-
-
 
 #XXXX
 #export(checkLoopDepend)
 
-
 # Adding as Matt and I write the Exploring Code chapter of the case studies book.
-export(findFunctionDefs)
 export(isCallTo)
 export(getArgFromCall)
 
@@ -57,15 +49,11 @@ export(getIfCond, getIfTrue, getIfFalse)
 
 export(pkgSymbolsUsed)
 
-
-
-
 # From the  exploration of the variety_trial_analysis project.
 # Some duplicates!
+export(findFunctionDefs)
 export(getFunctionDefs)# same as findFunctionDefs and findFunctionDefs takes the name of a file, but getFunctionDefs doesn't yet.
 exportMethods(getFunctionDefs)
-
-
 
 # Needed??
 export(isFunAssign)
@@ -81,19 +69,20 @@ export(findReadDataFuns, findWriteDataFuns, findGraphicsDevFuns)
 export(getInputFiles, getOutputFiles, getGraphicsOutputFiles)
 
 export(getAllCalls)
-export(getSourceInfo)
+S3method(getAllCalls, character)
+S3method(getAllCalls, expression)
 
+export(getSourceInfo)
 
 export(callGraph)
 exportMethods(callGraph)
-
-
 
 export(findCallsTo)
 export(findAssignsTo)
 exportMethods(findAssignsTo)
 
-
 S3method(plot, CallGraphEdges)
 
+export(processDir, processFile)
 
+export(findLoops)
