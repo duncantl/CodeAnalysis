@@ -52,8 +52,8 @@ isFunctionDef =
     # An assignment of a function.
 function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
-    is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) &&
-        (as.character(x[[3]][[1]]) == "function" || as.character(x[[3]][[1]]) %in% funsReturningFuns)
+    is.call(x) && length(as.character(x[[1]])) == 1 && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) &&
+        (length(as.character(x[[3]][[1]])) == 1 && (as.character(x[[3]][[1]]) == "function" || as.character(x[[3]][[1]]) %in% funsReturningFuns))
 }
 
 findIndirectFunctions =
