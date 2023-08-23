@@ -7,14 +7,21 @@
 #
 # Part of the motivation for this is when we programmatically generate bindings for
 # native code but we have already written functions and methods manually.
-# Specifically, Rllvm.
-#
+# We want to find out what already exists. Specifically, Rllvm.
+# Also when we have code in one package A that uses code from another B, i.e.,
+#  what do we need to import from B
+# Also see getAllCalls() for the latter and there is code in package tools
+# that does something related.
 
 
 # Find function definitions, generics and methods.
 
+# A dataframe describing the top-level elements in the code in a file, directory, expression.
+# See also getFunctionDefs() and getAllCalls()
+
+
 processDir =
-function(dir, rfiles = list.files(dir, pattern = "\\.[RrSs]$"))
+function(dir, rfiles = list.files(dir, pattern = "\\.[RrSs]$", full.names = TRUE))
 {
     e = lapply(rfiles, processFile)
     ans = do.call(rbind, e)
@@ -23,13 +30,27 @@ function(dir, rfiles = list.files(dir, pattern = "\\.[RrSs]$"))
 
 
 processFile =
+    # Get better name.
+    #
+    # parse a file of R code and return a data.frame
+    # describing the top-level expressions
+    #
 function(f, code = parse(f))
 {
+    if(length(code) == 0)
+        return(NULL)
+
     ans = lapply(seq(along = code), function(i) processExpr(code[[i]], i, f))
     tmp = do.call(rbind, ans)
-    w = !sapply(ans, is.null)
-    tmp$file = rep(f, sum(w))
-    tmp$index = seq(along = ans)[w]
+    if(nrow(tmp) == 0) {
+        tmp$file = character()
+        tmp$index = integer()
+        return(tmp)
+    }
+    
+    nr = sapply(ans, function(x) if(is.null(x)) 0 else nrow(x))
+    tmp$file = rep(f, sum(nr))
+    tmp$index = rep(seq(along.with = ans), nr)
     tmp
 }
 
@@ -52,7 +73,8 @@ function(e, index, filename)
         } else if(class(e) == "name") {
            data.frame(name = as.character(e), type = "symbol", stringsAsFactors = FALSE)
          } else if(class(e) %in% c("=", "<-")) {
-             # Allow for chaining  - a = b = c = function...
+             # Allow for chaining, e.g.m
+             # a = b = c = function...
              ty = e[[3]]
              if(is.call(ty) && ty[[1]] == "function")
                  ty = "function"
