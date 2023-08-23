@@ -1,7 +1,7 @@
 getAllFunctionDefs =
     #
     # ??? How does this relate/differ from getFunctionDefs() ?
-    #
+    #  and findFunctionDefs() in findFunctionDefs.R
     #
     # [done] currently setup for an expression not evaluated code.
     # [done] Also connect to getFunctionDefs and its methods for directories/files, environment, expression.
