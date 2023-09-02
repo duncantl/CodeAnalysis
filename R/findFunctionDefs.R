@@ -29,9 +29,9 @@ function(kode, keepAssignments = FALSE, funsReturningFuns = FunctionsReturningFu
   
   w = sapply(kode, isFunctionDef, funsReturningFuns)
 
-  if(length(w) == 0)
+  if(length(w) == 0 || all(!w))
       return(list())
-
+  
   ans = kode[w]
   names(ans) = sapply(ans, function(x) if(is.name(x[[2]])) as.character(x[[2]]) else "")
 
