@@ -28,15 +28,21 @@
   of interest.
 }
 \usage{
-findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames)) 
+findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames),
+             parse = any(!sapply(funNames, is.name))) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
 findAssignsTo(code, var, index = FALSE, recursive = TRUE, ...) 
 isCallTo(code, funName)
 }
 \arguments{
   \item{code}{the R code to analyze}
-  \item{funNames,var,funName}{the names of functions or variables of interest}  
+  \item{funNames,var,funName}{the names of functions or variables of interest. This can be a
+    character vector of names or of R calls/expressions, or a list of previously parsed
+    call language objects.
+   }  
   \item{walker}{the \code{codetools}-style functions that traverse the AST to find the relevant calls.}
+  \item{parse}{whether to parse the \code{funNames} in \code{findCallsTo} and treat them as language
+     objects.}
   \item{allCalls}{a character vector of file or directory names or
     parsed R code or list of calls}
   \item{index}{a logical value controlling whether to return the assignments as indices
