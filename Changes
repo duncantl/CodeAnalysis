@@ -1,0 +1,10 @@
+0.3-0
+	* findCallsTo() can match R calls/expressions rather than only names of functions.
+
+	* Added isParameter() and isLocalVariable.
+
+0.2-0
+
+	* callGraph() method for call objects.
+
+	* getAnywhere() wrapper that handles :: and ::: and trims the results to avoid duplicates.
