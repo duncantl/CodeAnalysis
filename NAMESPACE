@@ -86,3 +86,6 @@ S3method(plot, CallGraphEdges)
 export(processDir, processFile)
 
 export(findLoops)
+
+export(isParameter, isLocalVar)
+
