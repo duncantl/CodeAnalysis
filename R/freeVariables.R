@@ -336,22 +336,34 @@ isFunAssign =
     # toSymbol - logical value. If TRUE, left hand side must be a simple symbol/name
     #  otherwise can be a call, e.g., obj$x = function () 1
     #
+    # This is now recursive for non rstatic objects (can do for rstatic)
+    # to handle x = y = function(z) z
+    #
     # MISSING:
     # Rodam uses reference classes and defines functions within these.
-    # RVenn defines only S4 generics and methods, no top-leve functions.
+    # RVenn defines only S4 generics and methods, no top-level functions.
     # [added] The package RapidPolygonLookup uses var = structure(function().., ex = function())    
     # [added] Rlab assigns to a character, not a symbol e.g. "US" <- function()
 function(x, toSymbol = TRUE)
 {
     if(is(x, "R6"))
         is(x, "Assignment") && (!toSymbol || is(x$write, "Symbol") || is(x$write, "Character")) && is(x$read, "Function")
-    else
+    else {
         class(x) %in% c("=", "<-") &&
-            (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) &&
-                is.call(x[[3]]) && is.name(x[[3]][[1]]) &&
-                    (x[[3]][[1]] == "function"  || (x[[3]][[1]] == "structure" && is.call(x[[3]][[2]]) && is.name(x[[3]][[2]][[1]]) && x[[3]][[2]][[1]] == "function") ||
-                           (x[[3]][[1]] == "local" && evalsToFunction(x[[3]][[2]])))
+            (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) && (isFuncDef(x[[3]]) || isFunAssign(x[[3]]))
+                
+        }
 }
+
+isFuncDef =
+function(x)
+{
+    is.call(x) && is.name(x[[1]]) &&
+        (x[[1]] == "function"  ||
+         (x[[1]] == "structure" && is.call(x[[2]]) && is.name(x[[2]][[1]]) && x[[2]][[1]] == "function") ||
+         (x[[1]] == "local" && evalsToFunction(x[[2]])))
+}
+
 
 
 evalsToFunction =
@@ -795,6 +807,8 @@ function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
 
 
 findCallsToFunctions =
+    #
+    # ¿ How is this related to or compares to findCallsTo()?
     #
     #  allCalls = getAllCalls("code")
     # a = findCallsToFunctions(allCalls, findSaveDataFuns(), definitions = funs, argIndices = "file")
