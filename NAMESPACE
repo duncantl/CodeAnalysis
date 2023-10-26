@@ -89,3 +89,5 @@ export(findLoops)
 
 export(isParameter, isLocalVar)
 
+
+export(all_symbols)
