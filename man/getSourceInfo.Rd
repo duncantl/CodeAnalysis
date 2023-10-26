@@ -3,7 +3,7 @@
 \title{Which R files source other files}
 \description{
   This function and its methods construct the
-  graph matrix identifying which otther R files each R file
+  graph matrix identifying which other R files each R file
   \code{\link[base]{source}}s.
   This is useful when analyzing the scripts in a project
   to determine the relationships between them.
