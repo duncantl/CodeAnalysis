@@ -163,14 +163,14 @@ find_var = function(expr, var, loc = integer(), found = list())
 #' Find All Symbols In Expression
 #'
 #' @param expr R language object
-all_symbols = function(expr)
+all_symbols = function(expr, predicate = is.symbol)
 {
     expr = as.expression(expr)
     symbols = character()
     walker = codetools::makeCodeWalker(leaf = function(e, w){
-        if(is.symbol(e)){
+        if(predicate(e))
             symbols <<- c(symbols, as.character(e))
-        }
+
     })
     lapply(expr, codetools::walkCode, walker)
     unique(symbols)
