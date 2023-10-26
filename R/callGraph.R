@@ -9,6 +9,23 @@ setMethod("callGraph", "character",
              if(length(obj) == 1 && grepl("^package:", obj))
                  return(callGraph(getNamespace(gsub("^package:", "", obj)), ...))
 
+              ex = file.exists(obj)
+              if(all(ex)) {
+                  # So all are files or directories.
+                  isdir = file.info(obj)$isdir
+                  files = obj[!isdir]
+                  if(any(isdir))
+                      files = c(files, unlist( lapply(obj[isdir], list.files, pattern = "\\.R$", full.names = TRUE, recursive = TRUE)))
+
+                  e = new.env()
+                  lapply(files, source, e)
+                  return(callGraph(e))
+              } else if (any(ex)) 
+                  stop("really?  - files/directories and non files as names")
+
+
+              # 
+              
               fdefs = findFunctionDefs(obj)
               if(length(fdefs))
                   callGraph(lapply(fdefs, eval), asNames = asNames, ...)
@@ -23,6 +40,7 @@ setMethod("callGraph", "character",
 #                file.exists(obj)
 #            }
          })
+
 
 tmp =
 function(obj, ...) {
