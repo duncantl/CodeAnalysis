@@ -1,7 +1,6 @@
 getTopLevelCalls =
 function()    
 {
-
 }
 
 getToplevelVariableAssignments =
@@ -101,6 +100,6 @@ function(code, var, index = FALSE, recursive = TRUE, ...)
 
 isAssignTo =
 function(x, var)    
-    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-") && is.name(x[[2]]) && as.character(x[[2]]) == var
+    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-") && is.name(x[[2]]) && as.character(x[[2]]) %in% var
 
 
