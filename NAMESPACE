@@ -78,7 +78,7 @@ export(callGraph)
 exportMethods(callGraph)
 
 export(findCallsTo)
-export(findAssignsTo)
+export(findAssignsTo, findAssignsTo2)
 exportMethods(findAssignsTo)
 
 S3method(plot, CallGraphEdges)

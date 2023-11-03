@@ -26,6 +26,15 @@ function()
 }
 
 
+# Could also use
+findAssignsTo2 =
+function(code, var)
+{
+    pred = function(x, ...) CodeAnalysis:::isAssignTo(x, var)
+    findCallsTo(code, walker = mkCallWalkerPred(pred))
+}
+
+
 
 setGeneric("findAssignsTo",
 function(code, var, index = FALSE, recursive = TRUE, ...)

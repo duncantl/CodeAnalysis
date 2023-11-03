@@ -2,6 +2,7 @@
 \alias{findCallsTo}
 \alias{findCallsToFunctions}
 \alias{findAssignsTo}
+\alias{findAssignsTo2}
 \alias{findAssignsTo,function-method}
 \alias{findAssignsTo,\{-method}
 \alias{findAssignsTo,if-method}
@@ -32,7 +33,8 @@
 findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames),
              parse = any(!sapply(funNames, is.name))) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
-findAssignsTo(code, var, index = FALSE, recursive = TRUE, ...) 
+findAssignsTo(code, var, index = FALSE, recursive = TRUE, ...)
+findAssignsTo2(code, var)
 isCallTo(code, funName)
 mkCallWalkerPred(pred)
 }
@@ -71,7 +73,10 @@ mkCallWalkerPred(pred)
   \item{handler}{returns NULL}
 
  \code{isCallTo} returns a scalar logical value - \code{TRUE} or \code{FALSE}.
-  
+
+ \code{findAssignsTo2} seems to be more correct/accurate than \code{findAssignsTo}
+  and considerably less code.
+ 
   If \code{argIndices} has length zero, a list of all the matching
   \code{Call} objects.
   Otherwise, a list of all the parameters in each matching call
@@ -97,6 +102,11 @@ mkCallWalkerPred(pred)
   findAssignsTo(egFun, "isEnv") # not correct.
 
   findCallsTo(egFun, walker = mkCallWalkerPred(function(x, ...) isCallTo(x, c("=", "<-")) && isSymbol(x[[2]], "isEnv")))
+
+
+  findAssignsTo2(egFun, "code")
+
+  findAssignsTo2(egFun, c("code", "code3"))
 }
 \concept{meta-programming}
 \concept{static analysis}
