@@ -25,9 +25,9 @@
   \code{findCallsTo} uses the regular R AST, not \code{rstatic}'s
   and returns the R language objects for the call.
 
-  \code{findAssignsTo} identifies assignments in code with
+  \code{findAssignsTo} and \code{findAssignsTo2} identifies assignments in code with
   the left-hand-side being one of a specified set of possible variables
-  of interest.
+  of interest.  \code{findAssignsTo2} may be more accurate/comprehensive.
 }
 \usage{
 findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames),
