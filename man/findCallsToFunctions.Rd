@@ -11,6 +11,7 @@
 \alias{findAssignsTo,call-method}
 \alias{findAssignsTo,name-method}
 \alias{isCallTo}
+\alias{mkCallWalkerPred}
 \title{Find all calls to given functions or all assignments to specific variables}
 \description{
   These analyze R code and find all calls to functions in the given
@@ -33,6 +34,7 @@ findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames),
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
 findAssignsTo(code, var, index = FALSE, recursive = TRUE, ...) 
 isCallTo(code, funName)
+mkCallWalkerPred(pred)
 }
 \arguments{
   \item{code}{the R code to analyze}
@@ -55,6 +57,9 @@ isCallTo(code, funName)
     for functions that are not available on the search path. These are
     used in \code{\link[base]{match.call}}.}
   \item{\dots}{additional arguments passed to methods.}
+  \item{pred}{a function that takes two arguments - a call and a logical value indicating if the
+     function being called is a symbol/name or itself a call - and returns a logical scalar value indicating
+     whether to collect and return the specific call. The }
 }
 \details{
 }
@@ -68,6 +73,10 @@ isCallTo(code, funName)
 
 %\seealso{}
 \examples{
+  findCallsTo(findCallsTo, c("lapply", "walkCode"))
+
+  isLApplyWalkCodeCall = function(x, isName, ...) isSymbol(x[[1]], "lapply") && isSymbol(x[[3]], "walkCode")
+  findCallsTo(findCallsTo, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
 }
 \concept{meta-programming}
 \concept{static analysis}

@@ -1,14 +1,14 @@
 # find the calls to given functins
 
-mkCallWalker =
+mkCallWalkerPred =
     #
-function(funNames)
+function(pred, ...)
 {
     calls = list()
 
     leaf = function(x, w, ...) {
         ty = typeof(x)
-        if(ty == "pairlist" || ty == "expression") {
+        if(ty == "pairlist" || ty == "expression" || ty == "list") {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
@@ -17,26 +17,13 @@ function(funNames)
             return(NULL)
         } 
     }
-
-
-    isFunNamesStrings = is.character(funNames)
-    ok = function(x, isName, isFunNamesStrings) {
-            if(!isFunNamesStrings) 
-                return(any(sapply(funNames, identical, x[[1]])))
-             
-           (isName && (as.character(x[[1]]) %in% funNames)) ||
-               ( is.call(x[[1]]) && is.name(x[[1]][[1]]) &&
-                   as.character(x[[1]][[1]]) %in% c("::", ":::") && deparse(x[[1]]) %in% funNames ) 
-          }
-
     
     call = function(x, w) {
 
         isName = is.name(x[[1]])
-        if(length(funNames) == 0 || ok(x, isName, isFunNamesStrings)) {
+        if(pred(x, isName, ...)) {
             calls[[length(calls) + 1L]] <<- x
         } 
-        
         
         els = as.list(x)
         if(isName && as.character(x[[1]]) %in% c(".Internal", ".Primitive")) 
@@ -52,6 +39,26 @@ function(funNames)
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
 
+mkCallWalker =
+function(funNames)
+{
+    isFunNamesStrings = is.character(funNames)
+    ok = function(x, isName, ...) {
+            if(length(funNames) == 0)
+                return(TRUE)
+            
+            if(!isFunNamesStrings) 
+                return(any(sapply(funNames, identical, x[[1]])))
+             
+            (isName && (as.character(x[[1]]) %in% funNames)) ||
+               ( is.call(x[[1]]) && is.name(x[[1]][[1]]) &&
+                   as.character(x[[1]][[1]]) %in% c("::", ":::") && deparse(x[[1]]) %in% funNames ) 
+          }
+
+    mkCallWalkerPred(ok)
+}
+
+
 
 findCallsTo =
     # How is this related to findCallsToFunctions()?
@@ -64,7 +71,6 @@ findCallsTo =
     #
 function(code, funNames = character(), walker = mkCallWalker(funNames), parse = any(!sapply(funNames, is.name)))
 {
-
     if(parse) 
         funNames = lapply(funNames, function(x) parse(text = x)[[1]])
     
@@ -72,8 +78,26 @@ function(code, funNames = character(), walker = mkCallWalker(funNames), parse = 
         if(length(code$objs) > 1)
             stop("more than one function in the getAnywhere object")
         code = code$objs[[1]]
+    } else if((isEnv <- is.environment(code)) || is.list(code)) {
+        if(isEnv)
+            code = as.list.environment(code, TRUE)
+        
+        code = code[ sapply(code, is.function) ]        
+        if(!missing(walker)) {
+            code3 = unlist(lapply(code, function(f) {
+                                         b = body(f)
+                                         c(formals(f), if(class(b) == "{") as.list(b)[-1] else b)
+                                       }),
+                           recursive = FALSE)
+            lapply(code3, walkCode, walker)
+            ans = walker$ans()
+        } else
+            ans = lapply(code, findCallsTo, funNames, parse = FALSE)
+        
+        return(ans[sapply(ans, length) > 0])
     }
     
     walkCode(code, walker)
     walker$ans()
 }
+

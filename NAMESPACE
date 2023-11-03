@@ -91,3 +91,7 @@ export(isParameter, isLocalVar)
 
 
 export(all_symbols)
+
+export(mkCallWalkerPred)
+export(isSymbol)
+
