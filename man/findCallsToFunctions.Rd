@@ -61,9 +61,17 @@ mkCallWalkerPred(pred)
      function being called is a symbol/name or itself a call - and returns a logical scalar value indicating
      whether to collect and return the specific call. The }
 }
-\details{
-}
 \value{
+
+  \code{findCallsTo} returns a list of the call language objects.
+
+  \code{mkCallWalkerPred} returns a list with 3 elements which are functions:
+  \item{leaf}{walks the different elements of the AST}
+  \item{call}{processes a call language object and determines whether to add it to the results}
+  \item{handler}{returns NULL}
+
+ \code{isCallTo} returns a scalar logical value - \code{TRUE} or \code{FALSE}.
+  
   If \code{argIndices} has length zero, a list of all the matching
   \code{Call} objects.
   Otherwise, a list of all the parameters in each matching call
@@ -73,10 +81,22 @@ mkCallWalkerPred(pred)
 
 %\seealso{}
 \examples{
-  findCallsTo(findCallsTo, c("lapply", "walkCode"))
+  egFun = findCallsTo
+
+  findCallsTo(egFun, c("lapply", "walkCode"))
 
   isLApplyWalkCodeCall = function(x, isName, ...) isSymbol(x[[1]], "lapply") && isSymbol(x[[3]], "walkCode")
-  findCallsTo(findCallsTo, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
+  findCallsTo(egFun, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
+
+  isLApplyWalkCodeCall = function(x, isName, ...) isCallTo(x, "lapply") && isSymbol(x[[3]], "walkCode")
+  findCallsTo(egFun, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
+
+
+  findAssignsTo(egFun, "ans")
+
+  findAssignsTo(egFun, "isEnv") # not correct.
+
+  findCallsTo(egFun, walker = mkCallWalkerPred(function(x, ...) isCallTo(x, c("=", "<-")) && isSymbol(x[[2]], "isEnv")))
 }
 \concept{meta-programming}
 \concept{static analysis}
