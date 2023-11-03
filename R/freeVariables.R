@@ -172,7 +172,7 @@ function(code, funName)
     if(is(code, "R6"))
         is(code, "Call") && is_symbol(code$fn) && code$fn$value %in% funName
     else 
-        is(code, "call") && is.name(code[[1]]) && as.character(code[[1]]) %in% funName
+        (is.call(code) || is(code, "call")) && is.name(code[[1]]) && as.character(code[[1]]) %in% funName
 }
 
 
