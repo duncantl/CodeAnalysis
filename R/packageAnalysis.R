@@ -270,6 +270,10 @@ function()
 ################################################
 
 mkLiteralCollector =
+    #
+    # This doesn't collect names such as the "abc/def"
+    #  c("abc/def" = "xyz")
+    #
 function(ignoreParams = TRUE)
 {
     values = list()
@@ -279,7 +283,6 @@ function(ignoreParams = TRUE)
         
         ty = typeof(x)
         if(ty == "pairlist" && !ignoreParams) {
-#            browser()
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
