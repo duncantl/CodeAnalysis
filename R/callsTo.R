@@ -76,24 +76,9 @@ function(code, funNames = character(), walker = mkCallWalker(funNames), parse = 
         if(length(code$objs) > 1)
             stop("more than one function in the getAnywhere object")
         code = code$objs[[1]]
-    } else if(is.environment(code)) { # if((isEnv <- is.environment(code)) || is.list(code)) {
-#        if(isEnv)
-            code = as.list.environment(code, TRUE)
-        
-#       code = code[ sapply(code, is.function) ]        
-#       if(!missing(walker)) {
-#           code3 = unlist(lapply(code, function(f) {
-#                                        b = body(f)
-#                                        c(formals(f), if(class(b) == "{") as.list(b)[-1] else b)
-#                                      }),
-#                          recursive = FALSE)
-#           lapply(code3, walkCode, walker)
-#           ans = walker$ans()
-#       } else
-#           ans = lapply(code, findCallsTo, funNames, parse = FALSE)
-#       
-#       return(ans[sapply(ans, length) > 0])
-    }
+    } else if(is.environment(code)) 
+        code = as.list.environment(code, TRUE)
+
     
     walkCode(code, walker)
     walker$ans()
