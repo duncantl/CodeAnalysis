@@ -90,12 +90,15 @@ mkCallWalkerPred(pred)
 
   findCallsTo(egFun, c("lapply", "walkCode"))
 
+  findCallsTo(getNamespace("parallel"), "eval")
+
   isLApplyWalkCodeCall = function(x, isName, ...) isSymbol(x[[1]], "lapply") && isSymbol(x[[3]], "walkCode")
   findCallsTo(egFun, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
 
   isLApplyWalkCodeCall = function(x, isName, ...) isCallTo(x, "lapply") && isSymbol(x[[3]], "walkCode")
   findCallsTo(egFun, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
 
+   # findAssignsTo()
 
   findAssignsTo(egFun, "ans")
 
