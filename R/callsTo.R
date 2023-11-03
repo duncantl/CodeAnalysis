@@ -21,14 +21,12 @@ function(pred, ...)
     call = function(x, w) {
 
         isName = is.name(x[[1]])
-        if(pred(x, isName, ...)) {
+        if(pred(x, isName, ...)) 
             calls[[length(calls) + 1L]] <<- x
-        } 
-        
+
         els = as.list(x)
         if(isName && as.character(x[[1]]) %in% c(".Internal", ".Primitive")) 
             els = els[-2]
-
         
         for (ee in els) {
             if (!missing(ee))
