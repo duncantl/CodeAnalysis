@@ -1,8 +1,21 @@
++ findAssignsTo(findCallsTo, "isEnv") doesn't find the assignment in the if condition.
+
++ code analysis example
+  + highlight package getStyleFile() has
+  ```
+  if (grepl(sprintf("%s$", extension, ignore.case = TRUE),  name))
+  ```
+  + the ignore.case is in the call to sprintf() and the command
+  gives a warning about ignoring an argument to sprintf.
+  + The ignore.case should be outside the sprintf() and in the call to grepl()
+     + but since sprintf() has ... it is ambiguous, but not really
+  + check whether a named argument in a call makes sense in the parent call.
+
 + findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
    + only captures name and not name2
    + e.g. RDCOMEvents/eventServer.S
    + shouldn't need recursive = TRUE to find name in name = name2 = function() ..
-
+   + works now, but not with recursive = TRUE
 
 + getFunctionDefs() - have it find functions in setMethod()
    + √ already works with recursive = TRUE.
