@@ -18,7 +18,7 @@ function(recursive = TRUE)
             return(NULL)
         
         ty = typeof(x)
-        if(ty == "pairlist") {
+        if(ty == "pairlist" || ty == "list") {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
