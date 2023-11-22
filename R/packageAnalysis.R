@@ -188,7 +188,7 @@ function()
     
     leaf = function(x, w) {
         ty = typeof(x)
-        if(ty == "pairlist") {
+        if(ty == "pairlist" || ty == "list") {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
