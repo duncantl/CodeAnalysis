@@ -21,6 +21,34 @@ if(FALSE) {
            z + 1L
         }
 
+    eg3 = function(x, y, df) {
+            o = order(x)
+            o2 = do.call(order, list(x, y))
+
+            o3 = do.call(order, list(x, y, na.last = FALSE))
+
+            # Need to update args - or inline c(args, p1 = p1, p2 = p2)
+            args = list(x, y)
+            args$z = x + y
+            o2 = do.call(order, args)
+
+            # not order
+            o3 = do.call(foo, args)
+
+            o4 = lapply(df, order, decreasing = TRUE)
+            o5 = mapply(order, x, y)
+            o5 = mapply(order, x, y, MoreArgs = list(decreasing = TRUE))
+
+            o5 = mapply(order, x, y, MoreArgs = list(decreasing = TRUE, method = "radix"))
+
+            o5 = mapply(order, x, y, MoreArgs = foo(x + y))        
+
+            foo(x[order(y)])
+         }
+}
+
+if(FALSE) {
+    
     pred = function(x, idx, type, ast) {
                 k = is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) == "do.call"
                 if(k) browser()
@@ -35,12 +63,49 @@ if(FALSE) {
     w = mkIndexWalker(pred, f)
     walkCode2(f, w, idx = integer(), NA)
 
-
-    sc = parse("~/GitWorkingArea/CodeAnalysis/R/indexASTWalker.R")[[1]][[3]]
+    sc = parse("~/GitWorkingArea/CodeAnalysis/R/indexASTWalker.R")[[2]][[3]]
     i = indexWalkCode(sc, mkIsCallTo("is.name"))
     k = getByIndex(sc, i[[1]])
     k[[1]] = as.name("isName")
     sc2 = insertByIndex(k, sc, i[[1]])
+
+
+    # example of rewriting calls to order() to add decreasing = decreasing and na.last = na.last
+    # Comes from copyParameters.R example.
+
+    eval(parse("~/GitWorkingArea/CodeAnalysis/R/indexASTWalker.R")[[1]][[3]])
+
+    # Find the locations of the direct calls to order in the body.
+    # Get the call objects using the indices.
+    # Rewrite them to add named arguments
+    # Insert them into the body
+    # Update the body of eg3
+    b = body(eg3)
+    i = indexWalkCode(b,  mkIsCallTo("order"))
+    k = lapply(i, function(i) getByIndex(b, i))
+    k2 = lapply(k, function(x) { x[ c("decreasing", "na.last")] = sapply(c("decreasing", "na.last"), as.name); x})
+    for(j in seq(along.with = i)) 
+        b = insertByIndex(k2[[ j ]], b, i[[ j ]])
+    body(eg3) = b
+    # Note that we can't use lapply() as we are updating b in each iteration.
+    # Also, if we change the structure of b, the following indices may not be correct.
+}
+
+if(FALSE)  {
+    # use the index walker to check the parent in a predicate function.
+    # Find the use of args in the call
+    #  o2 = do.call(order, args)
+    #
+    pred2 = function(x, idx, type, ast) {
+        print(x)
+            isSymbol(x, "args") &&
+            isCallTo(p <- getParent(ast, idx, type = type), "do.call") &&
+            isSymbo(p[[2]], "order" )
+      }
+
+    idx = indexWalkCode(body(eg3), pred2)
+    
+
 }
 
 
@@ -50,7 +115,6 @@ function(fun)
         is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% fun
 
 
-
 indexWalkCode =
 function(code, pred)
 {
@@ -58,8 +122,6 @@ function(code, pred)
     walkCode2(code, w, idx = integer(), type = NA)
     w$ans()
 }
-
-
 
 mkIndexWalker = 
 function(pred, ast)
@@ -74,7 +136,8 @@ function(pred, ast)
         } else if(ty == "closure") {
             walkCode2(formals(x), w, idx, "formals") # lapply(formals(x), walkCode, w)
             walkCode2(body(x), w, idx, "body")
-        }
+        } else if(ty == "symbol")
+            pred(x, idx, type, ast)
 
         NULL
     }
@@ -114,7 +177,7 @@ function(pred, ast)
 
 
 getIndexObj = 
-function(ast, idx, type = NA)
+function(ast, idx, type = NA, dropSelf = TRUE)
 {    
     obj = if(is.na(type)) {
               ty = idx[1]
@@ -131,8 +194,8 @@ function(ast, idx, type = NA)
                      formals = formals(ast),
                      ast)
 
-    # Ignore self.
-    idx = idx[ - length(idx)]
+    if(dropSelf)
+        idx = idx[ - length(idx)]
 
     list(obj = obj, idx = idx)
 }
@@ -164,7 +227,7 @@ function(x, ast, idx, type = NA)
                   comp, 
                   paste(sprintf("[[ %d ]]", c(tmp$idx, idx[length(idx)])), collapse = "" ))
     e = parse(text = txt)
-    browser()
+
     val = eval(e, sys.frame(sys.nframe()))
     ast
 }
