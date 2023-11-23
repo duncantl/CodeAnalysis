@@ -20,11 +20,11 @@ function(nested = TRUE)
     
     leaf = function(x, w, ...) {
         ty = typeof(x)
-        if(ty == "pairlist" || ty == "expression") {
+        if(ty %in% c("pairlist", "expression", "list", "language")) {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
-            walkCode(formals(x), w) # lapply(formals(x), walkCode, w)
+            walkCode(formals(x), w) 
             walkCode(body(x), w)
             return(NULL)
         } 
@@ -47,7 +47,11 @@ function(nested = TRUE)
         }
     }    
 
-    list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() ans )
+    list(handler = function(x, w) NULL,
+         leaf = leaf,
+         call = call,
+         ans = function() ans
+        )
 }
 
 
@@ -58,14 +62,24 @@ function(nested = TRUE)
 findLoops =
 function(f, nested = TRUE, code = parse(f), w = mkLoopWalker(nested))
 {
-    if(is(code, "for")) {
-        # Need to analyze the second 
-        code = code[length(code)]
-    }
+    # At one point had
+    # if(is(code, "for")) code = code[length(code)]
+    # but this appears not to be necessary now.
+    # Perhaps additions to the code walker to handle language and list objects.
+
+    if(missing(code) && isRCode(f))
+        code = f
     
     walkCode(code, w)
     w$ans()
 }
+
+isRCode =
+function(x)
+{
+    typeof(x) %in% c("language", "expression", "name", "closure", "call", "pairlist")
+}
+
 
 
 numNestedLoops =
@@ -81,15 +95,14 @@ function(code, recursive = TRUE)
         else
             code = parse(text = code)
     }
-    if(inherits(code, "for"))
-        tl = list(code)
-    else
-        # Get the top-level loops.
-        # Should this be inside the if(is.character())??
-        tl = findLoops(code = code, nested = FALSE)
+
+    # Get the top-level loops.
+    # Should this be inside the if(is.character())??
+    tl = findLoops(code = code, nested = FALSE)
     
-#browser()    
     # call numNestedLoops() on each of these
-    sum(sapply(tl, function(x) length(findLoops(code = x))))
+    ans = sapply(tl, function(x) length(findLoops(code = x)))
+    # If recursive
+    sum(ans)
 }
 
