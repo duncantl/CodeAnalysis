@@ -30,7 +30,7 @@ function()
 findAssignsTo2 =
 function(code, var)
 {
-    pred = function(x, ...) CodeAnalysis:::isAssignTo(x, var)
+    pred = function(x, ...) isAssignTo(x, var)
     findCallsTo(code, walker = mkCallWalkerPred(pred))
 }
 
