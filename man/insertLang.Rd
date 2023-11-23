@@ -18,7 +18,7 @@ We can often use \code{\link[base]{trace}} to insert a call or an expression int
 It is also useful when we are programmatically constructing or adapting functions.
 }
 \usage{
-insertLang(expr, to, after = integer())
+insertLang(expr, to, after = integer(), includeBraceInCount = FALSE)
 }
 \arguments{
   \item{expr}{the language object to insert, or a list of language objects}
@@ -35,7 +35,12 @@ insertLang(expr, to, after = integer())
    or else \code{after} should be an integer vector with as many elements as there are
    in \code{expr}. The positions should be the current positions in \code{to}
    and the function will account for the previous insertions.
-   
+ }
+ \item{includeBraceInCount}{a logical value. By default, this is
+   \code{FALSE} and means we don't include the \code{\{}  
+   when counting the code elements in the original code.
+   If we have 3 elements and the brace and \code{after = 2},
+   the new code will be inserted after the 2nd code element.
  }
 }
 %\details{}
@@ -50,21 +55,29 @@ Duncan Temple Lang
 }
 \examples{
 
-   f = function(x, y) 
+   f0 = function(x, y) 
           x + sin(y)
 
-   f2 = insertLang(quote(print(c(length(x), length(y)))), f, -1)
-   f2
+       # the first two insert the new code at the start of the body of the function
+   insertLang(quote(print(c(length(x), length(y)))), f0, -1)
+   insertLang(quote(print(c(length(x), length(y)))), f0, 0)
+       # this adds the code to the end of the body of the function
+   insertLang(quote(print(c(length(x), length(y)))), f0)
 
+# Problem. 
+#XXX insertLang(quote(print(c(length(x), length(y)))), f0, 1)
 
+   # A function with a body consisting of multiple expressions enclosed in a { }
    g = function(x, y) {
           w = !is.na(x)
           x = x[w]
           x + sin(y[w])
        }
 
+    # insert single call
    g2 = insertLang(quote(if(all(is.na(y[w]))) recover()), g, 3)
 
+    # insert multiple calls at different locations
    g2 = insertLang(list( quote(print("hi")), quote(if(all(is.na(y[w]))) recover())), g, c(1, 3))
 
    g2 = insertLang(list( quote(print("hi")), quote(if(all(is.na(y[w]))) recover())), g, c(-1, 3))
@@ -72,10 +85,46 @@ Duncan Temple Lang
    # 2 calls immediately after element 3
    g2 = insertLang(list( quote(print("hi")), quote(if(all(is.na(y[w]))) recover())), g, 3)
 
-\dontrun{
- # Problem
- insertLang(quote(print(c(length(x), length(y)))), f, 0)
-}
+
+   # Illustrate where the new code goes in different situations.
+   # Default is to put code immediately after the "after" element counting by elements
+   # and not including the  { in the count of positions.
+   # So here we label the code elements e1, e2, ...
+   # We insert new code elements named n1, n2 and n3
+   # and you can see which  elements they are added after - with includeBraceInCount = FALSE and
+   # then TRUE.
+
+    f = function() {
+        e1
+        e2
+        e3
+        e4
+        e5
+    }
+    nw = list(quote(n1), quote(n2), quote(n3))
+
+    insertLang(nw[[1]], body(f), after = 3)
+    insertLang(nw[[1]], body(f), after = -1)
+    insertLang(nw[[1]], body(f))
+    
+    insertLang(nw, body(f), after = 3)
+    insertLang(nw, body(f), after = c(2, 4, 5))
+    insertLang(nw, body(f), after = -1)
+    insertLang(nw, body(f))
+
+     # with includeBraceInCount = TRUE
+    insertLang(nw[[1]], body(f), after = 3, TRUE)
+
+    insertLang(nw, body(f), after = 3, TRUE)
+    insertLang(nw, body(f), after = c(2, 4, 5), TRUE)
+
+     # includeBraceCount doesn't matter here as prepending to function body
+    insertLang(nw[[1]], body(f), after = -1, TRUE)
+    insertLang(nw, body(f), after = -1, TRUE)
+
+     # includeBraceCount doesn't matter here as appending to end
+    insertLang(nw[[1]], body(f), includeBraceInCount = TRUE)
+    insertLang(nw, body(f), includeBraceInCount = TRUE)
 }
 \keyword{programming}
 \concept{metaprogramming}
