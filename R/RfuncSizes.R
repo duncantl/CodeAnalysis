@@ -4,9 +4,9 @@
 #
 
 numCalls =
-function(fun)
+function(code)
 {
-    length(findCallsTo(fun))
+    length(findCallsTo(code))
 }
 
 getPkgFunctions =

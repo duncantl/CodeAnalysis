@@ -45,7 +45,7 @@ function(expr, to, after = integer(), includeBraceInCount = FALSE)
     # typeof(b) could be language for a { or a call.
     
     if(class(b) != "{") {
-        tmp = function() {x}
+        tmp = function() { 1 }
         b2 = b
         b = body(tmp)
         b[[2]] = b2
@@ -64,6 +64,17 @@ function(expr, to, after = integer(), includeBraceInCount = FALSE)
 
 
 spliceIn =
+    #
+    # Basic idea is that start with a { e1 e2 e3 ...}
+    # and we create a pairlist that contains all the existing elements
+    # but 
+    #
+    # Another and perhaps simpler approach is to create a pair list with the correct number of elements
+    # and insert the existing elements into the correct places and then the new elements.
+    # This is essentially the same thing we are doing. It is dealing with the several different ways after
+    # can be specified that makes the code long.
+    # 
+    #
 function(expr, b, after = integer(), includeBraceInCount = FALSE)
 {
     if(length(after) == 0 || (length(after) == 1 && is.na(after)))

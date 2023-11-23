@@ -163,7 +163,8 @@ find_var = function(expr, var, loc = integer(), found = list())
 #' Find All Symbols In Expression
 #'
 #' @param expr R language object
-all_symbols = function(expr, predicate = is.symbol)
+#' added the name getAllSymbols to mirror getAllCalls.  Can use either name.
+getAllSymbols = all_symbols = function(expr, predicate = is.symbol)
 {
     expr = as.expression(expr)
     symbols = character()
