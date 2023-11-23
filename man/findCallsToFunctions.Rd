@@ -58,7 +58,6 @@ mkCallWalkerPred(pred, ...)
   \item{definitions}{a list of functions that provides the definitions
     for functions that are not available on the search path. These are
     used in \code{\link[base]{match.call}}.}
-  \item{\dots}{additional arguments passed to methods.}
   \item{pred}{a function that takes two arguments - a call and a logical value indicating if the
      function being called is a symbol/name or itself a call - and returns a logical scalar value indicating
      whether to collect and return the specific call. The }

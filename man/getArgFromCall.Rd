@@ -12,12 +12,21 @@
 }
 \usage{
 getArgFromCall(call, arg, asCharacter = TRUE)
+isFunAssign(x, toSymbol = TRUE) 
+pkgSymbolsUsed(pkg, fromPkg, ns = getNamespace(pkg), exportedOnly = TRUE) 
 }
 \arguments{
-  \item{call}{the R call language object}
+  \item{call,x}{the R call language object}
   \item{arg}{the name of the argument to extract from the call}
   \item{asCharacter}{a logical value controlling whether to deparse
     the result or leave it is a language object}
+  \item{pkg}{the name of the package which is calling functions from another package}
+  \item{fromPkg}{the name of the other package whose functions are being called}
+  \item{ns}{the namespace's environment}
+  \item{exportedOnly}{a logical value.  If \code{TRUE}, only the exported symbols are considered,
+    otherwise all the symbols in the namespace are processed.}
+  \item{toSymbol}{a logical value that if \code{TRUE} causes \code{isFunAssign}
+      not look at the value of the symbol to which the value is being assigned.}
 }
 \value{
  a character vector/string or a language object.
@@ -30,12 +39,6 @@ Duncan Temple Lang
 }
 \examples{
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory (show via RShowDoc("KEYWORDS")):
-% \keyword{ ~kwd1 }
-% \keyword{ ~kwd2 }
-% Use only one keyword per line.
-% For non-standard keywords, use \concept instead of \keyword:
-% \concept{ ~cpt1 }
-% \concept{ ~cpt2 }
-% Use only one concept per line.
+\keyword{programming}
+\concept{metaprogramming}
+

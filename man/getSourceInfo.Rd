@@ -24,7 +24,9 @@ getSourceInfo(x, ...)
 \author{
 Duncan Temple Lang
 }
-\seealso{}
+\seealso{
+  \code{\link{findCallsTo}}
+}
 \examples{}
 \concept{meta-programming}
 \concept{static code analysis}

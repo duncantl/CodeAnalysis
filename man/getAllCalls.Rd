@@ -27,7 +27,9 @@ A list of \code{rstatic} \code{Call} objects.
 }
 \author{Duncan Temple Lang}
 
-\seealso{}
+\seealso{
+  \code{\link{findCallsTo}}
+}
 \examples{
 \dontrun{
   # calls by file in the directory R/
