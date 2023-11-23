@@ -36,7 +36,7 @@ findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = N
 findAssignsTo(code, var, index = FALSE, recursive = TRUE, ...)
 findAssignsTo2(code, var)
 isCallTo(code, funName)
-mkCallWalkerPred(pred)
+mkCallWalkerPred(pred, ...)
 }
 \arguments{
   \item{code}{the R code to analyze}
@@ -62,6 +62,10 @@ mkCallWalkerPred(pred)
   \item{pred}{a function that takes two arguments - a call and a logical value indicating if the
      function being called is a symbol/name or itself a call - and returns a logical scalar value indicating
      whether to collect and return the specific call. The }
+   \item{\dots}{additional arguments passed to the \code{pred} function.}
+   % discuss this wrt to indexWalkCode and mkIsCallTo().  Could we pass the vector of functions
+   % we want to match via the ...
+   % mkCallWalkerPred(isCallTo, "foo")
 }
 \value{
 
