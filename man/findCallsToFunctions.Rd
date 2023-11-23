@@ -12,6 +12,7 @@
 \alias{findAssignsTo,call-method}
 \alias{findAssignsTo,name-method}
 \alias{isCallTo}
+\alias{numCalls}
 \alias{mkCallWalkerPred}
 \title{Find all calls to given functions or all assignments to specific variables}
 \description{
@@ -28,6 +29,10 @@
   \code{findAssignsTo} and \code{findAssignsTo2} identifies assignments in code with
   the left-hand-side being one of a specified set of possible variables
   of interest.  \code{findAssignsTo2} may be more accurate/comprehensive.
+
+  \code{numCalls} is a simple derivative of \code{findCallsTo}
+  and computes the number of calls in a function. This gives
+  a sense of the complexity of the code.
 }
 \usage{
 findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames),
@@ -37,6 +42,7 @@ findAssignsTo(code, var, index = FALSE, recursive = TRUE, ...)
 findAssignsTo2(code, var)
 isCallTo(code, funName)
 mkCallWalkerPred(pred, ...)
+numCalls(code)
 }
 \arguments{
   \item{code}{the R code to analyze}

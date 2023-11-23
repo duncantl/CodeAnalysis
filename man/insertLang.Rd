@@ -26,7 +26,7 @@ insertLang(expr, to, after = integer())
     If this is a function, the function adds \code{expr} to the body of the function
    and returns the function. One can add a formal argument to a function directly.}
  \item{after}{the 1-based position at which to insert the new language object(s).
-   If this is empty, \code{expr} will be added at the end of \code{to}.
+   If this is empty or \code{NA}, \code{expr} will be added at the end of \code{to}.
    If this is -1, the function inserts at the first position.
    If this is beyond the length of \code{to} the function issues a warning
    and adds the expression at the end of the code block \code{to}.
@@ -68,6 +68,9 @@ Duncan Temple Lang
    g2 = insertLang(list( quote(print("hi")), quote(if(all(is.na(y[w]))) recover())), g, c(1, 3))
 
    g2 = insertLang(list( quote(print("hi")), quote(if(all(is.na(y[w]))) recover())), g, c(-1, 3))
+
+   # 2 calls immediately after element 3
+   g2 = insertLang(list( quote(print("hi")), quote(if(all(is.na(y[w]))) recover())), g, 3)
 
 \dontrun{
  # Problem

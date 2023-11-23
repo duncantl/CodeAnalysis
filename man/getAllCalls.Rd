@@ -1,5 +1,8 @@
 \name{getAllCalls}
 \alias{getAllCalls}
+\alias{getAllSymbols}
+\alias{all_symbols}
+\alias{numCalls}
 \title{Get all function calls in R code}
 \description{
   This statically analyzes the R code and finds all calls
@@ -11,13 +14,22 @@
   of files, e.g., when creating a package from existing files,
   or knowing which calls to \code{link[base]{library}}
   are needed.
+
+  \code{getAllSymbols} gets all the symbols in an  R language object.
 }
 \usage{
 getAllCalls(x, ...)
+numCalls(x
+getAllSymbols(expr, predicate = is.symbol)
 }
 \arguments{
   \item{x}{a character vector of file or directory names or the parsed code}
   \item{\dots}{arguments for methods}
+  \item{expr}{the R code/language object}
+  \item{predicate}{the function that determines whether the language object is a symbol
+    and one we want to capture. This can be more specific such as
+    \code{function(x) is.symbol(x) && as.character(x) \%in\% c("foo", "bar")}
+   }
 }
 \value{
 A list of \code{rstatic} \code{Call} objects.
@@ -25,8 +37,7 @@ A list of \code{rstatic} \code{Call} objects.
 \references{
 \code{rstatic} package \url{https://github.com/nick-ulle/rstatic.git}
 }
-\author{Duncan Temple Lang}
-
+\author{Duncan Temple Lang, Nick Ulle}
 \seealso{
   \code{\link{findCallsTo}}
 }
