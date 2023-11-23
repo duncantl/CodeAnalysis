@@ -20,8 +20,9 @@
 \alias{getFunctionDefs,=-method}
 \alias{getFunctionDefs,<--method}
 \alias{findFunctionDefs}
+\alias{getPkgFunctions}
 \title{
-Get function definitions in R code files, functions, environments, namespaces.
+Get function definitions in R code files, functions, environments, namespaces and packages.
 }
 \description{
   These functions use static analysis (rather than \code{\link[base]{source}}'ing and evaluating the
@@ -53,13 +54,18 @@ Get function definitions in R code files, functions, environments, namespaces.
 
   At some point in the future, we may merge the functionality of
   \code{findFunctionDefs} into \code{getFunctionDefs}.
+
+  \code{getPkgFunctions} is shorter than \code{getFunctionDefs(getNamespace(pkgName))}
+  and/but does currenty load the package.
 }
 \usage{
 getFunctionDefs(x, ...)
+getPkgFunctions(pkg)
 }
 \arguments{
   \item{x}{a character vector of file or directory names or  a language
     object from parsing R code}
+  \item{pkg}{the name of the installed package as a character vector of length 1.}
   \item{\dots}{additional arguments for methods.
     Additional arguments include \code{recursive} that controls
     whether the bodies of top-level functions are

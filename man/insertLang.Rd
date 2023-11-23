@@ -88,7 +88,7 @@ Duncan Temple Lang
 
    # Illustrate where the new code goes in different situations.
    # Default is to put code immediately after the "after" element counting by elements
-   # and not including the  { in the count of positions.
+   # and not including the  \{ in the count of positions.
    # So here we label the code elements e1, e2, ...
    # We insert new code elements named n1, n2 and n3
    # and you can see which  elements they are added after - with includeBraceInCount = FALSE and

@@ -2,7 +2,6 @@
 \alias{getAllCalls}
 \alias{getAllSymbols}
 \alias{all_symbols}
-\alias{numCalls}
 \title{Get all function calls in R code}
 \description{
   This statically analyzes the R code and finds all calls
@@ -19,7 +18,6 @@
 }
 \usage{
 getAllCalls(x, ...)
-numCalls(x
 getAllSymbols(expr, predicate = is.symbol)
 }
 \arguments{
