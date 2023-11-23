@@ -865,6 +865,7 @@ function(x, parse = TRUE, ...)
 }
 
 getAllCalls.expression =
+    #XXX  consider implement this with findCallsTo(x) with no function names.
 function(x, ...)
    structure( find_nodes(to_ast(x), is, "Call"), class = "ListOfCalls" )
 
