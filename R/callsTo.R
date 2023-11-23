@@ -8,7 +8,7 @@ function(pred, ...)
 
     leaf = function(x, w, ...) {
         ty = typeof(x)
-        if(ty == "pairlist" || ty == "expression" || ty == "list") {
+        if(ty %in% c("pairlist", "expression", "list")) {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
@@ -21,7 +21,9 @@ function(pred, ...)
     call = function(x, w) {
 
         isName = is.name(x[[1]])
-        if(pred(x, isName, ...)) 
+        if(pred(x, isName, ...))  # XXXX This is very interesting as to where the ... comes from
+            # the mkCallWalkerPred() or the call function.
+            # It has to be the former as call() doesn't have ...
             calls[[length(calls) + 1L]] <<- x
 
         els = as.list(x)
