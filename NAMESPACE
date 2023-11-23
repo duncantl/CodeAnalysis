@@ -95,3 +95,5 @@ export(all_symbols)
 export(mkCallWalkerPred)
 export(isSymbol)
 
+
+export(numCalls, getPkgFunctions)
