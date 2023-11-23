@@ -83,14 +83,15 @@ exportMethods(findAssignsTo)
 
 S3method(plot, CallGraphEdges)
 
-export(processDir, processFile)
+#export(processDir, processFile)
+export(pkgCodeInfo, fileCodeInfo)
 
-export(findLoops)
+export(findLoops, numNestedLoops)
 
 export(isParameter, isLocalVar)
 
 
-export(all_symbols)
+export(all_symbols, getAllSymbols)
 
 export(mkCallWalkerPred)
 export(isSymbol)

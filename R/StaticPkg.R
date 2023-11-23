@@ -20,27 +20,34 @@
 # See also getFunctionDefs() and getAllCalls()
 
 
-processDir =
+pkgCodeInfo = # processDir =
 function(dir, rfiles = list.files(dir, pattern = "\\.[RrSs]$", full.names = TRUE))
 {
-    e = lapply(rfiles, processFile)
+    if(!file.info(dir)$isdir)
+        return(fileCodeInfo(dir))
+    
+    e = lapply(rfiles, fileCodeInfo, addClass = FALSE)
     ans = do.call(rbind, e)
     structure(ans, class = c("PkgCodeInfo", class(ans)))
 }
 
 
-processFile =
+fileCodeInfo = processFile = 
     # Get better name.
     #
     # parse a file of R code and return a data.frame
     # describing the top-level expressions
     #
-function(f, code = parse(f))
+function(file, code = parse(file), addClass = TRUE)
 {
     if(length(code) == 0)
         return(NULL)
 
-    ans = lapply(seq(along = code), function(i) processExpr(code[[i]], i, f))
+    ans = lapply(seq(along = code), function(i) processExpr(code[[i]], i, file))
+    ans = ans[ ! sapply(ans, is.null) ]
+    if(length(ans) == 0)
+       return(NULL)
+       
     tmp = do.call(rbind, ans)
     if(nrow(tmp) == 0) {
         tmp$file = character()
@@ -49,8 +56,10 @@ function(f, code = parse(f))
     }
     
     nr = sapply(ans, function(x) if(is.null(x)) 0 else nrow(x))
-    tmp$file = rep(f, sum(nr))
+    tmp$file = rep(file, sum(nr))
     tmp$index = rep(seq(along.with = ans), nr)
+    if(addClass)
+        class(tmp) = c("FileCodeInfo", class(tmp))
     tmp
 }
 
