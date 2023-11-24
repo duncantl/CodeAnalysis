@@ -58,6 +58,9 @@ function(e)
     return(NULL)
 }
 
+
+# See packageAnalysis.R
+if(FALSE) 
 isLiteral =
 function(x, scalar = FALSE)
 {
