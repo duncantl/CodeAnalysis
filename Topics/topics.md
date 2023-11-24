@@ -85,7 +85,7 @@ Improve the general well being of the R session, and may improve clarity.
    inference.
 1. Identify objects that are supposed to have the same length.
 1. [Nick (probably not in this paper)] General object dimension inference
-1. Identify when `x[, drop = TRUE]` will produce result of different type
+1. Identify when `x[, , drop = TRUE]` will produce result of different type
    than x.
 
 
@@ -110,6 +110,11 @@ function(x = length(y), y = sum(x))
 ```
 and strict/lazy eval
 1. Identify recursive functions so can change name throughout if change name of top-level function.
+```{r}
+fns = getFunctionDefs("R")  # CodeAnalysis package
+isRecursive = sapply(names(fns), function(id) id %in% getGlobals(fns[[id]])$functions)
+table(isRecursive)
+```
 1. Infer where parameters might be evaluated.
 1. Change all instances of a name in a package to another name. For
    example, `foo` is the name of a function and a parameter. Very difficult

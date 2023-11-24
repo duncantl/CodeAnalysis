@@ -37,9 +37,7 @@ getGlobals =
     #  ir appears as a global because its is referenced in a function definition
     #  not a call.
     #
-    #
     # skip  is for the names of functions for which we are to ignore calls to these
-    #
     #
     # To find functions that have a FUN argument which is likely to be called directly, we can use
     #
