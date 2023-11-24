@@ -1,3 +1,8 @@
+0.4-0
+	* getGlobals() correctly handles $<-
+
+	* Many updates
+
 0.3-0
 	* findCallsTo() can match R calls/expressions rather than only names of functions.
 

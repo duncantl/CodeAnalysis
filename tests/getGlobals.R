@@ -247,3 +247,22 @@ stopifnot(identical(tmp, c("+", "*", "sin")))
 
 gv = getGlobals(f, mergeSubFun = TRUE)
 stopifnot(identical(unique(gv$functions), c("+", "*", "sin")))
+
+
+# 
+# $<-
+f = function(x) {
+      other$comment = var
+      x$foo = 2
+      foo(extra) = var2
+      foo(extra)$element = var3      
+    }
+stopifnot(sort(unique(getGlobals(f)$variables)) == sort(c("var", "other", "extra", "var2", "var3")))
+
+
+f = function(x, id) {
+    x[["el"]] = var
+    x[[ elName ]] = var2
+    y[[ id ]] = x + 1
+}
+stopifnot(sort(unique(getGlobals(f)$variables)) == sort(c("var", "elName", "var2", "y")))
