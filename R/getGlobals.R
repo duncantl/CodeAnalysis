@@ -6,11 +6,15 @@ getGlobals =
     # This is for compiling callbacks to R and identifying variables that
     # are to be resolved in R.
     #
-    # This is not the same as findGlobals (yet!), and is probably not as comprehensive
-    # but also finds some errors, i.e. finds use of variables before they are defined/assigned.
-    #
-    #  Actually it is more correct and comprehensive than findGlobals.
-    #  It recognizes when variables are defined locally and identifies uses of it before that as globals.
+    # This is not the same as findGlobals. 
+    # It finds some aspects findGlobals doesn't handle
+    #  e.g. finds use of variables before they are defined/assigned
+    #         i.e., defined locally but used before that. 
+    #       functions such lapply/sapply/... and do.call that often refer to the function they call via variable.
+    #         findGlobals() identifies order and foo as global variables, rather than non-local functions.
+    #          lapply(x, order)
+    #          do.call(foo, args)
+    #         
     # 
     # It also attempts to deal with ....??????
     #
@@ -20,7 +24,13 @@ getGlobals =
     #
     # Todo:  process nested function definitions and determine their local variables
     #
-    #    # XXX Doesn't include [[<-, [<-, $<- functions.
+    #    # XXX Doesn't include [[<-, [<-, functions.
+    #    # Handle default values and references to local variables and check whether the default value
+    #       is needed before those local variables are defined
+    #
+    #  $<- implemented. Process only the second element  x$y <- value, so process x since y is verbatim.
+    #   The RHS is handled elsewhere.
+    #    Added 
     #
     # When run on compileFunction(), we find ir and nenv as globals.
     # nenv is real as it used before it is defined.
@@ -182,8 +192,10 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                   curAssignName <<- c(as.character(e[[2]]), curAssignName)
 
               
-              if(is.call(tmp <- e[[3]]) && is.name(tmp2 <- tmp[[1]]) && (as.character(tmp2) == "::" || as.character(tmp2) == ":::") && is.name(e[[3]][[2]]) && is.name(e[[3]][[3]])) {
-                   # RHS is of the form  pkg::sym
+              if(is.call(tmp <- e[[3]]) && is.name(tmp2 <- tmp[[1]]) &&
+                   (as.character(tmp2) == "::" || as.character(tmp2) == ":::") && is.name(e[[3]][[2]]) && is.name(e[[3]][[3]])) {
+                  # RHS is of the form  pkg::sym
+
                   vars <<- c(vars, deparse(tmp))
               } else
                   fun(tmp, fun)  # process the RHS.
@@ -200,7 +212,11 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                   e[[2]][[1]] = as.name(funName)
               }
               
-           } else {
+          } else if(funName == "$<-") {
+#              e = e[[ 2 ]]
+              fun(e[[2]])
+              return()
+          } else {
               if(funName %in% skip) {
                  i = length(skippedExpressions) + 1L
                  skippedExpressions[[ i ]] <<- e
@@ -272,6 +288,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
              lapply(as.list(e)[-1], fun, w)
   } # end of fun = function() {}
 
+    # Turn a call to function into an actual function object.
   if(is.call(f) && as.character(f[[1]]) == "function") 
      f = eval(f, globalenv())
 
@@ -340,6 +357,9 @@ function(x, ...)
     UseMethod("getGlobalFunctions")
 
 getGlobalFunctions.GlobalUses =
+    #
+    # method for object created/returned by getGlobals
+    #
 function(x, mergeSubFuns = FALSE, asNames = TRUE, ...)
 {    
     ans = x$functions
@@ -357,7 +377,7 @@ function(x, mergeSubFuns = FALSE, asNames = TRUE, ...)
         tmp = unlist(lapply(x$subFunctions, `[[`, "functions"))
         
         ans = c(ans, tmp[ !(tmp %in% x$localVariables)] )
-   }
+    }
 
     if(asNames)
         ans
