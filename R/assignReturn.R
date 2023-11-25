@@ -49,6 +49,7 @@ function(e)
 {
     if(is.name(e))
         return(e)
+    
     if(isLiteral(e))
         return(NULL)
 

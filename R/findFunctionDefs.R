@@ -6,7 +6,7 @@ findFunctionDefs =
     # getFunctionDefs() is generic and handles all sorts of different inputs
     #  and is recursive so finds functions in functions.
     #
-    # This does understand calls that return functions, e.g., Vectorize(f)
+    # !!!   This does understand calls that return functions, e.g., Vectorize(f)
     #
     # Find top-level function definitions of the form
     #   g = function()...

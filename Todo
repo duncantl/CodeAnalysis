@@ -1,34 +1,63 @@
-+ findAssignsTo(findCallsTo, "isEnv") doesn't find the assignment in the if condition.
++ findCallsTo - extend to identify do.call and *apply calls. 
 
-+ code analysis example
++ isAssignTo - make it handle complex left hand side.
+   + SEE - isComplexAssignTo. Make more robust.
+   + See foo in tests/findAssignsTo.R.
+   + Uses isAssignTo
+     + So currently just checks if the LHS is the symbol. 
+	 + add a version of this that handles complex assignments.
+   + problem is `x$y <- value ` is a call to `$<-`(x, y) and misses value.  Need to go back up the
+     tree.	 
+
++ findAssignsTo(findCallsTo, "isEnv") doesn't find the assignment in the if condition.
+  + old todo item and findCallsTo code no longer has isEnv
+  + but issue is *probably* if( isEnv <- is.environment(x))
+  + findAssignsTo2 seems to work.
+
++ code analysis example (unrelated to highlighting, just the example)
   + highlight package getStyleFile() has
   ```
   if (grepl(sprintf("%s$", extension, ignore.case = TRUE),  name))
   ```
   + the ignore.case is in the call to sprintf() and the command
-  gives a warning about ignoring an argument to sprintf.
+    gives a warning about ignoring an argument to sprintf.
   + The ignore.case should be outside the sprintf() and in the call to grepl()
      + but since sprintf() has ... it is ambiguous, but not really
   + check whether a named argument in a call makes sense in the parent call.
 
 + findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
-   + only captures name and not name2
-   + e.g. RDCOMEvents/eventServer.S
-   + shouldn't need recursive = TRUE to find name in name = name2 = function() ..
-   + works now, but not with recursive = TRUE
+   + √ getFunctionDefs() gets it right for tests/chainedAssigns.
+   + findFunctionDefs() returns list.
+   + Old
+     + only captures name and not name2
+     + e.g. RDCOMEvents/eventServer.S
+     + shouldn't need recursive = TRUE to find name in name = name2 = function() ..
+     + works now, but not with recursive = TRUE
+
++ Re. above - should we get rid of findFunctionDefs()
+    + [NO] Does getFunctionDefs() know about Vectorize/vectorize
+	+ √ getFunctionDefs() knows about (top-level) if(FALSE)
+	   + see `getFunctionDefs("tests/chainedAssigns.R")`
 
 + getFunctionDefs() - have it find functions in setMethod()
    + √ already works with recursive = TRUE.
-   + perhaps put better name on these methods and generics.
+   + perhaps put better name on "these" (what ?) methods and generics.
      + need state, or ability to go back up tree.
 
-+ false positive for global variables in R CMD check for textConnection("bob", local = TRUE); bob
++ circular references in parameters 
+   + find parameters with default values that refer to local variables
+      and check if the parameter is used before those local variables are created.
+   + See explorations/findSelfRef.R.
 
-+ fix callGraph(fun) and the name used is obj.
++ In procIndirectFunCall(e, funName) :
+  cannot currently determine function in empty call to match.call. That uses the context of the call.1
+
++ fix callGraph(fun) and the name used is obj. (meaning what??).
+   + obj is the name of the first argument.
 
 + implement findOS()/mkOSWalker for finding code that depends on the platform/OS
 
-+ If a function has a literal extrernalptr inlined, then getGlobals() fails in lapply(els, fun, w)
++ If a function has a literal externalptr inlined, then getGlobals() fails in lapply(els, fun, w)
 
 + Fix mkGlobalsLocal() to optionally not add a default value to a parameter
    e.g. not replace Jvar with .Jvar = Jvar
@@ -38,12 +67,19 @@
 
 + mkGlobalsLocal() not changing references inside return() clause. See rstatic probably.
 
++ for loop concatenation, rewrite the code.
+   We need type information about the elements to be able to initialize the answer vector.
 
-for loop concatenation, rewrite the code.
-  We need type information about the elements to be able to initialize the answer vector.
 
-[Done] removeAfterReturn  should work recursively to process blocks within functions.
+# Done
 
-[Done] remove unused parameters
 
-[Done] remove unused assignments if we can tell there are no side effects of the RHS.
++ √ false positive for global variables in R CMD check for textConnection("bob", "w", local = TRUE); bob
+  + This is an R issue.
+  + √ We can make getGlobals() understand it.
+
++ removeAfterReturn  should work recursively to process blocks within functions.
+
++ remove unused parameters
+
++ remove unused assignments if we can tell there are no side effects of the RHS.
