@@ -310,11 +310,19 @@ function(ignoreParams = TRUE)
 
 }
 
-isLiteral =
+isLiteral2 =
+    # Old version. I suggest not using this but isLiteral below instead.
+    # So have changed the name of this and added the one below.
 function(x, type = typeof(x))
 {
     # "logical", 
    type %in% c("integer", "numeric", "character", "complex", "double")
+}
+
+isLiteral =
+function(x, type = typeof(x))
+{
+   type %in% c("logical", "integer", "numeric", "character", "complex", "double", "NULL")
 }
 
 findLiterals =
