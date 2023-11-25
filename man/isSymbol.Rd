@@ -1,5 +1,6 @@
 \name{isSymbol}
 \alias{isSymbol}
+\alias{isLiteral}
 \title{Helper function for comparing a language object to a symbol/name, optionally with one of
   specified values}
 \description{
@@ -12,12 +13,14 @@
 }
 \usage{
 isSymbol(x, sym = character())
+isLiteral(x, type = typeof(x))
 }
 \arguments{
   \item{x}{the R language object}
   \item{sym}{an optional character vector. If this is not empty,
      if \code{x} is a name/symbol, we check if the value is in this set.
    }
+  \item{type}{the \code{typeof} of \code{x}. If the caller has already computed this, they can provide it.}
 }
 \value{
  \code{TRUE} or \code{FALSE}

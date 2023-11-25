@@ -94,7 +94,7 @@ export(isParameter, isLocalVar)
 export(all_symbols, getAllSymbols)
 
 export(mkCallWalkerPred)
-export(isSymbol)
+export(isSymbol, isLiteral)
 
 
 export(numCalls, getPkgFunctions)
