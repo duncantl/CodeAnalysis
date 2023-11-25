@@ -11,6 +11,7 @@
 \alias{findAssignsTo,=-method}
 \alias{findAssignsTo,call-method}
 \alias{findAssignsTo,name-method}
+\alias{findAssignsTo,ANY-method}
 \alias{isCallTo}
 \alias{numCalls}
 \alias{mkCallWalkerPred}
