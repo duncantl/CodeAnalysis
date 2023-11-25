@@ -41,6 +41,15 @@ function(code, var, index = FALSE, recursive = TRUE, ...)
     standardGeneric("findAssignsTo"))
 
 
+setMethod("findAssignsTo", "ANY",
+          function(code, var, index = FALSE, recursive = TRUE, ...) {
+              if(isLiteral(code))
+                  return(NULL)
+
+               stop("default method for findAssignTo for ", class(code))
+          })
+
+
 setMethod("findAssignsTo", "function",
           function(code, var, index = FALSE, recursive = TRUE, ...)    
               findAssignsTo(body(code), var, index, recursive))
