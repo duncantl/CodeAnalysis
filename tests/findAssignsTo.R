@@ -11,3 +11,8 @@ function(x, y)
 
     y$a + sum(x) + z
 }
+
+###############
+
+f = function(x) if(isEnv <- is.environment(x))  TRUE else FALSE
+findAssignsTo(f, "isEnv")

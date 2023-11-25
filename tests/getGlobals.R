@@ -266,3 +266,12 @@ f = function(x, id) {
     y[[ id ]] = x + 1
 }
 stopifnot(sort(unique(getGlobals(f)$variables)) == sort(c("var", "elName", "var2", "y")))
+
+
+
+####
+# See connectionsGlobalVars.R
+f = function(x) {
+    textConnection("bob", open = "w", local = TRUE)
+    bob
+}
