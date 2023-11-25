@@ -104,7 +104,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       e2 = match.call(def, e)
 
       if(length(e2) == 1 && funName %in% c("match.call", "formals")) {
-          warning("cannot currently determine function in empty call to ", funName, ". That uses the context of the call.")
+#          browser()
+#          warning("cannot currently determine function in empty call to ", funName, ". That uses the context of the call.")
           return(NA) # need to know the name of the function in which match.call()/formals() is being invoked.
       }
       
@@ -145,7 +146,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   curAssignName = character()
 
     #XXX better name.
-  fun = function(e, w) {
+    fun = function(e, w) {
+
       popFuns = FALSE
       if(is.name(e) && as.character(e) == "")  # typically a formal argument that has no default value.
           return(FALSE)
@@ -216,7 +218,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               }
               
           } else if(funName == "$<-") {
-#              e = e[[ 2 ]]
+              #              e = e[[ 2 ]]
               fun(e[[2]])
               return()
           } else {
