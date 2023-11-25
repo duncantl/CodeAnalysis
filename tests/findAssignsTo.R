@@ -1,3 +1,5 @@
+library(CodeAnalysis)
+
 foo =
 function(x, y)
 {
