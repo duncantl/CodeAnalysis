@@ -3,6 +3,16 @@ if(FALSE) {
     # eval(parse("functionsReturningFunctions.R")[[1]][[3]])
     # To run tests
     # lapply(as.list(parse("functionsReturningFunctions.R")[[2]][[3]])[-1], eval)
+    #
+
+    # Vectorize() is an interesting example. The last expression is
+    # (function() {  var <- function(){ ...} ; formals(var) ...  ; var })()
+    # It is the body of the outer function that returns the function.
+    # So get the return value. There are 2. Interested in the second.
+    # It is a call(). The called object is a call to function.
+    # So creating that function and then calling it.
+    # Pass that to returnsFunction.  But have to evaluate it to make it an actual function, not a call to function.
+    # Have to drill through the ().
     
     lik = function(x)
         function(mu, sd)
@@ -44,14 +54,16 @@ if(FALSE) {
         attr(f, "class") = "SpecialFunction"
         f
     }
+
+    f6 = function() x + y
 }
 if(FALSE) {
-    returnsFunction(lik)
-    returnsFunction(f2, functionsReturningFunctions = "Vectorize")
-    returnsFunction(f3)  # inline & sum
-    returnsFunction(f3.5)  #just the inline definition
-    returnsFunction(f4)
-    returnsFunction(f5)
+    stopifnot(length(returnsFunction(lik) ) == 1)
+    stopifnot(length(returnsFunction(f2, functionsReturningFunctions = "Vectorize")) == 1)
+    stopifnot(length(returnsFunction(f3)) == 2)  # inline & sum
+    stopifnot(length(returnsFunction(f3.5)) == 1)  #just the inline definition
+    stopifnot(length(returnsFunction(f4)) == 1)
+    stopifnot(length(returnsFunction(f5)) == 0)
 }
 
 returnsFunction =
@@ -76,6 +88,10 @@ function(fun, recursive = FALSE, envir = globalenv(),
     # if a return value is a symbol, go find where it was last assigned to get that value.
     # XXX need to deal with cases when the variable has multiple replacements,
     #   e.g., x = foo(), x$e = val, ... then return(x)
+    #
+    # In the case of Vectorize() returning a (function(){ function() ...})()
+    # leave it to definesFunction to see if this evaluates to a function.
+    #
     ans = lapply(ret, resolveVar, fun)
 
     if(length(ans)) {
@@ -85,6 +101,13 @@ function(fun, recursive = FALSE, envir = globalenv(),
 }
 
 resolveVar =
+    #
+    # given a expression (ex),  if it is a name/symbol,
+    # find where it is assigned and get the RHS, i.e., its value.
+    # This skips updates to that variable.
+    #
+    # If not a name, return ex.
+    #
 function(ex, fun)
 {
     if(is.name(ex)) {
@@ -106,7 +129,7 @@ function(ex, fun)
 
 definesFunction =
     #
-    #
+    # Does the language object x evaluate to a function.
     #    
 function(x, fun, recursive = FALSE, envir = globalenv(), functionsReturningFunctions = character())
 {
@@ -114,19 +137,34 @@ function(x, fun, recursive = FALSE, envir = globalenv(), functionsReturningFunct
         return(TRUE)
 
     if(is.name(x)) {
+        # Already done in resolveVar().
         # check to see if this name is assigned in the function.
         # If so, is it a function.
         # If not, resolve the name in envir and see if a function.
 
         id = as.character(x)
         defs = findAssignsTo(fun, id)
-        if(length(defs) == 0)
-            return(exists(id, envir, mode = "function"))
+        if(length(defs) == 0) {
 
-        browser()
+            if(id %in% names(formals(fun))) {
+                # ? Can't assign this and then use in is.name
+                #  val = formals(fun)[[id]]
+
+                # is.name(formals(fun)[[id]]) && as.character(formals(fun)[[id]]) != ""
+                if(! isSymbol(formals(fun)[[id]], "" )) 
+                    # Want to signal that this is a parameter and not to look in the fun.
+                   return( definesFunction(formals(fun)[[id]], fun, recursive, envir, functionsReturningFunctions) )
+
+                
+                # structure(val, class = "ParameterValue"))
+                return(NA)
+            }
+
+            return(exists(id, envir, mode = "function"))
+        }
     }
 
-    if(is.name(x[[1]])) {
+    if(is.call(x) && is.name(x[[1]])) {
         fn = as.character(x[[1]])
         if(fn %in% functionsReturningFunctions)  # length(functionsReturningFunctions) &&
             return(TRUE)
@@ -134,8 +172,23 @@ function(x, fun, recursive = FALSE, envir = globalenv(), functionsReturningFunct
         #XXX implement recursive
         # What if call foo$bar()
         fn2 = get(fn, envir, mode = "function")
+        # probably need to process the actual call, i.e., provide the arguments
+        # so that can analyze, e.g., branching in fn2.
         return(length(returnsFunction(fn2, recursive, envir, functionsReturningFunctions)) > 0)
     }
+
+    if(is.call(x)) {
+        fn2 = x[[1]]
+        browser()                    
+        if(isCallTo(fn2, "("))
+            fn2 = fn2[[2]]
+
+        if(isCallTo(fn2, "function")) {
+           return(length(returnsFunction(eval(fn2), envir = envir, functionsReturningFunctions = functionsReturningFunctions)) > 0)
+        }
+        
+    }
+    
     
     return(FALSE)
 }
@@ -155,7 +208,7 @@ function(fun, rmReturn = TRUE)
 
     if(rmReturn)
         # get the value of the explicit return()
-        lapply(ret, function(x) if(isCallTo(x, "return")) x[[1]] else x)
+        lapply(ret, function(x) if(isCallTo(x, "return")) x[[2]] else x)
     else
         ret
 }
