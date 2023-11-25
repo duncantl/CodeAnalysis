@@ -52,10 +52,14 @@ getGlobals =
     #
     # Intentionally doesn't include for, if, while, { as functions which findGlobals() does.
     #
-function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE, 
-         skip = c(".R", ".typeInfo", ".signature", ".pragma", ".Internal", ".Primitive"),  #XX we probably want to process the arguments within .Internal except the first which is the call.
+function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
+              #XX we probably want to process the arguments within .Internal except the first which is the call.
+         skip = c(".R", ".typeInfo", ".signature", ".pragma", ".Internal", ".Primitive"), 
          .debug = TRUE, .assert = TRUE,
-         localVars = character(), mergeSubFunGlobals = TRUE, old = TRUE) # remove old when we are sure it works
+         localVars = character(), mergeSubFunGlobals = TRUE,
+         old = TRUE, # remove old when we are sure it worksa
+         indirectCallFunctions = IndirectCallFunctions,
+         handleTextConnections = TRUE) 
 {
 
   if(is.logical(.debug))
@@ -139,7 +143,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   }
 
   curAssignName = character()
-  
+
+    #XXX better name.
   fun = function(e, w) {
       popFuns = FALSE
       if(is.name(e) && as.character(e) == "")  # typically a formal argument that has no default value.
@@ -215,6 +220,23 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               fun(e[[2]])
               return()
           } else {
+
+              if(handleTextConnections && funName == "textConnection") {
+                  # Special case.  If call
+                  #  textConnection("bob", "w", local = TRUE)
+                  # then bob becomes a local variable.
+                  # Should be using textConnectionValue() rather than the variable
+                  # but this is an issue with the implementation of writeable textConnection().
+                  # Also note that this test requires that open = "w" and local = TRUE
+                  # literally, not with variables.
+                  # Use constant propogation before to see if this can update such variables.
+                  k = match.call(textConnection, e)
+                  if(all(c("object", "open", "local") %in% names(k)) &&
+                     is.character(k$object) && k[["open"]] == "w" && isTRUE(k[["local"]]))
+                      localVars <<- c(localVars, k$object)
+              }              
+
+              
               if(funName %in% skip) {
                  i = length(skippedExpressions) + 1L
                  skippedExpressions[[ i ]] <<- e
@@ -233,12 +255,13 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
              if(funName %in% expressionsFor)
                  expressions[[ funName ]] <<- c(expressions[[ funName ]], e)
-          }
+          } 
+          
 
           els = as.list(e)[-1]
           if(funName == "$") # remove the literal name
               els = els[-2]
-          else if (funName %in% c("apply", "eapply", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate", "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "body<-", "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position") || grepl("apply", funName, ignore.case = TRUE)) 
+          else if (funName %in% indirectCallFunctions || grepl("apply", funName, ignore.case = TRUE)) 
                 els = procIndirectFunCall(e, funName)
 
            
@@ -287,7 +310,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   } # end of fun = function() {}
 
     # Turn a call to function into an actual function object.
-  if(is.call(f) && as.character(f[[1]]) == "function") 
+  if(is.call(f) && isSymbol(f[[1]], "function"))
      f = eval(f, globalenv())
 
   if(is.function(f)) {
@@ -345,9 +368,16 @@ else
 }
 
 
+IndirectCallFunctions = 
+    c("apply", "eapply", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate",
+      "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "body<-",
+      "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position")
+
+
 isColonCall =
-function(e)      
-   is.call(e) && is.name(e[[1]]) && ((tmp <- as.character(e[[1]])) == "::" || tmp ==  ":::")
+function(e)
+    is.call(e) && isSymbol(e[[1]], c("::", ":::"))
+# was is.call(e) && is.name(e[[1]]) && ((tmp <- as.character(e[[1]])) == "::" || tmp ==  ":::")
 
 
 getGlobalFunctions =

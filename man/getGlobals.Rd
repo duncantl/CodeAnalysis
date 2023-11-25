@@ -17,7 +17,9 @@
 getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            skip = c(".R", ".typeInfo", ".signature", ".pragma", ".Internal", ".Primitive"),
            .debug = TRUE, .assert = TRUE, localVars = character(),
-           mergeSubFunGlobals = TRUE, old = TRUE)
+           mergeSubFunGlobals = TRUE, old = TRUE,
+           indirectCallFunctions = IndirectCallFunctions,
+           handleTextConnections = TRUE)
 }
 \arguments{
   \item{f}{the function to be analyzed}
@@ -45,6 +47,16 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   defined within this functions \code{f} into the answer or keep them separate.}
 \item{old}{ a logical value controlling whether we use the old mechanism or the new mechanism.
   Will be removed in the future when we decide on correct approach.}
+ \item{indirectCallFunctions}{a character vector specifying the names of
+    functions which treat one of the arguments as a function, e.g.,
+    \code{\link[base]{do.call}}, \code{\link[base]{lapply}}.}
+  \item{handleTextConnections}{a logical value that controls whether we treat
+    calls to \code{\link[base]{textConnection}} such as
+    \code{textConnection("bob", open = "w", local = TRUE)}.
+    This creates a local variable named \code{bob} and if code uses that
+    (rather than \code{\link[base]{textConnectionValue}})
+    that is a legitimate local variable.
+  }
 }
 \value{
   A list of class \code{GlobalUses} with numerous elements:
@@ -67,7 +79,7 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
  defined within the body of this code. Each element is the result from
  calling \code{getGlobals} on that function definition.}
   \item{skippedExpressions}{a list containing all of the call
- expressions that were skipped based on the call contents of \code{skip}.}  
+        expressions that were skipped based on the call contents of \code{skip}.}
 }
 \author{Duncan Temple Lang}
 
