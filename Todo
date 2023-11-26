@@ -20,10 +20,12 @@
        x and f[["foo"]] = x and chains.
 
 + [check] findCallsTo - extend to identify do.call and *apply calls. 
-   + consolidate with isCallTo()
-       + that mixes rstatic and language objects. Add to language part but should update
+   + fix isIndirectCall to determine how we resolve a function name. 
+      + needs environment for call to get() or pass the functions directly.
+   + √ consolidate with isCallTo()
+       + [need to do rstatic] that mixes rstatic and language objects. Add to language part but should update
 	      rstatic part also.
-   + [check] Handle pkg::foo and pkg:::foo cases for indirect, e.g. do.call(base::rbind)
+   + √ [check] Handle pkg::foo and pkg:::foo cases for indirect, e.g. do.call(base::rbind)
    + √ when processing a call, check if isCallTo(x, OneOfTheseFunctions)
        and if so, is the FUN argument (or corresponding argument) a call to the
   	   target functions.

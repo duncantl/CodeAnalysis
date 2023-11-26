@@ -1,71 +1,3 @@
-if(FALSE) {
-    # To define these functions
-    # eval(parse("functionsReturningFunctions.R")[[1]][[3]])
-    # To run tests
-    # lapply(as.list(parse("functionsReturningFunctions.R")[[2]][[3]])[-1], eval)
-    #
-
-    # Vectorize() is an interesting example. The last expression is
-    # (function() {  var <- function(){ ...} ; formals(var) ...  ; var })()
-    # It is the body of the outer function that returns the function.
-    # So get the return value. There are 2. Interested in the second.
-    # It is a call(). The called object is a call to function.
-    # So creating that function and then calling it.
-    # Pass that to returnsFunction.  But have to evaluate it to make it an actual function, not a call to function.
-    # Have to drill through the ().
-    
-    lik = function(x)
-        function(mu, sd)
-            prod(dnorm(x, mu, sd))
-
-    f2 = function(x)
-        Vectorize(bar)
-
-    f3 = function(x) {
-        if(length(x) > 3) {
-            y = x[-(1:3)]
-            function(z)
-                prod(z + y)
-        } else
-            sum
-    }
-
-    f3.5 = function(x) {
-        sum = 2
-        if(length(x) > 3) {
-            y = x[-(1:3)]
-            function(z)
-                prod(z + y)
-        } else
-            sum
-    }    
-
-    f4 = function(x) {
-        f = function(x, y) x+y
-        attr(f, "class") = "SpecialFunction"
-        f
-    }
-
-    f5 = function(x) {
-        f = function() {}
-        formals(f)$a = 10
-        formals(f)$b = 2
-        body(f)[[2]] = quote(a^b)
-        attr(f, "class") = "SpecialFunction"
-        f
-    }
-
-    f6 = function() x + y
-}
-if(FALSE) {
-    stopifnot(length(returnsFunction(lik) ) == 1)
-    stopifnot(length(returnsFunction(f2, functionsReturningFunctions = "Vectorize")) == 1)
-    stopifnot(length(returnsFunction(f3)) == 2)  # inline & sum
-    stopifnot(length(returnsFunction(f3.5)) == 1)  #just the inline definition
-    stopifnot(length(returnsFunction(f4)) == 1)
-    stopifnot(length(returnsFunction(f5)) == 0)
-}
-
 returnsFunction =
     #
     # Takes a function and returns a logical value indicating
@@ -95,7 +27,8 @@ function(fun, recursive = FALSE, envir = globalenv(),
     ans = lapply(ret, resolveVar, fun)
 
     if(length(ans)) {
-        ans[ sapply(ans, definesFunction, fun, recursive, envir, functionsReturningFunctions) ]
+        w = sapply(ans, definesFunction, fun, recursive, envir, functionsReturningFunctions) 
+        ans[ !is.na(w) & w ]
     } else
         ans
 }
@@ -115,16 +48,26 @@ function(ex, fun)
         tmp = findAssignsTo(fun, as.character(ex))
         if(length(tmp)) {
             # Combine the earlier assignments and add as attributes ?
-            a = tmp[[length(tmp)]]
-            if(length(tmp) > 1)
-                attr(a, "intermediateAssignments") = tmp[-length(tmp)]
-            # Assuming var = value
-            a[[3]]
+            direct = sapply(tmp, isSimpleAssignTo, character())
+            if(!any(direct)) {
+                # could be a parameter.
+                if(!isParameter(ex, fun)) 
+                   browser()
+            }
+            
+            i = which.max(direct)
+            # Since a simple assignment, has to be of form var = value
+            a = tmp[[ i ]][[3]]
+            
+            if(i < length(tmp) && !is.null(a) && !is.name(a)) #XXX figure out what to do here if symbol.
+                attr(a, "intermediateAssignments") = tmp[ (i+1):length(tmp) ]
+            a
         } else
             ex
     } else
         ex
 }
+
 
 
 definesFunction =
@@ -171,15 +114,29 @@ function(x, fun, recursive = FALSE, envir = globalenv(), functionsReturningFunct
     
         #XXX implement recursive
         # What if call foo$bar()
-        fn2 = get(fn, envir, mode = "function")
-        # probably need to process the actual call, i.e., provide the arguments
-        # so that can analyze, e.g., branching in fn2.
-        return(length(returnsFunction(fn2, recursive, envir, functionsReturningFunctions)) > 0)
+        if(recursive) {
+            fn2 = get(fn, envir, mode = "function")
+            # probably need to process the actual call, i.e., provide the arguments
+            # so that can analyze, e.g., branching in fn2.
+            return(length(returnsFunction(fn2, recursive, envir, functionsReturningFunctions)) > 0)
+        } else
+            return(FALSE)
     }
 
     if(is.call(x)) {
         fn2 = x[[1]]
-        browser()                    
+        if(isNamespaceAccess(fn2)) {
+            if(length(functionsReturningFunctions))
+                return( any(c(deparse(fn2), as.character(fn2[[3]])) %in% functionsReturningFunctions))
+            else if(recursive) {
+                return(length(returnsFunction(eval(fn2, envir), recursive = recursive, envir = envir,
+                                       functionsReturningFunctions = functionsReturningFunctions)) > 0)
+            } else
+                return(NA) #??? e.g. methods::slot
+        }
+        
+#   browser()
+        # So function being called in x is the result of a call itself.
         if(isCallTo(fn2, "("))
             fn2 = fn2[[2]]
 
@@ -208,7 +165,12 @@ function(fun, rmReturn = TRUE)
 
     if(rmReturn)
         # get the value of the explicit return()
-        lapply(ret, function(x) if(isCallTo(x, "return")) x[[2]] else x)
+        lapply(ret, function(x) if(isCallTo(x, "return")) {
+                                    if(length(x) > 1)
+                                        x[[2]]
+                                    else NULL
+                                } else x
+               )
     else
         ret
 }

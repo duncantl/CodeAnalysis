@@ -100,11 +100,16 @@ function(x, funNames)
 
 
 isIndirectCall =
+    # x is a call.
 function(x, indirects, funNames, isFunNamesStrings)    
 {
     if( isSymbol(x[[1]]) && (fn <- as.character(x[[1]])) %in% names(indirects)) {
         argName = indirects[[fn]]
         fun = get(fn) # XXX
+        # If ... in x, then match.call() will raise an error.
+        w = sapply(x, function(x) isSymbol(x, "..."))
+        if(any(w))
+            x = x[!w]
         k = match.call(fun, x)
         if(!(argName %in% names(k)))
             return(FALSE)

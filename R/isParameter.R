@@ -1,6 +1,9 @@
 isParameter = isArgument =
 function(p, fun)
 {
+    if(is.name(p))
+        p = as.character(p)
+    
    p %in% names(formals(fun))
 }
 

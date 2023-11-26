@@ -68,6 +68,7 @@ export(findReadDataFuns, findWriteDataFuns, findGraphicsDevFuns)
 
 export(getInputFiles, getOutputFiles, getGraphicsOutputFiles)
 
+# Wouldn't findCallsTo() be better?
 export(getAllCalls)
 S3method(getAllCalls, character)
 S3method(getAllCalls, expression)
@@ -78,26 +79,25 @@ export(callGraph)
 exportMethods(callGraph)
 
 export(findCallsTo)
-export(findAssignsTo) # , findAssignsTo2)
-#exportMethods(findAssignsTo)
+export(findAssignsTo)
 
 S3method(plot, CallGraphEdges)
 
-#export(processDir, processFile)
 export(pkgCodeInfo, fileCodeInfo)
 
 export(findLoops, numNestedLoops)
 
 export(isParameter, isLocalVar)
 
-
 export(all_symbols, getAllSymbols)
 
 export(mkCallWalkerPred)
 export(isSymbol, isLiteral)
 
-
 export(numCalls, getPkgFunctions)
 
 export(insertLang)
 
+export(isSimpleAssignTo, isComplexAssignTo)
+
+export(returnsFunction)

@@ -28,9 +28,9 @@ function()
 }
 
 
-isAssignTo =
-function(x, var)    
-    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-") && is.name(x[[2]]) && as.character(x[[2]]) %in% var
+isAssignTo = isSimpleAssignTo =
+function(x, var = character())    
+    is.call(x) && isSymbol(x[[1]], c("=", "<-")) && is.name(x[[2]]) && (length(var) == 0 || isSymbol(x[[2]], var))
 
 
 # Could also use
