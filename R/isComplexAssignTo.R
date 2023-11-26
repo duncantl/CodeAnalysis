@@ -75,11 +75,11 @@ isComplexAssignTo =
     #
 function(x, var)    
 {
-    if(CodeAnalysis:::isAssignTo(x, var))
+    if(isAssignTo(x, var))
         return(TRUE)
 
-#    if(! isCallTo(x, c("$<-", "[[<-", "[<-", "<-", "=")))
-#        return(FALSE)
+    if(! isCallTo(x, c("<-", "=")))  # "$<-", "[[<-", "[<-",
+        return(FALSE)
     
     y = x[[2]]
     # Now be general enough to handle the cases above.

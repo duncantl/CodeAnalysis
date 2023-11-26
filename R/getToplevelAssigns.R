@@ -1,6 +1,7 @@
 getTopLevelCalls =
 function()    
 {
+    stop("not implemented")
 }
 
 getToplevelVariableAssignments =
@@ -23,19 +24,28 @@ getToplevelVariableCopies =
     #  No computations done in the RHS (or LHS)
 function()
 {
+     stop("not implemented")
 }
+
+
+isAssignTo =
+function(x, var)    
+    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-") && is.name(x[[2]]) && as.character(x[[2]]) %in% var
 
 
 # Could also use
-findAssignsTo2 =
-function(code, var)
+findAssignsTo =
+function(code, var = character(), complex = TRUE,
+         pred = if(complex) isComplexAssignTo else isAssignTo)
 {
-    pred = function(x, ...) isAssignTo(x, var)
-    findCallsTo(code, walker = mkCallWalkerPred(pred))
+    pred2 = function(x, ...) pred(x, var)
+    findCallsTo(code, walker = mkCallWalkerPred(pred2))
 }
 
 
 
+if(FALSE) {
+    
 setGeneric("findAssignsTo",
 function(code, var, index = FALSE, recursive = TRUE, ...)
     standardGeneric("findAssignsTo"))
@@ -115,9 +125,10 @@ function(code, var, index = FALSE, recursive = TRUE, ...)
     else
         list()
 })
+} # end if(FALSE) for setGeneric('isAssignTo')
 
-isAssignTo =
-function(x, var)    
-    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-") && is.name(x[[2]]) && as.character(x[[2]]) %in% var
+
+
+
 
 
