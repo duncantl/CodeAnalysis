@@ -1,29 +1,26 @@
-+ findCallsTo - extend to identify do.call and *apply calls. 
+<!-- 
+  Count the number left to do.
+  ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
+-->
 
-+ isAssignTo - make it handle complex left hand side.
-   + SEE - isComplexAssignTo. Make more robust.
++ findCallsTo - extend to identify do.call and *apply calls. 
+   + when processing a call, check if isCallTo(x, OneOfTheseFunctions)
+     and if so, is the FUN argument (or corresponding argument) a call to the
+	 target functions.
+
++ [check/robustify] isAssignTo - make it handle complex left hand side.
+   + √ Look at the function isComplexAssignTo. Make more robust.
    + See foo in tests/findAssignsTo.R.
    + Uses isAssignTo
      + So currently just checks if the LHS is the symbol. 
 	 + add a version of this that handles complex assignments.
    + problem is `x$y <- value ` is a call to `$<-`(x, y) and misses value.  Need to go back up the
      tree.	 
-
-+ findAssignsTo(findCallsTo, "isEnv") doesn't find the assignment in the if condition.
-  + old todo item and findCallsTo code no longer has isEnv
-  + but issue is *probably* if( isEnv <- is.environment(x))
-  + findAssignsTo2 seems to work.
-
-+ code analysis example (unrelated to highlighting, just the example)
-  + highlight package getStyleFile() has
-  ```
-  if (grepl(sprintf("%s$", extension, ignore.case = TRUE),  name))
-  ```
-  + the ignore.case is in the call to sprintf() and the command
-    gives a warning about ignoring an argument to sprintf.
-  + The ignore.case should be outside the sprintf() and in the call to grepl()
-     + but since sprintf() has ... it is ambiguous, but not really
-  + check whether a named argument in a call makes sense in the parent call.
+	 + But actually `x$y <-value` is parsed as `<-(x$y, value)`
+   + findAssignsTo(findCallsTo, "isEnv") doesn't find the assignment in the if condition.
+      + old todo item and findCallsTo code no longer has isEnv
+      + but issue is *probably* if( isEnv <- is.environment(x))
+      + findAssignsTo2 seems to work.
 
 + findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
    + √ getFunctionDefs() gets it right for tests/chainedAssigns.
@@ -49,8 +46,17 @@
       and check if the parameter is used before those local variables are created.
    + See explorations/findSelfRef.R.
 
-+ In procIndirectFunCall(e, funName) :
-  cannot currently determine function in empty call to match.call. That uses the context of the call.1
++ Find unused parameters and local variables 
+   + see findUnusedParams
+   + can we adapt getGlobals() to identify local variable creation and then if it is used.
+   	  + add a field to getGlobals() output which indicates if local variable was used - either as
+             return value or in RHS of another expression.
+
++ programmatically determine if a function returns a function
+  + see returnsFunction() in functionsReturningFunctions.R
+  + fix to deal with processing assignments in subfunctions and not the function itself.
+     + need to detect updates/replacement function assignments, e.g. attr(f, "foo") = x and f$foo =
+       x and f[["foo"]] = x and chains.
 
 + fix callGraph(fun) and the name used is obj. (meaning what??).
    + obj is the name of the first argument.
@@ -70,9 +76,28 @@
 + for loop concatenation, rewrite the code.
    We need type information about the elements to be able to initialize the answer vector.
 
++ [low] code analysis example (unrelated to highlighting, just the example)
+  + highlight package getStyleFile() has
+  ```
+  if (grepl(sprintf("%s$", extension, ignore.case = TRUE),  name))
+  ```
+  + the ignore.case is in the call to sprintf() and the command
+    gives a warning about ignoring an argument to sprintf.
+  + The ignore.case should be outside the sprintf() and in the call to grepl()
+     + but since sprintf() has ... it is ambiguous, but not really
+  + check whether a named argument in a call makes sense in the parent call.
+
 
 # Done
 
++ Fix message from getGlobals
+```In procIndirectFunCall(e, funName) :
+       cannot currently determine function in empty call to match.call. That uses the context of the call.1
+```
+   + see base::autoloader
+      + findSelfRef.R and running on all packages to reproduce issue.
+   + remove this message. It occurs with calls to match.call() and formals() with no
+     arguments. There are no variables there - global or local.
 
 + √ false positive for global variables in R CMD check for textConnection("bob", "w", local = TRUE); bob
   + This is an R issue.
@@ -80,6 +105,6 @@
 
 + removeAfterReturn  should work recursively to process blocks within functions.
 
-+ remove unused parameters
++ remove unused parameters - see findUnusedArgs/findUnusedParams. also unusedParams
 
 + remove unused assignments if we can tell there are no side effects of the RHS.

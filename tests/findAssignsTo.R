@@ -23,12 +23,11 @@ stopifnot(length(findAssignsTo(foo, "z")) == 2)
 ###############
 
 f = function(x) if(isEnv <- is.environment(x))  TRUE else FALSE
-findAssignsTo(f, "isEnv")
 stopifnot(length(findAssignsTo(f, "isEnv")) == 1)
 
 # Check if {} changes anything
 f = function(x) {
     if(isEnv <- is.environment(x))  TRUE else FALSE
 }
+stopifnot(length(findAssignsTo(f, "isEnv")) == 1)
 
-#findAssignsTo(f, "isEnv")
