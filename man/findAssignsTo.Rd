@@ -1,6 +1,7 @@
 \name{findAssignsTo}
 \alias{findAssignsTo}
 \alias{isComplexAssignTo}
+\alias{isSimpleAssignTo}
 \alias{isAssignTo}
 \title{Find assignments to variables in R code}
 \description{
@@ -22,10 +23,12 @@
 \usage{
 findAssignsTo(code, var = character(), complex = TRUE,
               pred = if (complex) isComplexAssignTo else isAssignTo)
+isComplexAssignTo(x, var) 
+isSimpleAssignTo(x, var = character())
 }
 \arguments{
-  \item{code}{the R code/language object}
-  \item{var}{the names of the variables being assigned. If this is empty,
+  \item{code,x}{the R code/language object}
+  \item{var}{the names of the variables being assigned. If this is empty for \code{findAssignsTo},
     all assignments are returned.}
   \item{complex}{a logical value. If \code{TRUE},
     the function includes both simple and complex assignments;  if \code{FALSE}
