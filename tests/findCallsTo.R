@@ -40,6 +40,8 @@ stopifnot(!isCallTo(quote(do.call(rbind, x)), "rbind", character()))
 stopifnot(!isCallTo(quote(do.call(rbind, x)), "rbind", FALSE))
 
 stopifnot(isCallTo(quote(do.call(base::rbind, x)), "rbind"))
+stopifnot(isCallTo(quote(do.call(base::rbind, x)), "base::rbind"))
+stopifnot(!isCallTo(quote(do.call(rbind, x)), "base::rbind"))
 
 ## Indirect calls
 

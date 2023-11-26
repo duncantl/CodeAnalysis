@@ -136,7 +136,7 @@ findCallsTo =
     # findCallsTo(f, "x$eval_f", parse = TRUE)
     #
 function(code, funNames = character(),
-         indirectCallFuns = IndirectCallFunList,
+         indirectCallFuns = getIndirectCallFunList(),
          walker = mkCallWalker(funNames, indirect = indirectCallFuns),
          parse = any(!sapply(funNames, is.name)))
 {
