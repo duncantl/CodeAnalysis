@@ -22,11 +22,11 @@
 }
 \usage{
 findCallsTo(code, funNames = character(),
-         indirectCallFuns = IndirectCallFunList,
+         indirectCallFuns = getIndirectCallFunList(),
          walker = mkCallWalker(funNames, indirect = indirectCallFuns),
          parse = any(!sapply(funNames, is.name))) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
-isCallTo(code, funName)
+isCallTo(code, funName, indirect = getIndirectCallFunList())
 mkCallWalkerPred(pred, ...)
 numCalls(code)
 }
@@ -36,7 +36,10 @@ numCalls(code)
     character vector of names or of R calls/expressions, or a list of previously parsed
     call language objects.
   }
-  \item{indirectCallFuns}{a named character vector. The names identify the
+\item{indirect,indirectCallFuns}{a named character vector or a logical value.
+  If \code{TRUE}, we use the value from a call to \code{getIndirectCallFunList()}.
+  If \code{FALSE}, we use the empty vector and so do not consider indirect calls.
+  For a character vector value, the names identify the
     function of interest and the corresponding value identifies the
     name of the parameter of that function corresponding to the function argument,
     e.g., \code{c(do.call = "what", lapply = "FUN")}.
