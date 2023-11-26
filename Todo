@@ -13,8 +13,8 @@
    	  + add a field to getGlobals() output which indicates if local variable was used - either as
              return value or in RHS of another expression.
 
-+ programmatically determine if a function returns a function
-  + see returnsFunction() in functionsReturningFunctions.R
++ [check] programmatically determine if a function returns a function
+  + √ see returnsFunction() in functionsReturningFunctions.R
   + fix to deal with processing assignments in subfunctions and not the function itself.
      + need to detect updates/replacement function assignments, e.g. attr(f, "foo") = x and f$foo =
        x and f[["foo"]] = x and chains.
