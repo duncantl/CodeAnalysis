@@ -158,24 +158,6 @@ function(x, filename, ...)
         
 }
 
-
-isSourceCall =
-function(code)
-   isCallTo(code, "source")
-
-isCallTo =
-function(code, funName)
-{
-    if(is(code, "ScriptNodeInfo"))
-        x = code@code
-    
-    if(is(code, "R6"))
-        is(code, "Call") && is_symbol(code$fn) && code$fn$value %in% funName
-    else 
-        (is.call(code) || is(code, "call")) && is.name(code[[1]]) && as.character(code[[1]]) %in% funName
-}
-
-
 insertSource =
     #
     # works on a file and the regular R language objects from parse()

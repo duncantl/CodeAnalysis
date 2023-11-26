@@ -3,6 +3,9 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 
++ getGlobals() doesn't detect local variable in if() could be a global
+  + same with  x < 0 || (w <- any(is.na(x))) when x is < 0 and second term not evaluated.
+
 + Find unused parameters and local variables 
    + Check if the new findAssignsTo() helps this.
    + see findUnusedParams
@@ -17,11 +20,13 @@
        x and f[["foo"]] = x and chains.
 
 + [check] findCallsTo - extend to identify do.call and *apply calls. 
-   + consolidate with isCallTo
-   + Handle pkg::foo and pkg:::foo cases for indirect, e.g. do.call(base::rbind)
-   + when processing a call, check if isCallTo(x, OneOfTheseFunctions)
-     and if so, is the FUN argument (or corresponding argument) a call to the
-	 target functions.
+   + consolidate with isCallTo()
+       + that mixes rstatic and language objects. Add to language part but should update
+	      rstatic part also.
+   + [check] Handle pkg::foo and pkg:::foo cases for indirect, e.g. do.call(base::rbind)
+   + √ when processing a call, check if isCallTo(x, OneOfTheseFunctions)
+       and if so, is the FUN argument (or corresponding argument) a call to the
+  	   target functions.
 
 + findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
    + √ getFunctionDefs() gets it right for tests/chainedAssigns.

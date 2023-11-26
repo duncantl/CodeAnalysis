@@ -1,5 +1,23 @@
 # find the calls to specified/target functions
 
+isSourceCall =
+function(code)
+   isCallTo(code, "source")
+
+isCallTo =
+function(code, funName, indirect = getIndirectCallFunList())
+{
+    if(is(code, "ScriptNodeInfo"))
+        x = code@code
+    
+    if(is(code, "R6"))
+        is(code, "Call") && is_symbol(code$fn) && code$fn$value %in% funName
+    else 
+        (is.call(code) || is(code, "call")) &&
+         ( isSymbol(code[[1]], funName) ||
+              (!isFALSE(indirect) && isIndirectCall(code, indirect, funName, TRUE)))
+}
+
 mkCallWalkerPred =
     #
 function(pred, ...)
@@ -39,11 +57,6 @@ function(pred, ...)
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
 
-isNamespaceAccess =
-function(x)
-  is.call(x) && isSymbol(x[[1]], c("::", ":::")) 
-
-
 mkCallWalker =
 function(funNames, indirect = character())
 {
@@ -56,9 +69,7 @@ function(funNames, indirect = character())
                any(sapply(funNames, identical, x[[1]])))
                 return(TRUE)
              
-            yes = (isName && (as.character(x[[1]]) %in% funNames)) ||
-                    ( is.call(x[[1]]) && isNamespaceAccess(x[[1]]) &&
-                     (deparse(x[[1]]) %in% funNames || (is.name(x[[1]][[3]]) && as.character(x[[1]][[3]]) %in% funNames)))
+            yes = (isName && (as.character(x[[1]]) %in% funNames)) || isNSAccessCallTo(x[[1]], funNames)
 
             if(yes)
                 return(yes)
@@ -72,6 +83,22 @@ function(funNames, indirect = character())
     mkCallWalkerPred(ok)
 }
 
+
+# Functions to check for pkg::foo or pkg:::foo
+#  and to check if that name is in funNames, either the full name pkg::foo or foo.
+isNamespaceAccess =
+function(x)
+  is.call(x) && isSymbol(x[[1]], c("::", ":::")) 
+
+
+isNSAccessCallTo =
+function(x, funNames)
+{
+  is.call(x) && isNamespaceAccess(x) &&
+      (deparse(x) %in% funNames || (is.name(x[[3]]) && as.character(x[[3]]) %in% funNames))
+}
+
+
 isIndirectCall =
 function(x, indirects, funNames, isFunNamesStrings)    
 {
@@ -83,9 +110,11 @@ function(x, indirects, funNames, isFunNamesStrings)
             return(FALSE)
         
         arg = k[[argName]]
-        if(!(is.character(arg) || isSymbol(arg)))
-            # XXX  handle pkg::fun or pkg:::fun  - see code in regular predicate and consolidate.
+        if(!(is.character(arg) || isSymbol(arg) || isNamespaceAccess(arg)))
             return(FALSE)  
+
+        if(isNamespaceAccess(arg))
+            return(isNSAccessCallTo(arg, funNames))
         
         if(isFunNamesStrings)
             return(as.character(arg) %in% funNames)

@@ -74,22 +74,6 @@ function(x, funsReturningFuns = FunctionsReturningFunctions)
          as.character(x[[3]][[1]]) %in% funsReturningFuns
 }
 
-
-
-if(FALSE) {
-# See freeVariables.R for richer version.
-isCallTo =
-    #
-    #
-    #
-function(x, funs)
-{
-    is.call(x) && is.name(x[[1]]) && as.character(x[[1]]) %in% funs
-}
-
-} # enf of if(FALSE)
-
-
 getArgFromCall =
     #
     #   getArgFromCall( quote(Vectorize(f)),  FUN)

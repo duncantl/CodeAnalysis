@@ -21,7 +21,25 @@ stopifnot(length(findCallsTo(p, c("rbind", "foo"))) == 4)
 stopifnot(length(findCallsTo(p, c("rbind", "pkg::foo"))) == 3)
 
 
+p2 = function(x) {
+    do.call(base::rbind, x)
+    lapply(x, pkg:::foo, other)
+    lapply(x, foo, other)    
+}
+stopifnot(length(findCallsTo(p2, c("rbind", "foo"))) == 3)
 
+# :: not ::: 
+stopifnot(length(findCallsTo(p2, c("rbind", "pkg::foo"))) == 1)
+stopifnot(length(findCallsTo(p2, c("pkg:::foo"))) == 1)
+
+
+# isCallTo()
+
+stopifnot(isCallTo(quote(do.call(rbind, x)), "rbind"))
+stopifnot(!isCallTo(quote(do.call(rbind, x)), "rbind", character()))
+stopifnot(!isCallTo(quote(do.call(rbind, x)), "rbind", FALSE))
+
+stopifnot(isCallTo(quote(do.call(base::rbind, x)), "rbind"))
 
 ## Indirect calls
 
