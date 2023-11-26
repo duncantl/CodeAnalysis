@@ -117,7 +117,7 @@ function(ex, fun)
             # Combine the earlier assignments and add as attributes ?
             a = tmp[[length(tmp)]]
             if(length(tmp) > 1)
-                attributes(a, "intermediateAssignments") = tmp[-length(tmp)]
+                attr(a, "intermediateAssignments") = tmp[-length(tmp)]
             # Assuming var = value
             a[[3]]
         } else
