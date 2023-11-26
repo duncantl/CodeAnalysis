@@ -8,7 +8,7 @@ function(pred, ...)
 
     leaf = function(x, w, ...) {
         ty = typeof(x)
-        if(ty %in% c("pairlist", "expression", "list")) {
+        if(ty %in% c("pairlist", "expression", "list", "language")) {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
