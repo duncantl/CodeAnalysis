@@ -39,6 +39,11 @@ function(pred, ...)
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
 
+isNamespaceAccess =
+function(x)
+  is.call(x) && isSymbol(x[[1]], c("::", ":::")) 
+
+
 mkCallWalker =
 function(funNames, indirect = character())
 {
@@ -52,8 +57,8 @@ function(funNames, indirect = character())
                 return(TRUE)
              
             yes = (isName && (as.character(x[[1]]) %in% funNames)) ||
-                    ( is.call(x[[1]]) && is.name(x[[1]][[1]]) &&
-                      as.character(x[[1]][[1]]) %in% c("::", ":::") && deparse(x[[1]]) %in% funNames )
+                    ( is.call(x[[1]]) && isNamespaceAccess(x[[1]]) &&
+                     (deparse(x[[1]]) %in% funNames || (is.name(x[[1]][[3]]) && as.character(x[[1]][[3]]) %in% funNames)))
 
             if(yes)
                 return(yes)
