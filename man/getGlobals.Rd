@@ -18,7 +18,7 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            skip = c(".R", ".typeInfo", ".signature", ".pragma", ".Internal", ".Primitive"),
            .debug = TRUE, .assert = TRUE, localVars = character(),
            mergeSubFunGlobals = TRUE, old = TRUE,
-           indirectCallFunctions = IndirectCallFunctions,
+           indirectCallFunctions = names(getIndirectCallFunList()),
            handleTextConnections = TRUE)
 }
 \arguments{

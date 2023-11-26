@@ -1,4 +1,4 @@
-# find the calls to given functins
+# find the calls to specified/target functions
 
 mkCallWalkerPred =
     #
@@ -70,7 +70,6 @@ function(funNames, indirect = character())
 isIndirectCall =
 function(x, indirects, funNames, isFunNamesStrings)    
 {
-
     if( isSymbol(x[[1]]) && (fn <- as.character(x[[1]])) %in% names(indirects)) {
         argName = indirects[[fn]]
         fun = get(fn) # XXX
@@ -138,9 +137,8 @@ IndirectCallFunList = c(do.call = "what",
 
 IndirectCallFunList[c("apply", "lapply", "sapply", "mapply", "vapply", "tapply", "by", "aggregate", "outer", "sweep", "kronecker", "eapply")] = "FUN"
 IndirectCallFunList[c("Map", "Reduce", "Filter", "Negate", "Find", "Position", "rapply")] = "f"
-# Include formals, body, body<- ? Yes.
-#   Make it optional in getIndirectCallFunList
-#  parameter is named "fun"
+# Should we include formals, body, body<- ? Yes.
+#  Could make it optional in getIndirectCallFunList?
 IndirectCallFunList[c("formals", "body", "body<-")] = "fun"
 
 

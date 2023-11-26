@@ -21,8 +21,10 @@
   a sense of the complexity of the code.
 }
 \usage{
-findCallsTo(code, funNames = character(), walker = mkCallWalker(funNames),
-             parse = any(!sapply(funNames, is.name))) 
+findCallsTo(code, funNames = character(),
+         indirectCallFuns = IndirectCallFunList,
+         walker = mkCallWalker(funNames, indirect = indirectCallFuns),
+         parse = any(!sapply(funNames, is.name))) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
 isCallTo(code, funName)
 mkCallWalkerPred(pred, ...)
@@ -33,7 +35,13 @@ numCalls(code)
   \item{funNames,funName}{the names of functions or variables of interest. This can be a
     character vector of names or of R calls/expressions, or a list of previously parsed
     call language objects.
-   }  
+  }
+  \item{indirectCallFuns}{a named character vector. The names identify the
+    function of interest and the corresponding value identifies the
+    name of the parameter of that function corresponding to the function argument,
+    e.g., \code{c(do.call = "what", lapply = "FUN")}.
+    The default provides the information from functions in base.    
+  }
   \item{walker}{the \code{codetools}-style functions that traverse the AST to find the relevant calls.}
   \item{parse}{whether to parse the \code{funNames} in \code{findCallsTo} and treat them as language
      objects.}
