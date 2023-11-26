@@ -34,6 +34,7 @@ f3 = function(x = foo(1), y = global)
     x + y
 }
 gv = getGlobals(f3)
+#XXX Is this correct. global is a a non-local variable.
 stopifnot(identical(gv$variables, character()))
 stopifnot(identical(unique(gv$functions), c("+", "*")))
 
@@ -275,3 +276,7 @@ f = function(x) {
     textConnection("bob", open = "w", local = TRUE)
     bob
 }
+
+
+
+

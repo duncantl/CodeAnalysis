@@ -40,24 +40,57 @@ function(pred, ...)
 }
 
 mkCallWalker =
-function(funNames)
+function(funNames, indirect = character())
 {
     isFunNamesStrings = is.character(funNames)
     ok = function(x, isName, ...) {
             if(length(funNames) == 0)
                 return(TRUE)
             
-            if(!isFunNamesStrings) 
-                return(any(sapply(funNames, identical, x[[1]])))
+            if(!isFunNamesStrings && 
+               any(sapply(funNames, identical, x[[1]])))
+                return(TRUE)
              
-            (isName && (as.character(x[[1]]) %in% funNames)) ||
-               ( is.call(x[[1]]) && is.name(x[[1]][[1]]) &&
-                   as.character(x[[1]][[1]]) %in% c("::", ":::") && deparse(x[[1]]) %in% funNames ) 
+            yes = (isName && (as.character(x[[1]]) %in% funNames)) ||
+                    ( is.call(x[[1]]) && is.name(x[[1]][[1]]) &&
+                      as.character(x[[1]][[1]]) %in% c("::", ":::") && deparse(x[[1]]) %in% funNames )
+
+            if(yes)
+                return(yes)
+
+            if(length(indirect))
+                return(isIndirectCall(x, indirect, funNames, isFunNamesStrings))
+
+            FALSE
           }
 
     mkCallWalkerPred(ok)
 }
 
+isIndirectCall =
+function(x, indirects, funNames, isFunNamesStrings)    
+{
+
+    if( isSymbol(x[[1]]) && (fn <- as.character(x[[1]])) %in% names(indirects)) {
+        argName = indirects[[fn]]
+        fun = get(fn) # XXX
+        k = match.call(fun, x)
+        if(!(argName %in% names(k)))
+            return(FALSE)
+        
+        arg = k[[argName]]
+        if(!(is.character(arg) || isSymbol(arg)))
+            # XXX  handle pkg::fun or pkg:::fun  - see code in regular predicate and consolidate.
+            return(FALSE)  
+        
+        if(isFunNamesStrings)
+            return(as.character(arg) %in% funNames)
+        else
+            return(any(sapply(funNames, identical, arg)))
+    }
+
+    FALSE
+}
 
 
 findCallsTo =
@@ -69,7 +102,10 @@ findCallsTo =
     # findCallsTo(f, "x$eval_f")
     # findCallsTo(f, "x$eval_f", parse = TRUE)
     #
-function(code, funNames = character(), walker = mkCallWalker(funNames), parse = any(!sapply(funNames, is.name)))
+function(code, funNames = character(),
+         indirectCallFuns = IndirectCallFunList,
+         walker = mkCallWalker(funNames, indirect = indirectCallFuns),
+         parse = any(!sapply(funNames, is.name)))
 {
     if(parse) 
         funNames = lapply(funNames, function(x) parse(text = x)[[1]])
@@ -81,8 +117,42 @@ function(code, funNames = character(), walker = mkCallWalker(funNames), parse = 
     } else if(is.environment(code)) 
         code = as.list.environment(code, TRUE)
 
+    if(is.logical(indirectCallFuns) && missing(walker)) {
+        indirectCallFuns = if(isTRUE(indirectCallFuns))
+                               getIndirectCallFunList()
+                           else
+                               character()
+    }
     
     walkCode(code, walker)
     walker$ans()
 }
 
+
+
+# Used by getGlobals() via call to getIndirectCallFunList().
+
+IndirectCallFunList = c(do.call = "what",
+                        match.fun = "FUN",
+                        match.call = "def")
+
+IndirectCallFunList[c("apply", "lapply", "sapply", "mapply", "vapply", "tapply", "by", "aggregate", "outer", "sweep", "kronecker", "eapply")] = "FUN"
+IndirectCallFunList[c("Map", "Reduce", "Filter", "Negate", "Find", "Position", "rapply")] = "f"
+# Include formals, body, body<- ? Yes.
+#   Make it optional in getIndirectCallFunList
+#  parameter is named "fun"
+IndirectCallFunList[c("formals", "body", "body<-")] = "fun"
+
+
+getIndirectCallFunList =
+    # access the pre-created list above.
+function(..., .els = list(...))    
+{
+    x = IndirectCallFunList
+    if(length(.els)) {
+        e = as.character(.els)
+        x[ names(e) ] = e
+    }
+    
+    x
+}

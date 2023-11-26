@@ -58,7 +58,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
          .debug = TRUE, .assert = TRUE,
          localVars = character(), mergeSubFunGlobals = TRUE,
          old = TRUE, # remove old when we are sure it worksa
-         indirectCallFunctions = IndirectCallFunctions,
+         indirectCallFunctions = names(getIndirectCallFunList()),
          handleTextConnections = TRUE) 
 {
 
@@ -368,12 +368,6 @@ else
 
   ans
 }
-
-
-IndirectCallFunctions = 
-    c("apply", "eapply", "sapply", "lapply", "vapply", "mapply", "tapply", "by", "aggregate",
-      "do.call", "match.fun", "kronecker", "outer", "sweep", "formals", "body", "body<-",
-      "match.call", "Map", "Reduce", "Filter", "Negate", "Find", "Position")
 
 
 isColonCall =
