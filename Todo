@@ -49,20 +49,6 @@
        and if so, is the FUN argument (or corresponding argument) a call to the
   	   target functions.
 
-+ findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
-   + √ getFunctionDefs() gets it right for tests/chainedAssigns.
-   + findFunctionDefs() returns list.
-   + Old
-     + only captures name and not name2
-     + e.g. RDCOMEvents/eventServer.S
-     + shouldn't need recursive = TRUE to find name in name = name2 = function() ..
-     + works now, but not with recursive = TRUE
-
-+ Re. above - should we get rid of findFunctionDefs()
-    + [NO]  getFunctionDefs() doesn't know about Vectorize/vectorize
-	+ √ getFunctionDefs() knows about (top-level) if(FALSE)
-	   + see `getFunctionDefs("tests/chainedAssigns.R")`
-
 + getFunctionDefs() - have it find functions in setMethod()
    + √ already works with recursive = TRUE.
    + perhaps put better name on "these" (what ?) methods and generics.
@@ -123,6 +109,20 @@
 
 # Done
 
++ findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
+   + √ getFunctionDefs() gets it right for tests/chainedAssigns.
+   + findFunctionDefs() returns list.
+   + Old
+     + only captures name and not name2
+     + e.g. RDCOMEvents/eventServer.S
+     + shouldn't need recursive = TRUE to find name in name = name2 = function() ..
+     + works now, but not with recursive = TRUE
+
++ Re. above - should we get rid of findFunctionDefs()
+    + √ fixed -  getFunctionDefs() doesn't know about Vectorize/vectorize
+	+ √ getFunctionDefs() knows about (top-level) if(FALSE)
+	   + see `getFunctionDefs("tests/chainedAssigns.R")`
+
 + Fix message from getGlobals
 ```
 In procIndirectFunCall(e, funName) :
@@ -162,14 +162,10 @@ In procIndirectFunCall(e, funName) :
    + √ - overall:   √ filename, √ directory name, √ environment, √ list, √ function, call, ....??
    + Yes getFunctionDefs()
 + recursively process functions to find subfunctions
-   + Yes if given a function.
-   + Doesn't do it at the file level. Could make it do so.
+   + Yes if given a function, file, expression.
 + recursively follow source() commands
+   + No.
 
-
-z = getFunctionDefs("getFunctionDefsEg2.R")
-e = parse("getFunctionDefsEg2.R")
-z2 = getFunctionDefs(e)
 
 findFunctionDefs picks up 
   x$fun = function 
@@ -185,4 +181,11 @@ z4 = getFunctionDefs(as.list.environment(e, TRUE)) # list
 getFunctionDefs(z4$rec) # function object
 getFunctionDefs(quote(function(x)  x + 1)) # call
 getFunctionDefs(quote(x <- function(x)  x + 1))  # assignment call
+
+z = getFunctionDefs("getFunctionDefsEg2.R", recursive = TRUE)
+e = parse("getFunctionDefsEg2.R")
+z2 = getFunctionDefs(e)
+z2r = getFunctionDefs(e, recursive = TRUE)
+
+
 ```
