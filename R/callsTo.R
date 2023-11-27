@@ -193,12 +193,28 @@ IndirectCallFunList[c("formals", "body", "body<-")] = "fun"
 getIndirectCallFunList =
     # access the pre-created list above.
 function(..., .els = list(...))    
+   mkFunNameList(IndirectCallFunList, .els, rmDups = FALSE)
+
+mkFunNameList =
+    #
+    #  mkFunNameList(c("A", "B"))
+    #  mkFunNameList(c("A", "B"), list())    
+    #  mkFunNameList(c("A", "B"), list(a  = "X", b  = "Y", c = "A"))
+    #  mkFunNameList(c("A", "B"), "X")
+    #
+function(var, .els = list(), rmDups = !is.null(names(var)))
 {
-    x = IndirectCallFunList
+    x = var
     if(length(.els)) {
-        e = as.character(.els)
-        x[ names(e) ] = e
+        ids = names(.els)
+        x = c(x, structure(sapply(.els, as.character), names = ids))
     }
-    
-    x
+
+    # If .els provides a duplicated element but with a name, the
+    # element w/o the name remains which is probably not what we want.
+    if(rmDups)
+        x[!duplicated(x)]
+    else
+        x
 }
+

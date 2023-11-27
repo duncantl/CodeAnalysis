@@ -25,9 +25,9 @@
 	  + also use the package's environment
    + see findCallsTo issue about environment for get()
    + !! for now, tryCatch() and if isLHS is NA or TRUE, try the `funName<-` version of the function.
-       + ideally pass isLHS down through the call stack.
-	   + we can't tell it is the LHS
-     	   + could put an attribute on this.
+       + XXX ideally pass isLHS down through the call stack.
+	   + we can't tell from the call itself if it is the LHS
+     	   + need argument or could put an attribute on this from higher up the call stack.
    
 + [check] programmatically determine if a function returns a function - returnsFunction()
   + grDevices:::.select_device
