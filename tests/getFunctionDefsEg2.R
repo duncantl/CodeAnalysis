@@ -10,8 +10,6 @@ bar = function(x, y) {
 x = list()
 x$fun = function() 1
 
-
-
 top =
 function(x, y, doit = function(a) bar(a), ...)
 {
@@ -22,3 +20,18 @@ function(x, y, doit = function(a) bar(a), ...)
 
     mapply(function(i, v) { print(i); foo(v)}, x,  y)
 }
+
+f = g =
+function(a, b)
+        a + b
+
+vec <- Vectorize(f)
+vec2 = Vectorize(g)
+
+
+if(FALSE) {
+  false = function(a) a + 1    
+}
+
+setGeneric("myGeneric", function(x) standardGeneric("myGeneric"))
+
