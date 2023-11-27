@@ -1,5 +1,3 @@
-FunctionsReturningFunctions = c(base = "Vectorize", base = "Negate")
-
 findFunctionDefs =
     #
     # XXX Probably want getFunctionDefs(), not this one.

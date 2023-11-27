@@ -1,3 +1,10 @@
+FunctionsReturningFunctions = c(base = "Vectorize", base = "Negate")
+
+getFunReturningFunList =
+function(..., .els = list(...))
+   mkFunNameList(FunctionsReturningFunctions, .els)
+
+
 returnsFunction =
     #
     # Takes a function and returns a logical value indicating
@@ -12,7 +19,7 @@ returnsFunction =
     #  I think we have a start of the names of such functions.
     #
 function(fun, recursive = FALSE, envir = globalenv(),
-         functionsReturningFunctions = character(), any = FALSE)
+         functionsReturningFunctions = getFunReturningFunList(), any = FALSE)
 {
     ret = getReturnValues(fun)
     #    value = lapply(ret, function(x) if(is.call(x)) x[[2]] else x)
@@ -74,7 +81,7 @@ definesFunction =
     #
     # Does the language object x evaluate to a function.
     #    
-function(x, fun, recursive = FALSE, envir = globalenv(), functionsReturningFunctions = character())
+function(x, fun, recursive = FALSE, envir = globalenv(), functionsReturningFunctions = getFunReturningFunList())
 {
     if(isCallTo(x, "function"))
         return(TRUE)

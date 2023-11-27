@@ -9,7 +9,8 @@
 }
 \usage{
 returnsFunction(fun, recursive = FALSE, envir = globalenv(),
-                 functionsReturningFunctions = character(), any = FALSE)
+                functionsReturningFunctions = getFunReturningFunList(),
+                any = FALSE)
 }
 \arguments{
   \item{fun}{function object}
