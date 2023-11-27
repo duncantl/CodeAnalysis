@@ -5,7 +5,7 @@ function(code)
    isCallTo(code, "source")
 
 isCallTo =
-function(code, funName, indirect = getIndirectCallFunList())
+function(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
 {
     if(is(code, "ScriptNodeInfo"))
         x = code@code
@@ -15,7 +15,7 @@ function(code, funName, indirect = getIndirectCallFunList())
     else 
         (is.call(code) || is(code, "call")) &&
          ( isSymbol(code[[1]], funName) ||
-              (!isFALSE(indirect) && isIndirectCall(code, indirect, funName, TRUE)))
+              (!isFALSE(indirect) && isIndirectCall(code, indirect, funName, TRUE, isLHS = isLHS)))
 }
 
 mkCallWalkerPred =
@@ -101,7 +101,7 @@ function(x, funNames)
 
 isIndirectCall =
     # x is a call.
-function(x, indirects, funNames, isFunNamesStrings)    
+function(x, indirects, funNames, isFunNamesStrings, isLHS = NA, envir = globalenv())    
 {
     if( isSymbol(x[[1]]) && (fn <- as.character(x[[1]])) %in% names(indirects)) {
         argName = indirects[[fn]]
@@ -110,7 +110,16 @@ function(x, indirects, funNames, isFunNamesStrings)
         w = sapply(x, function(x) isSymbol(x, "..."))
         if(any(w))
             x = x[!w]
-        k = match.call(fun, x)
+        k = tryCatch(match.call(fun, x),
+                     error = function(e) {
+                         if(is.na(isLHS) || isLHS) {
+                             id = paste0(as.character(x[[1]]), "<-") 
+                             x[[1]] = as.name( id )
+                             match.call(get(id), x)
+                         } else
+                             stop(e)
+                     })
+        
         if(!(argName %in% names(k)))
             return(FALSE)
         
