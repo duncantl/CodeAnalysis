@@ -19,7 +19,7 @@
 \alias{getFunctionDefs,(-method}
 \alias{getFunctionDefs,=-method}
 \alias{getFunctionDefs,<--method}
-\alias{findFunctionDefs}
+%\alias{findFunctionDefs}
 \alias{getPkgFunctions}
 \title{
 Get function definitions in R code files, functions, environments, namespaces and packages.

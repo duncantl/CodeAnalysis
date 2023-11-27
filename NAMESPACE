@@ -51,8 +51,10 @@ export(pkgSymbolsUsed)
 
 # From the  exploration of the variety_trial_analysis project.
 # Some duplicates!
-export(findFunctionDefs)
-export(getFunctionDefs)# same as findFunctionDefs and findFunctionDefs takes the name of a file, but getFunctionDefs doesn't yet.
+#remove from export
+#    export(findFunctionDefs)
+# Use getFunctionDefs()
+export(getFunctionDefs)
 exportMethods(getFunctionDefs)
 
 # Needed??
