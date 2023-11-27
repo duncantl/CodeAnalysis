@@ -124,7 +124,8 @@
 # Done
 
 + Fix message from getGlobals
-```In procIndirectFunCall(e, funName) :
+```
+In procIndirectFunCall(e, funName) :
        cannot currently determine function in empty call to match.call. That uses the context of the call.1
 ```
    + see base::autoloader
@@ -147,16 +148,41 @@
 ## getFunctionDefs v findFunctionDefs
 
 + Vectorize
-   + No getFunctionDefs(), 
+   + Yes getFunctionDefs() - after changes
    + Yes findFunctionDefs()
 + chained assigns x = y = function
+   + Yes getFunctionDefs()
 + if(FALSE)
+   + Yes getFunctionDefs()
 + setGeneric
-   + setMethod()
+   + No getFunctionDefs()
++ setMethod()
+   + No getFunctionDefs()
 + handle different types of inputs
-   + filename, directory name, environment, list, function, code
+   + √ - overall:   √ filename, √ directory name, √ environment, √ list, √ function, call, ....??
+   + Yes getFunctionDefs()
 + recursively process functions to find subfunctions
+   + Yes if given a function.
+   + Doesn't do it at the file level. Could make it do so.
 + recursively follow source() commands
 
 
-getFunctionDefs
+z = getFunctionDefs("getFunctionDefsEg2.R")
+e = parse("getFunctionDefsEg2.R")
+z2 = getFunctionDefs(e)
+
+findFunctionDefs picks up 
+  x$fun = function 
+which is not necessarily good  
+
+
++ In tests/ directory
+```
+z = getFunctionDefs("getFunctionDefsEg2.R") # file
+z3 = getFunctionDefs(".")   # directory
+e = new.env(); source("getFunctionDefsEg2.R", e); ze = getFunctionDefs(e)  # environment
+z4 = getFunctionDefs(as.list.environment(e, TRUE)) # list
+getFunctionDefs(z4$rec) # function object
+getFunctionDefs(quote(function(x)  x + 1)) # call
+getFunctionDefs(quote(x <- function(x)  x + 1))  # assignment call
+```
