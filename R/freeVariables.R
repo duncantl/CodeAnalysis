@@ -373,7 +373,6 @@ function(e)
     }
 
     FALSE
-    
 }
 
 getSearchPathVariables =

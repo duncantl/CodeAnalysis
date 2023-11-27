@@ -19,10 +19,8 @@ function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
     if(!parse)
         return(NULL)
     
-    if(file.exists(x)) {
+    if(file.exists(x) && file.info(x)$isdir[1]) {
 
-        info = file.info(x)
-        if(info$isdir[1]) {
             files = getRFiles(x)
             tmp = lapply(files, getFunctionDefs, recursive = recursive, ...)
 
@@ -41,10 +39,9 @@ function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
                      ans
                    } else
                      structure(tmp, names = files, class = "FunctionsByFile"))
-        }
     }
-    
-   e =  if(file.exists(x))
+
+    e =  if(file.exists(x))
             parse(x)
         else
             parse(text = x)
@@ -79,8 +76,8 @@ function(x, recursive = FALSE, ...)
 
 
 setMethod("getFunctionDefs", "expression",
-          #XXXX  This doesn't seem to directly call any of the methods for the language elements!!!
-          # Do the other functions call getFunctionDefs?, i.e., getAddFunctionDefs
+          #XXXX  This doesn't seem to directly call any getFunctionsDef and hence its methods for the language elements!
+          # Do the other functions call getFunctionDefs?, i.e., does getAllFunctionDefs call getFunctionDefs. No.
 function(x, env = new.env(parent = globalenv()),
          toSymbol = TRUE, recursive = FALSE,
          funsReturningFuns = FunctionsReturningFunctions,
@@ -112,6 +109,7 @@ function(x, env = new.env(parent = globalenv()),
     # that return functions.
     #
     # This will also pick up x$el = function(...)
+    # So filter them.
     w2 = sapply(x[!w], isFunctionDef, funsReturningFuns)
     if(any(w2)) {
         els = x[!w][w2]

@@ -13,8 +13,10 @@
 # So creating that function and then calling it.
 # Pass that to returnsFunction.  But have to evaluate it to make it an actual function, not a call to function.
 # Have to drill through the ().
+# See returnsFunction() now.
 
 library(CodeAnalysis)
+
 lik = function(x)
     function(mu, sd)
         prod(dnorm(x, mu, sd))
