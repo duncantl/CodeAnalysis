@@ -1,4 +1,4 @@
-FunctionsReturningFunctions = "Vectorize"
+FunctionsReturningFunctions = c(base = "Vectorize", base = "Negate")
 
 findFunctionDefs =
     #
@@ -52,8 +52,7 @@ isFunctionDef =
     # An assignment of a function.
 function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
-    is.call(x) && length(as.character(x[[1]])) == 1 && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) &&
-        (length(as.character(x[[3]][[1]])) == 1 && (as.character(x[[3]][[1]]) == "function" || as.character(x[[3]][[1]]) %in% funsReturningFuns))
+    isCallTo(x,  c("=", "<-")) && isCallTo(x[[3]], c("function", funsReturningFuns))
 }
 
 findIndirectFunctions =
@@ -70,8 +69,7 @@ function(code, funsReturningFuns = FunctionsReturningFunctions)
 isIndirectFunctionDef =
 function(x, funsReturningFuns = FunctionsReturningFunctions)
 {
-    is.call(x) && as.character(x[[1]]) %in% c("=", "<-") && is.call(x[[3]]) &&
-         as.character(x[[3]][[1]]) %in% funsReturningFuns
+    isCallTo(x, c("=", "<-")) && isCallTo(x[[3]], funsReturningFuns)
 }
 
 getArgFromCall =
