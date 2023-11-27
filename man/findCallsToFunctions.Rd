@@ -26,7 +26,7 @@ findCallsTo(code, funNames = character(),
          walker = mkCallWalker(funNames, indirect = indirectCallFuns),
          parse = any(!sapply(funNames, is.name))) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
-isCallTo(code, funName, indirect = getIndirectCallFunList())
+isCallTo(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
 mkCallWalkerPred(pred, ...)
 numCalls(code)
 }
@@ -66,6 +66,13 @@ numCalls(code)
    % discuss this wrt to indexWalkCode and mkIsCallTo().  Could we pass the vector of functions
    % we want to match via the ...
    % mkCallWalkerPred(isCallTo, "foo")
+   \item{isLHS}{a logical value. Intended to indicate whether the call \code{x}
+     is the left hand side of an assignment. If so, since
+     this is a call and not a name/symbol, use the replacement function form,
+     e.g., \code{fun<-} when calling \code{\link[base]{match.call}}.
+     This is not passed down yet from the functions that call \code{isCallTo} as part of the
+     higher-level analyses.
+   }
 }
 \value{
   \code{findCallsTo} returns a list of the call language objects.
