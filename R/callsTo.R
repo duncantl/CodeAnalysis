@@ -39,6 +39,10 @@ function(pred, ...)
     call = function(x, w) {
 
         isName = is.name(x[[1]])
+        if(isSymbol(x[[1]], c("<-", "=")) && is.call(x[[2]]))
+            attr(x[[2]], "isLHS") = TRUE
+           
+           
         if(pred(x, isName, ...))  # XXXX This is very interesting as to where the ... comes from
             # the mkCallWalkerPred() or the call function.
             # It has to be the former as call() doesn't have ...
@@ -99,23 +103,39 @@ function(x, funNames)
 }
 
 
+getIsLHS =
+function(x, defaultValue = NA)
+{
+    if("isLHS" %in% names(attributes(x)))
+        return(attr(x, "isLHS"))
+    defaultValue
+}
+
 isIndirectCall =
     # x is a call.
-function(x, indirects, funNames, isFunNamesStrings, isLHS = NA, envir = globalenv())    
+function(x, indirects, funNames, isFunNamesStrings, isLHS = getLHS(x), envir = globalenv())    
 {
+
+    # used in 2 places.
+    matchCall = function(fn, x, replace = FALSE) {
+        if(replace)
+            fn = paste0(as.character(x[[1]]), "<-") 
+        fun = get(fn) # XXX
+        match.call(fun, x)
+    }
+    
     if( isSymbol(x[[1]]) && (fn <- as.character(x[[1]])) %in% names(indirects)) {
         argName = indirects[[fn]]
-        fun = get(fn) # XXX
+
         # If ... in x, then match.call() will raise an error.
         w = sapply(x, function(x) isSymbol(x, "..."))
         if(any(w))
             x = x[!w]
-        k = tryCatch(match.call(fun, x),
+
+         k = tryCatch(matchCall(fn, x, isTRUE(getIsLHS(x))),
                      error = function(e) {
-                         if(is.na(isLHS) || isLHS) {
-                             id = paste0(as.character(x[[1]]), "<-") 
-                             x[[1]] = as.name( id )
-                             match.call(get(id), x)
+                         if(is.na(isLHS)) {
+                             matchCall(fn, x, TRUE)
                          } else
                              stop(e)
                      })
