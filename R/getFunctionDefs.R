@@ -77,8 +77,14 @@ function(x, recursive = FALSE, ...)
 
 
 
+
 setMethod("getFunctionDefs", "expression",
-function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FALSE, ...)
+          #XXXX  This doesn't seem to directly call any of the methods for the language elements!!!
+          # Do the other functions call getFunctionDefs?, i.e., getAddFunctionDefs
+function(x, env = new.env(parent = globalenv()),
+         toSymbol = TRUE, recursive = FALSE,
+         funsReturningFuns = FunctionsReturningFunctions,
+         ...)
 {
     if(length(x) == 0)
         return(list())
@@ -88,19 +94,35 @@ function(x, env = new.env(parent = globalenv()), toSymbol = TRUE, recursive = FA
     
     w = sapply(x, isFunAssign, toSymbol = toSymbol)
 
-    if(toSymbol) {
-        lapply(x[w], eval, env)
-        as.list(env, all.names = TRUE)
-    } else {
-        defs = x[w]
-        funs = lapply(x[w], function(e) eval(e[[3]], env))
-        names(funs) = sapply(x[w], function(e)
-                                     if(is.name(e[[2]]))
-                                        as.character(e[[2]])
-                                     else
-                                        paste(deparse(e[[2]]), collapse = ""))
-        funs
+    ans = if(toSymbol) {
+              lapply(x[w], eval, env)
+              as.list(env, all.names = TRUE)
+          } else {
+              defs = x[w]
+              funs = lapply(x[w], function(e) eval(e[[3]], env))
+              names(funs) = sapply(x[w], function(e)
+                                            if(is.name(e[[2]]))
+                                                as.character(e[[2]])
+                                            else
+                                                paste(deparse(e[[2]]), collapse = ""))
+              funs
+          }
+
+    # Now look for top-level assignments that define functions but indirectly via calls to functions
+    # that return functions.
+    #
+    # This will also pick up x$el = function(...)
+    w2 = sapply(x[!w], isFunctionDef, funsReturningFuns)
+    if(any(w2)) {
+        els = x[!w][w2]
+        els = els[ sapply(els, function(x) is.name(x[[2]])) ]
+        if(length(els)) {
+            ids = sapply(els, function(x) as.character(x[[2]]))
+            ans[ids] = lapply(els, `[[`, 3)
+        }
     }
+
+    ans
 })
 
 #XXX Get the names on the elements in this and the .function method
@@ -111,13 +133,18 @@ tmp = function(x, parse = FALSE, ...)
         ans = getFunctionDefs(x[[3]], parse = parse, ...)
         names(ans)[1] = as.character(x[[2]])
         ans
+    } else if(isFunctionDef(x)) {
+        # Sets the names on a object that may have more than one element to just one name
+        # so get c(varName, "", "")
+        structure(x[[3]], names = as.character(x[[2]]))
     } else if(is.name(x[[1]]) && as.character(x[[1]]) == "function") {
         unlist(c(x, getFunctionDefs(eval(x), parse = parse, ...)))
     } else
         unlist( lapply(as.list(x), getFunctionDefs, parse = parse, ...) )
 }
 setMethod("getFunctionDefs", "call", tmp)
-#XXX Need to setOlClass("<-")
+#XXX Need to setOldClass("<-")
+#??? Why set this for <- but not for = which is set later with a different function?
 setMethod("getFunctionDefs", "<-", tmp)
 
 
