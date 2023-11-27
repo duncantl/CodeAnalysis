@@ -3,18 +3,37 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 
++ If add a parameter to a function, what calls do we need to change.
+  + See R/addParam.R  
+  + did this recently, so finalize and make easy to use.
+  + example, isLHS and envir in function isIndirectCall
+
 + getGlobals() doesn't detect local variable in if() could be a global
   + same with  x < 0 || (w <- any(is.na(x))) when x is < 0 and second term not evaluated.
 
 + Find unused parameters and local variables 
-   + Check if the new findAssignsTo() helps this.
+   + Check if the new findAssignsTo() helps this, i.e., the complex assignments.
    + see findUnusedParams
    + can we adapt getGlobals() to identify local variable creation and then if it is used.
    	  + add a field to getGlobals() output which indicates if local variable was used - either as
              return value or in RHS of another expression.
 
-+ [check] programmatically determine if a function returns a function
-  + √ see returnsFunction() in functionsReturningFunctions.R
++ isIndidrectCall - errors in call to match.call()
+   + remove the try() and run procPackages(returnsFunction)
+   + methods package has body(, envir = ..)
+      + actually this is a body<- call.
+	  + also use the package's environment
+   + see findCallsTo issue about environment for get()
+   + !! for now, tryCatch() and if isLHS is NA or TRUE, try the `funName<-` version of the function.
+       + ideally pass isLHS down through the call stack.
+	   + we can't tell it is the LHS
+     	   + could put an attribute on this.
+   
++ [check] programmatically determine if a function returns a function - returnsFunction()
+  + grDevices:::.select_device
+     + doesn't include pdf as one of the possible functions being returned.
+	 + not following the definition of local variables within the function when 
+	   the return value is a symbol.
   + fix to deal with processing assignments in subfunctions and not the function itself.
      + need to detect updates/replacement function assignments, e.g. attr(f, "foo") = x and f$foo =
        x and f[["foo"]] = x and chains.
@@ -40,7 +59,7 @@
      + works now, but not with recursive = TRUE
 
 + Re. above - should we get rid of findFunctionDefs()
-    + [NO] Does getFunctionDefs() know about Vectorize/vectorize
+    + [NO]  getFunctionDefs() doesn't know about Vectorize/vectorize
 	+ √ getFunctionDefs() knows about (top-level) if(FALSE)
 	   + see `getFunctionDefs("tests/chainedAssigns.R")`
 
@@ -122,3 +141,22 @@
 + remove unused parameters - see findUnusedArgs/findUnusedParams. also unusedParams
 
 + remove unused assignments if we can tell there are no side effects of the RHS.
+
+
+
+## getFunctionDefs v findFunctionDefs
+
++ Vectorize
+   + No getFunctionDefs(), 
+   + Yes findFunctionDefs()
++ chained assigns x = y = function
++ if(FALSE)
++ setGeneric
+   + setMethod()
++ handle different types of inputs
+   + filename, directory name, environment, list, function, code
++ recursively process functions to find subfunctions
++ recursively follow source() commands
+
+
+getFunctionDefs
