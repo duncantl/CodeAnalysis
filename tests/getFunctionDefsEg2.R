@@ -35,3 +35,14 @@ if(FALSE) {
 
 setGeneric("myGeneric", function(x) standardGeneric("myGeneric"))
 
+
+rec = function(x) {
+
+    f = function(a)
+        sin(cos(a))
+
+    g = function(x) sum(log(x))
+
+    f(x) + g(x)
+}
+
