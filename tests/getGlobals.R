@@ -34,7 +34,8 @@ f3 = function(x = foo(1), y = global)
     x + y
 }
 gv = getGlobals(f3)
-#XXX Is this correct. global is a a non-local variable.
+# global appears as a non-local variable but is actually local.
+# y is not referenced until after global is defined as a local variable
 stopifnot(identical(gv$variables, character()))
 stopifnot(identical(unique(gv$functions), c("+", "*")))
 
