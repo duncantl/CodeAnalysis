@@ -3,12 +3,19 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 
++ callGraph(".") for CodeAnalysis/R gives an error `cannot change value of locked binding for
+  'isAssignReturn`
+    + trying to source() the code into an environment but the setGeneric is not given the target environment.
+    + fix the environment for setGeneric/setMethod or 	    
+	+ √ provide setGeneric/setMethod in the environment so these are called instead of the ones in methods.
+
 + If add a parameter to a function, what calls do we need to change.
   + See R/addParam.R  
   + did this recently, so finalize and make easy to use.
   + example, isLHS and envir in function isIndirectCall
 
 + getGlobals() doesn't detect local variable in if() could be a global
+  + which example???
   + same with  x < 0 || (w <- any(is.na(x))) when x is < 0 and second term not evaluated.
 
 + Find unused parameters and local variables 
@@ -24,10 +31,11 @@
       + actually this is a body<- call.
 	  + also use the package's environment
    + see findCallsTo issue about environment for get()
-   + !! for now, tryCatch() and if isLHS is NA or TRUE, try the `funName<-` version of the function.
+   + √ for now, tryCatch() and if isLHS is NA or TRUE, try the `funName<-` version of the function.
        + XXX ideally pass isLHS down through the call stack.
 	   + we can't tell from the call itself if it is the LHS
-     	   + need argument or could put an attribute on this from higher up the call stack.
+     	   + need argument or 
+		   + √ could put an attribute on this from higher up the call stack.
    
 + [check] programmatically determine if a function returns a function - returnsFunction()
   + grDevices:::.select_device
