@@ -17,15 +17,14 @@ setMethod("callGraph", "character",
                   if(any(isdir))
                       files = c(files, unlist( lapply(obj[isdir], list.files, pattern = "\\.R$", full.names = TRUE, recursive = TRUE)))
 
-                  e = new.env()
+                  p = mkS4Catcher()
+                  e = new.env(parent = p)
                   lapply(files, source, e)
                   return(callGraph(e))
               } else if (any(ex)) 
                   stop("really?  - files/directories and non files as names")
 
-
-              # 
-              
+             
               fdefs = findFunctionDefs(obj)
               if(length(fdefs))
                   callGraph(lapply(fdefs, eval), asNames = asNames, ...)
@@ -40,6 +39,18 @@ setMethod("callGraph", "character",
 #                file.exists(obj)
 #            }
          })
+
+
+mkS4Catcher =
+function(e, p = new.env())
+{        
+    p$setGeneric = function(name, def, ...) assign(name, structure(list(name = name, def = def), class = "S4GenericFunction"))
+    p$setMethod = function(f, signature, definition, ...) assign(f, structure(list(name = f, signatured = signature, definition = definition), class = "S4Method"))
+    p$setClass = function(Class, representation, ...) assign(Class, structure(list(Class = Class, representation = representation), class = "S4Class"))
+    p$setOldClass = function(Classes, ...) assign(Classes[1], structure(list(Classes = Classes), class = "S4OldClass"))
+    p$setAs = function(from, to, def) assign(paste("setAs", from, to, sep = "."), structure(list(from = from, to = to, def = def), class = "SetAs"))
+    p
+}
 
 
 tmp =
