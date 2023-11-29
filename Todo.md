@@ -3,6 +3,15 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 
++ callGraph(".") for CodeAnalysis/R gives an error `cannot change value of locked binding for
+  'isAssignReturn`
+    + trying to source() the code into an environment but the setGeneric is not given the target environment.
+    + fix the environment for setGeneric/setMethod or 	    
+	+ √ provide setGeneric/setMethod in the environment so these are called instead of the ones in
+      methods.
+	   + put the functions into the target namespace or a list.
+
+
 + If add a parameter to a function, what calls do we need to change.
   + See R/addParam.R  
   + did this recently, so finalize and make easy to use.
