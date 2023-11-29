@@ -117,10 +117,12 @@ function(x, indirects, funNames, isFunNamesStrings, isLHS = getLHS(x), envir = g
 {
 
     # used in 2 places.
+    # Conflicts with the package level matchCall which is slightly different (gets the function from the call)
+    # but no problem with the aliasing of the name.
     matchCall = function(fn, x, replace = FALSE) {
         if(replace)
             fn = paste0(as.character(x[[1]]), "<-") 
-        fun = get(fn) # XXX
+        fun = get(fn, envir) # XXX
         match.call(fun, x)
     }
     

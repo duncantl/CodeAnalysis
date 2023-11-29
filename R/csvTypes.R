@@ -72,9 +72,9 @@ function(expr, nrow)
 }
 
 matchCall =
-function(expr)
+function(expr, envir = globalenv())
 {
-    fun = get(as.character(expr[[1]]))
+    fun = get(as.character(expr[[1]]), envir)
     match.call(fun, expr)
 }
 
