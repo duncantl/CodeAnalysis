@@ -184,8 +184,10 @@ function(code, funNames = character(),
          walker = mkCallWalker(funNames, indirect = indirectCallFuns),
          parse = any(!sapply(funNames, is.name)))
 {
-    if(parse) 
-        funNames = lapply(funNames, function(x) parse(text = x)[[1]])
+    # try to parse funNames so that we can compare symols not convert symbols to strings and compare
+    # But if we can't parse, keep the original string(s).
+    if(parse)  
+        funNames = lapply(funNames, function(x) tryCatch( parse(text = x)[[1]], error = function(...) x ))
     
     if(is(code, "getAnywhere")) {
         if(length(code$objs) > 1)

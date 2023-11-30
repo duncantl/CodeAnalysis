@@ -3,14 +3,19 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 
+# To Fix
+
 + getSourceInfo() 
   + make recursive.
   + get the directories correct.
      + setwd
 
++ getInputFiles and getOutputFiles and getGraphicOutputFiles
+  + process the correct argument in the call.
+
 + Make code walkers - optionally - skip descending into if(FALSE) expressions.
    + but do process if(TRUE) and the else part of if(FALSE) {} else {... }
-   + √ Done for mkCallWalkerPred
+   + √√ Done for mkCallWalkerPred
 
 + getFunctionDefs for call
   + √ examples for some types do recursive regardless
@@ -26,11 +31,6 @@
 	+ √ provide setGeneric/setMethod in the environment so these are called instead of the ones in
       methods.
 	   + √ put the functions into the target namespace or a list.
-
-+ If add a parameter to a function, what calls do we need to change.
-  + See R/addParam.R  
-  + did this recently, so finalize and make easy to use.
-  + example, isLHS and envir in function isIndirectCall
 
 + getGlobals() doesn't detect local variable in if() could be a global
   + which example???
@@ -132,8 +132,17 @@
       + findAssignsTo2 seems to work.
 
 
+# New Features/Functionality
+
++ If add a parameter to a function, what calls do we need to change.
+  + See R/addParam.R  
+  + did this recently, so finalize and make easy to use.
+  + example, isLHS and envir in function isIndirectCall
+
 
 # Done
+
++ √ in findCallsTo(), if parse fails, make it happen silently.
 
 + findFunctionDefs()/getFunctionDefs() doesn't handle  name = name2 = function() ...
    + √ getFunctionDefs() gets it right for tests/chainedAssigns.
