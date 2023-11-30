@@ -148,30 +148,3 @@ getDepend =
     else
         NULL
 }
-
-
-
-
-setGeneric("getInputFiles", function(x, num = NA, ...) standardGeneric("getInputFiles"))
-setMethod("getInputFiles", "character",
-          function(x, num = NA, ...)
-          getInputFiles(readScript(x), num = NA, ...))
-
-setMethod("getInputFiles", "ScriptInfo",
-          function(x, num = NA, ...) {
-              tmp = lapply(seq_along(x), function(i) getInputFiles(x[[i]], i, ...))
-              do.call(rbind, tmp)
-          })
-
-
-setMethod("getInputFiles", "ScriptNodeInfo",
-          function(x, num = NA, ...) {
-              file = x@files
-              file = file[file != "" ]
-              if(length(file) == 0)
-                  return(NULL)
-              op = names(x@functions)
-              
-              data.frame(filname = file, operation = op,  expressionNum = num, stringsAsFactors = FALSE)
-          })
-

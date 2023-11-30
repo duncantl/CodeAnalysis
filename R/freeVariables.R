@@ -736,9 +736,17 @@ function(x, ...)
     generalCharacterMethod(x, getInputFiles, ..., .funNamesFun = list(findReadDataFuns, "readFunNames"))
 
 getInputFiles.expression =
+    #
+    # Could actually call findCallsTo(x, readFunNames)
+    #
 function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
-    getInputFiles(getAllCalls(x), filename = filename, readFunNames = readFunNames, ...)
-
+{
+    k = structure(findCallsTo(x, readFunNames), class = "ListOfCalls")
+    # was k = getAllCalls(x) but now filtering as we walk the code to only keep the calls
+    # that are calls to functions in readFunNames.
+    # Could make subsequent methods faster by knowing these are pre-filtered, but leave for now.
+    getInputFiles(k, filename = filename, readFunNames = readFunNames, ...)
+}
 
 getInputFiles.ListOfCalls =
 function(x, filename = NA, readFunNames = findReadDataFuns(), ...)
@@ -755,6 +763,34 @@ function(x, readFunNames = findReadDataFuns(), ...)
     ans = mapply(getInputFiles, x, names(x), MoreArgs = list(readFunNames, ...), SIMPLIFY = FALSE)
     structure(unlist(ans), names = rep(names(x), sapply(ans, length)))
 }
+
+
+# These are from dependFuns.R
+# Were previously S4 methods.
+
+if(FALSE) 
+getInputFiles.character = 
+function(x, num = NA, ...)
+     getInputFiles(readScript(x), num = NA, ...)
+
+getInputFiles.ScriptInfo = 
+function(x, num = NA, ...) {
+    tmp = lapply(seq_along(x), function(i) getInputFiles(x[[i]], i, ...))
+    do.call(rbind, tmp)
+}
+
+getInputFiles.ScriptNodeInfo = 
+function(x, num = NA, ...) {
+    file = x@files
+    file = file[file != "" ]
+    if(length(file) == 0)
+        return(NULL)
+    op = names(x@functions)
+    
+    data.frame(filename = file, operation = op,  expressionNum = num, stringsAsFactors = FALSE)
+}
+
+
 
 
 getOutputFiles =
@@ -776,7 +812,7 @@ function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
     
 
 
-PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv")
+PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv", "write.csv2", "write", "write.matrix")
 # cat? but only with a file = ... argument
 #
 
@@ -838,9 +874,9 @@ getAllCalls.character =
     # a collection of files not just the directory.
     # This allows them to filter some out.
     #
+    # fun can be findCallsTo or getAllCalls.  The latter returns rstatic language objects.
     #
-    #
-function(x, parse = TRUE, ...)
+function(x, parse = TRUE, fun = findCallsTo, ...)
 {
     if(!parse)
         return(NULL)
@@ -850,15 +886,28 @@ function(x, parse = TRUE, ...)
         x = getRFiles(x)
 
     if(length(x) > 1)
-        return(structure(lapply(x, getAllCalls), names = basename(x), class = if(isDir) "DirectoryCalls" else "list"))
+        return(structure(lapply(x, fun), # getAllCalls
+                         names = basename(x),
+                         class = if(isDir) "DirectoryCalls" else "list"))
 
-    getAllCalls(parse(x), ...)
+    if(file.exists(x))
+        code = parse(x)
+    else
+        code = parse(text = x)
+
+    # Put the class on this to ensure it is the same as the original getAllCalls()    
+    structure(fun(code, ...), class = "ListOfCalls")
 }
 
 getAllCalls.expression =
     #XXX  consider implement this with findCallsTo(x) with no function names.
 function(x, ...)
-   structure( find_nodes(to_ast(x), is, "Call"), class = "ListOfCalls" )
+{
+    k = findCallsTo(x)
+    # k = find_nodes(to_ast(x), is, "Call")
+    structure( k, class = "ListOfCalls" )
+}
+
 
 
 

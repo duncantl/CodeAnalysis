@@ -1,8 +1,8 @@
 \name{getInputFiles}
 \alias{getInputFiles}
-\alias{getInputFiles,ScriptInfo-method}
-\alias{getInputFiles,ScriptNodeInfo-method}
-\alias{getInputFiles,character-method}
+%\alias{getInputFiles,ScriptInfo-method}
+%\alias{getInputFiles,ScriptNodeInfo-method}
+%\alias{getInputFiles,character-method}
 \alias{getOutputFiles}
 \alias{getGraphicsOutputFiles}
 \title{Find the file names that are read or written in R code}
