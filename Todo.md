@@ -20,7 +20,7 @@
 + getInputFiles and getOutputFiles and getGraphicOutputFiles
   + process the correct argument in the call.
 
-+ Make code walkers - optionally - skip descending into if(FALSE) expressions.
++ [check] Make code walkers - optionally - skip descending into if(FALSE) expressions.
    + but do process if(TRUE) and the else part of if(FALSE) {} else {... }
    + √√ Done for mkCallWalkerPred
    + Done for the other code walker generators and top-level functions  that call them
