@@ -3,7 +3,7 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 + getFunctionDefs for call
-  + examples for some types do recursive regardless
+  + √ examples for some types do recursive regardless
      + `getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))`
         returns both when recursive is either TRUE or FALSE
   + √ example for ifCall and whileCall gives very nested list.
@@ -65,7 +65,7 @@
        and if so, is the FUN argument (or corresponding argument) a call to the
   	   target functions.
 
-+ getFunctionDefs() - have it find functions in setMethod()
++ getFunctionDefs() - have it find functions in setMethod(), i.e. the fun in the setMethod(meth, sig, fun)
    + √ already works with recursive = TRUE.
    + perhaps put better name on "these" (what ?) methods and generics.
      + need state, or ability to go back up tree.
