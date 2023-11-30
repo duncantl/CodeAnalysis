@@ -49,6 +49,7 @@ function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
   getFunctionDefs(e, recursive = recursive, parse = FALSE, ...)
 })
 
+
 setMethod("getFunctionDefs", "environment",
 function(x, ...)
     getFunctionDefs( as.list(x, all = TRUE), ...))
@@ -71,8 +72,6 @@ function(x, recursive = FALSE, ...)
     } else
         ans
 })
-
-
 
 
 setMethod("getFunctionDefs", "expression",
@@ -125,10 +124,10 @@ function(x, env = new.env(parent = globalenv()),
 
 #XXX Get the names on the elements in this and the .function method
 
-tmp = function(x, parse = FALSE, ...)
+tmp = function(x, parse = FALSE, recursive = FALSE, envir = globalenv(), ...)
 {
     if(isFunAssign(x)) {
-        ans = getFunctionDefs(x[[3]], parse = parse, ...)
+        ans = getFunctionDefs(x[[3]], parse = parse, recursive = recursive, ...)
         names(ans)[1] = as.character(x[[2]])
         ans
     } else if(isFunctionDef(x)) {
@@ -136,9 +135,16 @@ tmp = function(x, parse = FALSE, ...)
         # so get c(varName, "", "")
         structure(x[[3]], names = as.character(x[[2]]))
     } else if(is.name(x[[1]]) && as.character(x[[1]]) == "function") {
-        unlist(c(x, getFunctionDefs(eval(x), parse = parse, ...)))
+        #
+        # Decided that this should return the top-level function itself
+        # Different from method for function.
+        tmp = eval(x, envir)
+        if(recursive)
+            unlist(c(tmp, getFunctionDefs(eval(x), parse = parse, recursive = TRUE, ...)))
+        else
+            tmp
     } else
-        unlist( lapply(as.list(x), getFunctionDefs, parse = parse, ...) )
+        unlist( lapply(as.list(x), getFunctionDefs, parse = parse, recursive = recursive, ...) )
 }
 setMethod("getFunctionDefs", "call", tmp)
 #XXX Need to setOldClass("<-")
@@ -150,23 +156,15 @@ setMethod("getFunctionDefs", "function",
           #XXXX implement recursive = TRUE
           # This seems to be the only operation.
           # If not recursive, should simply return NULL as this is the function definition.
-function(x, parse = FALSE, recursive = FALSE, ...)  #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
+function(x, parse = FALSE, recursive = FALSE, ...)
+   #XXXX if don't have parse here, problems with 2 argument named parse in subsequent recursive calls
 {
-# browser()
     p = lapply(formals(x), getFunctionDefs, parse = parse, recursive = recursive, ...)
-    unlist(c(p[sapply(p, length) > 0], getFunctionDefs(body(x), parse = parse, recursive = recursive, ...)))
+    unlist(c(p[sapply(p, length) > 0],
+             getFunctionDefs(body(x), parse = parse, recursive = recursive, ...)))
 })
 
 
-#getFunctionDefs.default =
-#function(x, ...)
-#  list()
-
-
-# Are the getFunctionDef - (no s) - legit?
-#getFunctionDef.logical = getFunctionDef.character = getFunctionDef.numeric =
-#getFunctionDefs.complex = getFunctionDefs.integer = getFunctionDefs.name =
-    
 tmp = function(x, ...)
         list()
 setMethod("getFunctionDefs", "complex", tmp)
@@ -184,8 +182,6 @@ function(x, ...)
     ans = lapply(x[- drop], getFunctionDefs, ...)
     unlist(ans[sapply(ans, length) > 0])
 }
-
-#`getFunctionDefs.{` = `getFunctionDefs.=` = getFunctionDefs.if = getFunctionDefs.while = getFunctionDefs.for = `getFunctionDefs.(` =
 
 setMethod("getFunctionDefs", "{", tmp)
 setMethod("getFunctionDefs", "=", tmp)
@@ -207,7 +203,7 @@ if(FALSE) {
 getFunctionDefs.default =
 function(x, ...)
     lapply(as.list(x), getFunctionDefs, ...)
-# NULL
+
 
 
 getFunctionDefs.call =   # see above.

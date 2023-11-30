@@ -112,7 +112,9 @@ A list of top-level functions defined in the given code.
   getFunctionDefs(quote(x <- function(x, y) x + y))
   getFunctionDefs(quote(function(x, y) x + y))
 
+  # A call that creates a function, but is not an actual function until evaluated.
   getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))
+  getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))), recursive = TRUE)
 
   ifCall = quote(if(x< 2) function(mu, sd) prod(dnorm(x, mu, sd)))
   getFunctionDefs(ifCall)
@@ -121,6 +123,14 @@ A list of top-level functions defined in the given code.
                      optim(c(0, 1), function(mu, sd) prod(dnorm(x, mu, sd)))
                     })
   getFunctionDefs(whileCall)
+
+
+  #XXX better example
+  forCall = quote(for(i in x) {
+                      f = function(a) a + i
+                      f(10)
+                    })
+  getFunctionDefs(forCall)
 }
 \concept{meta-programming}
 \keyword{programming}
