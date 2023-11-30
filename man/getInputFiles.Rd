@@ -41,6 +41,8 @@ getGraphicsOutputFiles(x, ...)
   \code{\link{findGraphicsDevFuns}}
 }
 \examples{
+  f = system.file("sampleCode/inputFiles.R", package = "CodeAnalysis")
+  i = getInputFiles(f)
 }
 \keyword{IO}
 \concept{meta-programming}
