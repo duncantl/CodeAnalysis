@@ -672,7 +672,9 @@ function(x)
 
 ###################################
 
-PrimitiveReadDataFuns = c("readLines", "read_excel", "read.csv", "read.table", "read.fwf", "excel_sheets")
+PrimitiveReadDataFuns = c("readLines", "read_excel", "read.csv", "read.table", "read.fwf", "excel_sheets",
+                          "scan", "data.table",
+                          "readRDS", "load")
 
 findReadDataFuns =
 function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
@@ -772,10 +774,8 @@ PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.t
 
 findWriteDataFuns =
     #
-    #
     # ff = list(foo = function(f) save(1:10, file = f))
     # findWriteDataFuns(ff)
-    #
     #
 function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
 {
@@ -800,10 +800,12 @@ function(allCalls, funNames, argIndices = integer(), definitions = NULL)
 {
     if(is.character(allCalls)) 
         allCalls = getAllCalls(allCalls)
-    
+
     rcalls = lapply(allCalls, function(calls) {
-                                      if(is(calls, "ListOfCalls"))
-                                                  calls[sapply(calls, function(x) x$fn$value) %in% funNames]
+                                      if(is.language(calls) && isCallTo(calls, funNames))
+                                          calls
+                                      else if(is(calls, "ListOfCalls"))
+                                          calls[sapply(calls, function(x) x$fn$value) %in% funNames]
                                       else if(is(calls$fn, "Symbol") && calls$fn$value %in% funNames)
                                           calls
                               })
