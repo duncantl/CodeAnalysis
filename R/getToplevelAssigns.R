@@ -28,7 +28,11 @@ function()
 }
 
 
-isAssignTo = isSimpleAssignTo =
+isAssignTo =
+function(x, var = character())
+    isSimpleAssignTo(x, var) || isComplexAssignTo(x, va)
+
+isSimpleAssignTo =
 function(x, var = character())    
     is.call(x) && isSymbol(x[[1]], c("=", "<-")) && is.name(x[[2]]) && (length(var) == 0 || isSymbol(x[[2]], var))
 
@@ -36,7 +40,7 @@ function(x, var = character())
 # Could also use
 findAssignsTo =
 function(code, var = character(), complex = TRUE,
-         pred = if(complex) isComplexAssignTo else isAssignTo)
+         pred = if(complex) isComplexAssignTo else isSimpleAssignTo)
 {
     pred2 = function(x, ...) pred(x, var)
     findCallsTo(code, walker = mkCallWalkerPred(pred2))
@@ -125,7 +129,7 @@ function(code, var, index = FALSE, recursive = TRUE, ...)
     else
         list()
 })
-} # end if(FALSE) for setGeneric('isAssignTo')
+} # end if(FALSE) for setGeneric('findAssignsTo')
 
 
 

@@ -73,9 +73,9 @@ isComplexAssignTo =
     #
     # Wrong: findAssignsTo2(quote(x[[1]][[2]][[3]] <- 4), "x")
     #
-function(x, var)    
+function(x, var, simpleOk = TRUE)    
 {
-    if(isAssignTo(x, var))
+    if(simpleOk && isSimpleAssignTo(x, var))
         return(TRUE)
 
     if(! isCallTo(x, c("<-", "=")))  # "$<-", "[[<-", "[<-",

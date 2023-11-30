@@ -10,8 +10,13 @@
 
 # To Fix
 
-+ Check uses of isAssignTo and ensure they are okay with the check the RHS is a name, not a complex LHS.
-
++ √ Check uses of isAssignTo/isSimpleAssignTo and ensure they are okay with the check the RHS is a
+  name, not a complex LHS.
+   + Split this into isAssignTo and isSimpleAssignTo and isComplexAssignTo and isAssignTo() is an ||
+     of calls to the two specific ones.
+	   + Could be more efficient.
+   + Checked where they were used and made this change.
+   
 + getSourceInfo() 
   + make recursive.
   + get the directories correct.

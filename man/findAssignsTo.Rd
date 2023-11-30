@@ -22,8 +22,8 @@
 }
 \usage{
 findAssignsTo(code, var = character(), complex = TRUE,
-              pred = if (complex) isComplexAssignTo else isAssignTo)
-isComplexAssignTo(x, var) 
+              pred = if (complex) isComplexAssignTo else isSimpleAssignTo)
+isComplexAssignTo(x, var, simpleOk = TRUE) 
 isSimpleAssignTo(x, var = character())
 }
 \arguments{
@@ -38,7 +38,10 @@ isSimpleAssignTo(x, var = character())
   }
   \item{pred}{the predicate function to identify the assignments of interest.
     One can specify a different predicate than \code{isComplexAssignTo} or
-   \code{isAssignTo}.}
+    \code{isAssignTo}.}
+  \item{simpleOk}{a logical value. If \code{TRUE}, a simple assignment is also acceptable;
+    otherwise,   the assignment call must have a non-symbol/name on the right-hand side but a call
+  such as \code{x[i]}, \code{x$i}, \code{names(x)}.}
 }
 \value{
 A list of the assignment calls found in the code.
