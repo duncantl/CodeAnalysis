@@ -31,6 +31,19 @@ Duncan Temple Lang
  \code{\link{findCallsTo}}
 }
 \examples{
+ e = quote(if(all(x < 0)) {
+               sum(log(abs(x)))
+           } else if(any(x == 0)) {
+              x[ x == 0 ] = rnorm(sum(x == 0), sd = 0.001)
+           } else {
+              sum(log(x))
+           })
+  getIfCond(e)
+
+  fa = getIfFalse(e)
+  getIfCond(fa)
+  getIfTrue(fa)
+  getIfFalse(fa)
 }
 \keyword{programming}
 \concept{metaprogramming}
