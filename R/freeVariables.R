@@ -133,23 +133,29 @@ function(x, ...)
 
 
 getSourceInfo.character =
+    # Recursive.
 function(x, ...)    
 {
     if(length(x) > 1)
         return(do.call(rbind, lapply(x, getSourceInfo)))
 
-    if(file.info(x)$isdir)
-        return(getSourceInfo(getRFiles(x)))
+    if(!file.exists(x))
+        getSourceInfo(parse(text = x), NA)
+    else if(file.info(x)$isdir)
+        getSourceInfo(getRFiles(x))
+    else
+        getSourceInfo(parse(x), x)
 
-    getSourceInfo(parse(x), x)
 }
 
 getSourceInfo.expression =
 function(x, filename, ...)    
 {
-    w = sapply(x, isSourceCall)
-    if(any(w)) 
-        ans = cbind(rep(filename, sum(w)), sapply(x[w], getCallParam, 1L))
+    #    w = sapply(x, isSourceCall)
+    # Now, can find source() in subexpressions, including if(FALSE)
+    k = findCallsTo(x, "source")
+    if(length(k))
+        ans = cbind(rep(filename, length(k)), sapply(k, getCallParam, 1L))
     else
         ans = matrix(NA, 0, 2)
 
@@ -440,6 +446,8 @@ function(x, ...)
 isIfFalse =
     #
     # tests whether the call (x) is an if(FALSE) statement with no else.
+    #
+    # see skipIfFalse()
     #
 function(x)
 {
