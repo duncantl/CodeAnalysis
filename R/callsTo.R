@@ -18,6 +18,19 @@ function(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
               (!isFALSE(indirect) && isIndirectCall(code, indirect, funName, TRUE, isLHS = isLHS)))
 }
 
+skipIfFalse =
+function(x, w)    
+{
+    if(isCallTo(x, "if") && isFALSE(x[[2]])) {
+        if(length(x) == 4)
+            walkCode(x[[4]], w)
+        
+        return(TRUE)
+    }
+
+    FALSE
+}
+
 mkCallWalkerPred =
     #
 function(pred, ...)
@@ -38,13 +51,8 @@ function(pred, ...)
     
     call = function(x, w) {
 
-        if(isCallTo(x, "if") && isFALSE(x[[2]])) {
-            if(length(x) == 3)
-                return(NULL)
-            
-            return(walkCode(x[[4]], w))
-        }
-        
+        if(skipIfFalse(x, w))
+            return(NULL)
         
         isName = is.name(x[[1]])
         if(isSymbol(x[[1]], c("<-", "=")) && is.call(x[[2]]))
