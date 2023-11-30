@@ -78,7 +78,7 @@ function(pred, ..., skipIfFalse = TRUE)
 }
 
 mkCallWalker =
-function(funNames, indirect = character())
+function(funNames, indirect = character(), ...)
 {
     isFunNamesStrings = is.character(funNames)
     ok = function(x, isName, ...) {
@@ -100,7 +100,7 @@ function(funNames, indirect = character())
             FALSE
           }
 
-    mkCallWalkerPred(ok)
+    mkCallWalkerPred(ok, ...)
 }
 
 
@@ -197,6 +197,19 @@ function(code, funNames = character(),
     # But if we can't parse, keep the original string(s).
     if(parse)  
         funNames = lapply(funNames, function(x) tryCatch( parse(text = x)[[1]], error = function(...) x ))
+
+
+    if(is.character(code)) {
+        if(file.exists(code)) {
+            if(file.info(code)$isdir)
+                code = lapply(getRFiles(code), parse)
+            else
+                code = parse(code)
+        } else
+            code = parse(text = code)
+    }
+    
+    
     
     if(is(code, "getAnywhere")) {
         if(length(code$objs) > 1)
