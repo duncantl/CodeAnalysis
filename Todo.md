@@ -2,6 +2,11 @@
   Count the number left to do.
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
++ getFunctionDefs for call
+  + example for ifCall and whileCall gives very nested list.
+  + examples for some types do recursive regardless
+     + `getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))`
+        returns both when recursive is either TRUE or FALSE
 
 + callGraph(".") for CodeAnalysis/R gives an error `cannot change value of locked binding for
   'isAssignReturn`
@@ -9,7 +14,7 @@
     + fix the environment for setGeneric/setMethod or 	    
 	+ √ provide setGeneric/setMethod in the environment so these are called instead of the ones in
       methods.
-	   + put the functions into the target namespace or a list.
+	   + √ put the functions into the target namespace or a list.
 
 + If add a parameter to a function, what calls do we need to change.
   + See R/addParam.R  

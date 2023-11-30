@@ -79,7 +79,51 @@ A list of top-level functions defined in the given code.
 
 %\seealso{}
 \examples{
+
+  # A package namespace/environment
+  fns = getFunctionDefs(getNamespace("base"))
+  fns = getFunctionDefs(.BaseNamespaceEnv)
+
+  # A file
+  f = system.file("sampleCode/sampleFuns.R", package = "CodeAnalysis")
+  
+  f1 = getFunctionDefs(f)
+  # Find nested functions
+  f2 = getFunctionDefs(f, recursive = TRUE)
+  f2[[3]]
+  attributes(f2)
+
+  # An environment
+  e = new.env()
+  source(f, e)
+  f3 = getFunctionDefs(e)
+
+  # a function so find nested functions
+  nested = getFunctionDefs(tools:::.check_packages)
+  length(nested)
+
+  # An expression - same as from reading the file directly
+  # but if we start from an expression ....
+  ex = parse(f)
+  f4 = getFunctionDefs(ex)
+  f5 = getFunctionDefs(ex, recursive = TRUE)
+
+  # A call
+  getFunctionDefs(quote(x <- function(x, y) x + y))
+  getFunctionDefs(quote(function(x, y) x + y))
+
+  getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))
+
+  ifCall = quote(if(x< 2) function(mu, sd) prod(dnorm(x, mu, sd)))
+  getFunctionDefs(ifCall)
+
+  whileCall = quote(while( x < 2) {
+                     optim(c(0, 1), function(mu, sd) prod(dnorm(x, mu, sd)))
+                    })
+  getFunctionDefs(whileCall)
 }
 \concept{meta-programming}
 \keyword{programming}
 
+%  tmp = list(f = function(x) x + 1, g = function(x,y) x + y)
+%  getFunctionDefs(
