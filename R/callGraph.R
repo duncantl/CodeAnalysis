@@ -17,8 +17,7 @@ setMethod("callGraph", "character",
                   if(any(isdir))
                       files = c(files, unlist( lapply(obj[isdir], list.files, pattern = "\\.R$", full.names = TRUE, recursive = TRUE)))
 
-                  p = mkS4Catcher()
-                  e = new.env(parent = p)
+                  e = mkS4Catcher()
                   lapply(files, source, e)
                   return(callGraph(e))
               } else if (any(ex)) 
@@ -42,14 +41,30 @@ setMethod("callGraph", "character",
 
 
 mkS4Catcher =
-function(e, p = new.env())
-{        
-    p$setGeneric = function(name, def, ...) assign(name, structure(list(name = name, def = def), class = "S4GenericFunction"))
-    p$setMethod = function(f, signature, definition, ...) assign(f, structure(list(name = f, signatured = signature, definition = definition), class = "S4Method"))
-    p$setClass = function(Class, representation, ...) assign(Class, structure(list(Class = Class, representation = representation), class = "S4Class"))
-    p$setOldClass = function(Classes, ...) assign(Classes[1], structure(list(Classes = Classes), class = "S4OldClass"))
-    p$setAs = function(from, to, def) assign(paste("setAs", from, to, sep = "."), structure(list(from = from, to = to, def = def), class = "SetAs"))
-    p
+function(e = new.env(parent = p), p = new.env())
+{
+    addFun = function(id, fun) {
+        if(exists(id, e, inherits = FALSE)) 
+            warning("overwriting ", id)
+        
+        assign(id, fun, e)
+    }
+    
+    p$setGeneric = function(name, def, ...)
+                     addFun(name, def)
+    p$setMethod = function(f, signature, definition, ...)
+                     addFun(sprintf("%s.%s", f, paste(signature, collapse = ".")), definition)
+    p$setAs = function(from, to, def)
+                    addFun(paste("coerce", from, to, sep = "."),
+                           structure(list(from = from, to = to, def = def), class = "SetAs"))
+
+    p$setClass = function(Class, representation, ...) {
+            # (Class, structure(list(Class = Class, representation = representation), class = "S4Class")
+        }
+    p$setOldClass = function(Classes, ...) {
+                      # (Classes[1], structure(list(Classes = Classes), class = "S4OldClass"))
+                 }    
+    e
 }
 
 
