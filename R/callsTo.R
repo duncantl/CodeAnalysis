@@ -38,6 +38,14 @@ function(pred, ...)
     
     call = function(x, w) {
 
+        if(isCallTo(x, "if") && isFALSE(x[[2]])) {
+            if(length(x) == 3)
+                return(NULL)
+            
+            return(walkCode(x[[4]], w))
+        }
+        
+        
         isName = is.name(x[[1]])
         if(isSymbol(x[[1]], c("<-", "=")) && is.call(x[[2]]))
             attr(x[[2]], "isLHS") = TRUE

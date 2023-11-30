@@ -2,6 +2,16 @@
   Count the number left to do.
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
+
++ getSourceInfo() 
+  + make recursive.
+  + get the directories correct.
+     + setwd
+
++ Make code walkers - optionally - skip descending into if(FALSE) expressions.
+   + but do process if(TRUE) and the else part of if(FALSE) {} else {... }
+   + √ Done for mkCallWalkerPred
+
 + getFunctionDefs for call
   + √ examples for some types do recursive regardless
      + `getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))`
