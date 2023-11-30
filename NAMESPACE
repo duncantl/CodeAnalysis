@@ -69,6 +69,13 @@ export(findReadDataFuns, findWriteDataFuns, findGraphicsDevFuns)
 #export(findCallsToFunctions)
 
 export(getInputFiles, getOutputFiles, getGraphicsOutputFiles)
+S3method(getInputFiles, character)
+S3method(getInputFiles, expression)
+S3method(getInputFiles, ListOfCalls)
+S3method(getInputFiles, DirectoryCalls)
+#exportMethods(getInputFiles)
+#exportMethods(getOutputFiles)
+#exportMethods(getGraphicsOutputFiles)
 
 # Wouldn't findCallsTo() be better?
 export(getAllCalls)
@@ -76,6 +83,8 @@ S3method(getAllCalls, character)
 S3method(getAllCalls, expression)
 
 export(getSourceInfo)
+S3method(getSourceInfo, character)
+S3method(getSourceInfo, expression)
 
 export(callGraph)
 exportMethods(callGraph)
