@@ -182,7 +182,7 @@ function(x, ...)
 {
     drop = switch(class(x), "for" = c(1,2), 1)
     ans = lapply(x[- drop], getFunctionDefs, ...)
-    ans[sapply(ans, length) > 0]
+    unlist(ans[sapply(ans, length) > 0])
 }
 
 #`getFunctionDefs.{` = `getFunctionDefs.=` = getFunctionDefs.if = getFunctionDefs.while = getFunctionDefs.for = `getFunctionDefs.(` =

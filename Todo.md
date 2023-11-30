@@ -3,7 +3,8 @@
   ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
 -->
 + getFunctionDefs for call
-  + example for ifCall and whileCall gives very nested list.
+  + √ example for ifCall and whileCall gives very nested list.
+      + unlist works fine in the tmp function.
   + examples for some types do recursive regardless
      + `getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))`
         returns both when recursive is either TRUE or FALSE
