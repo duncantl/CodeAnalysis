@@ -29,7 +29,8 @@ getAllFunctionDefs =
     # 1. [test more on a script]  identify if(FALSE) and skip
     # 2. keep state of assignments and use as names - correctly.
     #
-function(x, walker = mkFunFinder(recursive, nesting), recursive = TRUE, nesting = TRUE, ...)
+function(x, walker = mkFunFinder(recursive, nesting, skipIfFalse),
+         recursive = TRUE, nesting = TRUE, skipIfFalse = TRUE, ...)
 {
     walkCode(x, walker)
     walker$.funs()
@@ -45,7 +46,7 @@ mkFunFinder =
     # recursive - logical. If TRUE, process parameters and body of function objects looking
     #  for nested function definitions.
     #
-function(recursive = TRUE, nesting = TRUE)
+function(recursive = TRUE, nesting = TRUE, skipIfFalse = TRUE)
 {
     defs = list()
 
@@ -57,10 +58,8 @@ function(recursive = TRUE, nesting = TRUE)
     leaf = function(e, w) {
         #        message("leaf: ", class(e), e)
         ty = typeof(e)
-        if(ty == "expression")
+        if(ty %in% c("expression", "pairlist", "language", "list"))
             w$call(e, w)
-        else if(ty == "pairlist")
-            w$call(e, w)        
         else if(ty == "closure") {
             addFun(e, w)
 #            procDefinedFun(e, w)
@@ -107,12 +106,14 @@ function(recursive = TRUE, nesting = TRUE)
 
     
     call = function(x, w){
-#             message("call: ", class(x), " ", x)
-             if(isIfFalse(x))
-                 return()
+
+             if(skipIfFalse && skipIfFalse(x, w))
+                 return(NULL)
+
              if(typeof(x) == "closure")
                  browser()
 
+              # This doesn't check if the RHS is a symbol.
              isAssign = is.name(x[[1]]) && as.character(x[[1]]) %in% c("=", "<-")
              if(isAssign) 
                  pushAssign(x[[2]])

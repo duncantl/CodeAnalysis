@@ -23,15 +23,15 @@
 \usage{
 findCallsTo(code, funNames = character(),
          indirectCallFuns = getIndirectCallFunList(),
-         walker = mkCallWalker(funNames, indirect = indirectCallFuns),
-         parse = any(!sapply(funNames, is.name))) 
+         walker = mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
+         parse = any(!sapply(funNames, is.name)), skipIfFalse = TRUE) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
 isCallTo(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
-mkCallWalkerPred(pred, ...)
+mkCallWalkerPred(pred, ..., skipIfFalse = TRUE)
 numCalls(code)
 }
 \arguments{
-  \item{code}{the R code to analyze}
+  \item{code}{the R code to analyze, or path to an R source file or directory containing R code}
   \item{funNames,funName}{the names of functions or variables of interest. This can be a
     character vector of names or of R calls/expressions, or a list of previously parsed
     call language objects.
@@ -47,7 +47,9 @@ numCalls(code)
   }
   \item{walker}{the \code{codetools}-style functions that traverse the AST to find the relevant calls.}
   \item{parse}{whether to parse the \code{funNames} in \code{findCallsTo} and treat them as language
-     objects.}
+    objects.}
+  \item{skipIfFalse}{a logical value. If \code{TRUE}, skip \code{if(FALSE){}} code, but do
+      process any \code{else} clause. If \code{FALSE}, process the body of the \code{if(FALSE)} code.}
   \item{allCalls}{a character vector of file or directory names or
     parsed R code or list of calls}
 % \item{index}{a logical value controlling whether to return the assignments as indices
@@ -104,6 +106,12 @@ numCalls(code)
 
   isLApplyWalkCodeCall = function(x, isName, ...) isCallTo(x, "lapply") && isSymbol(x[[3]], "walkCode")
   findCallsTo(egFun, walker = mkCallWalkerPred(isLApplyWalkCodeCall))
+
+
+  f = system.file("sampleCode/source.R", package = "CodeAnalysis")
+  a = findCallsTo(f, "source")
+  b = findCallsTo(f, "source", skipIfFalse = FALSE)
+  setdiff(b, a)
 }
 \concept{meta-programming}
 \concept{static analysis}

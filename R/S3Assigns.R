@@ -8,7 +8,7 @@ function(code, walker = mkS3AssignWalker(...), ...)
 }
 
 mkS3AssignWalker =
-function(recursive = TRUE)
+function(recursive = TRUE, skipIfFalse = TRUE)
 {
 
     defs = list()
@@ -18,7 +18,7 @@ function(recursive = TRUE)
             return(NULL)
         
         ty = typeof(x)
-        if(ty == "pairlist" || ty == "list") {
+        if(ty %in% c("pairlist", "list", "expression", "language")) {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
@@ -34,6 +34,10 @@ function(recursive = TRUE)
 
     
     call = function(x, w) {
+
+        if(skipIfFalse && skipIfFalse(x, w))
+            return(NULL)
+         
         if(isS3Assign(x))  #  && !is.na((val <- extractS3Class2(x[[3]]))))
             defs[[ length(defs) + 1L ]] <<- extractS3Class(if(length(x) >= 3) x[[3]] else x[[2]])
                                                 # structure(class = "aat_splithalf") only has 2 elements.  In AATools

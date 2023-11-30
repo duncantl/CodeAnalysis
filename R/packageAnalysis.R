@@ -38,12 +38,12 @@ function(x)
 
 
 mkCounter =
-function(self = FALSE, ctr = 0L)
+function(self = FALSE, ctr = 0L, skipIfFalse = TRUE)
 {
     els = list()
     leaf = function(x, w, ...) { #print((x));
         ty = typeof(x)
-        if(ty == "pairlist") {
+        if(ty %in% c("pairlist", "expression", "list", "language")) {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
@@ -57,12 +57,17 @@ function(self = FALSE, ctr = 0L)
 
         NULL
     }
-    call = function(x, w) { if(self) w$leaf(x)
+    call = function(x, w) {
+
+              if(skipIfFalse && skipIfFalse(x, w))
+                  return(NULL)
+        
+              if(self) w$leaf(x)
  ##                           if(is(x, "if")) browser()
-                            for (ee in as.list(x))
-                                if (!missing(ee))
-                                    walkCode(ee, w)
-                        }
+              for (ee in as.list(x))
+                  if (!missing(ee))
+                      walkCode(ee, w)
+    }
     list(handler = function(x, w) NULL ,
          call = call,
          leaf = leaf,
@@ -71,7 +76,7 @@ function(self = FALSE, ctr = 0L)
 }
 
 numTerms =
-function(x, ctr = mkCounter())
+function(x, ctr = mkCounter(skipIfFalse = skipIfFalse), skipIfFalse = TRUE)
 {
 #    if(is.function(x)) {
 #        walkCode()
@@ -175,20 +180,21 @@ nonLocalAssigns =
     # Then we made it more intelligent, adding the options
     # and also making it take different types of language objects.
     #
-function(code, w = mkNLAWalker(), ...)
+function(code, w = mkNLAWalker(skipIfFalse = skipIfFalse), ..., skipIfFalse = TRUE)
 {
     codetools::walkCode(code, w)
     w$ans(...)
 }
 
 mkNLAWalker =
-function()
+    # Can we use findCallsTo(...,  "<<-")
+function(skipIfFalse = TRUE)
 {
     ans = list()
     
     leaf = function(x, w) {
         ty = typeof(x)
-        if(ty == "pairlist" || ty == "list") {
+        if(ty %in% c("pairlist", "list", "language", "expression")) {
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
@@ -200,6 +206,10 @@ function()
     }
 
     call = function(x, w) {
+
+        if(skipIfFalse && skipIfFalse(x, w))
+            return(NULL)        
+        
         if(is.name(x[[1]]) && as.character(x[[1]])== "<<-")
             ans[[ length(ans) + 1L]] <<- x
         
@@ -241,9 +251,6 @@ function(x, deparse = FALSE, varName = FALSE)
         }
 }
 
-
-
-
 if(FALSE)  {
 findOS =
 function(code, w = mkOSWalker(), ...)
@@ -251,7 +258,6 @@ function(code, w = mkOSWalker(), ...)
     walkCode(code, w)
     w$.results(...)
 }
-
 
 mkOSWalker =
 function()
@@ -271,10 +277,11 @@ function()
 
 mkLiteralCollector =
     #
+    # XXX
     # This doesn't collect names such as the "abc/def"
     #  c("abc/def" = "xyz")
     #
-function(ignoreParams = TRUE)
+function(ignoreParams = TRUE, skipIfFalse = TRUE)
 {
     values = list()
     leaf = function(x, w, ...) {
@@ -282,7 +289,7 @@ function(ignoreParams = TRUE)
             return(NULL)
         
         ty = typeof(x)
-        if(ty == "pairlist" && !ignoreParams) {
+        if(ty == "pairlist" && !ignoreParams) { #XXX add expression, list, language ?
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
@@ -292,16 +299,18 @@ function(ignoreParams = TRUE)
             walkCode(body(x), w)
         }
 
-        if(isLiteral(x, ty)) {
+        if(isLiteral(x, ty)) 
             values[[ length(values) + 1L]] <<- x
-        }
 
         NULL
     }
-    call = function(x, w) { 
-                            for (ee in as.list(x))
-                                if (!missing(ee))
-                                    walkCode(ee, w)
+    call = function(x, w) {
+             if(skipIfFalse && skipIfFalse(x, w))
+                 return(NULL)
+        
+             for (ee in as.list(x))
+               if (!missing(ee))
+                  walkCode(ee, w)
                         }
     list(handler = function(x, w) NULL ,
          call = call,
@@ -326,7 +335,8 @@ function(x, type = typeof(x))
 }
 
 findLiterals =
-function(code, walker = mkLiteralCollector(ignoreParams, ...), ignoreParams = TRUE, ...)
+function(code, walker = mkLiteralCollector(ignoreParams, skipIfFalse = skipIfFalse, ...),
+         ignoreParams = TRUE, skipIfFalse = TRUE, ...)
 {
     walkCode(code, walker)
     walker$.values()

@@ -1,9 +1,16 @@
 <!-- 
   Count the number left to do.
-  ll =readLines("Todo"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[1]]))
+  ll =readLines("Todo.md"); length(grep("^\\+", split(ll, cumsum(grepl("^#", ll)))[[2]]))
+
+  ll = readLines("Todo.md") 
+  counts = tapply(ll, cumsum(grepl("^#", ll)), function(x) length(grep("^\\+", x)))[-1]
+  names(counts) = gsub("^# *", "", grep("^#", ll, value = TRUE))
+  counts
 -->
 
 # To Fix
+
++ Check uses of isAssignTo and ensure they are okay with the check the RHS is a name, not a complex LHS.
 
 + getSourceInfo() 
   + make recursive.
@@ -16,7 +23,9 @@
 + Make code walkers - optionally - skip descending into if(FALSE) expressions.
    + but do process if(TRUE) and the else part of if(FALSE) {} else {... }
    + √√ Done for mkCallWalkerPred
-
+   + Done for the other code walker generators and top-level functions  that call them
+      + and updated Rd files.
+   
 + getFunctionDefs for call
   + √ examples for some types do recursive regardless
      + `getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))`
@@ -85,8 +94,6 @@
       and check if the parameter is used before those local variables are created.
    + See explorations/findSelfRef.R.
 
-
-
 + fix callGraph(fun) and the name used is obj. (meaning what??).
    + obj is the name of the first argument.
 
@@ -116,7 +123,6 @@
      + but since sprintf() has ... it is ambiguous, but not really
   + check whether a named argument in a call makes sense in the parent call.
 
-
 + [check/robustify] isAssignTo - make it handle complex left hand side.
    + √ Look at the function isComplexAssignTo. Make more robust.
    + See foo in tests/findAssignsTo.R.
@@ -131,14 +137,15 @@
       + but issue is *probably* if( isEnv <- is.environment(x))
       + findAssignsTo2 seems to work.
 
-
 # New Features/Functionality
+
++ equivalent to rstatic::find_nodes
+   + Do we have such a function already?
 
 + If add a parameter to a function, what calls do we need to change.
   + See R/addParam.R  
   + did this recently, so finalize and make easy to use.
   + example, isLHS and envir in function isIndirectCall
-
 
 # Done
 

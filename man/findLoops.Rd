@@ -6,7 +6,9 @@
  This finds the explicit loops in R code, \code{for}, \code{while} and \code{repeat} loops.
 }
 \usage{
-findLoops(f, nested = TRUE, code = parse(f), w = mkLoopWalker(nested))
+findLoops(f, nested = TRUE, code = parse(f),
+          w = mkLoopWalker(nested, skipIfFalse = skipIfFalse),
+          skipIfFalse = TRUE)
 numNestedLoops(code, recursive = TRUE)
 }
 \arguments{
@@ -14,6 +16,8 @@ numNestedLoops(code, recursive = TRUE)
       the path to a file containing R code which will be parsed} % can this be a directory? No - not yet.
   \item{nested}{a logical value that controls whether we look for loops inside loops
     or ignore the code in the body of a loop.}
+  \item{skipIfFalse}{a logical value. If \code{TRUE}, skip \code{if(FALSE){}} code, but do
+      process any \code{else} clause. If \code{FALSE}, process the body of the \code{if(FALSE)} code.}  
   \item{code}{the R code, providing a way to pass code already parsed and not necessarily in a file.
     For \code{numNestedLoops}
   }

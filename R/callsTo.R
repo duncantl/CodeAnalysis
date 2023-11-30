@@ -33,7 +33,7 @@ function(x, w)
 
 mkCallWalkerPred =
     #
-function(pred, ...)
+function(pred, ..., skipIfFalse = TRUE)
 {
     calls = list()
 
@@ -51,7 +51,7 @@ function(pred, ...)
     
     call = function(x, w) {
 
-        if(skipIfFalse(x, w))
+        if(skipIfFalse && skipIfFalse(x, w))
             return(NULL)
         
         isName = is.name(x[[1]])
@@ -189,8 +189,9 @@ findCallsTo =
     #
 function(code, funNames = character(),
          indirectCallFuns = getIndirectCallFunList(),
-         walker = mkCallWalker(funNames, indirect = indirectCallFuns),
-         parse = any(!sapply(funNames, is.name)))
+         walker = mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
+         parse = any(!sapply(funNames, is.name)),
+         skipIfFalse = TRUE)
 {
     # try to parse funNames so that we can compare symols not convert symbols to strings and compare
     # But if we can't parse, keep the original string(s).
@@ -203,6 +204,7 @@ function(code, funNames = character(),
         code = code$objs[[1]]
     } else if(is.environment(code)) 
         code = as.list.environment(code, TRUE)
+
 
     if(is.logical(indirectCallFuns) && missing(walker)) {
         indirectCallFuns = if(isTRUE(indirectCallFuns))

@@ -14,7 +14,7 @@ mkLoopWalker =
     # Find loops.
     # If nested = FALSE, don't descend in to the loops so don't find nested loops.
     #
-function(nested = TRUE)
+function(nested = TRUE, skipIfFalse = TRUE)
 {
     ans = list()
     
@@ -32,6 +32,9 @@ function(nested = TRUE)
 
     call = function(x, w) {
 
+        if(skipIfFalse && skipIfFalse(x, w))
+            return(NULL)
+        
         isName = is.name(x[[1]])
         if(isName && as.character(x[[1]]) %in% c("for", "while", "repeat")) {
             ans[[length(ans) + 1L]] <<- x
@@ -60,7 +63,8 @@ function(nested = TRUE)
 # Find both loops.
 
 findLoops =
-function(f, nested = TRUE, code = parse(f), w = mkLoopWalker(nested))
+function(f, nested = TRUE, code = parse(f),
+         w = mkLoopWalker(nested, skipIfFalse = skipIfFalse), skipIfFalse = TRUE)
 {
     # At one point had
     # if(is(code, "for")) code = code[length(code)]
