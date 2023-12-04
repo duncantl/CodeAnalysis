@@ -2,7 +2,6 @@ setGeneric("callGraph",
            function(obj, ...)
               standardGeneric("callGraph"))
 
-#
 setMethod("callGraph", "character",
           function(obj, asNames = FALSE, ...) {
 
@@ -12,13 +11,7 @@ setMethod("callGraph", "character",
               ex = file.exists(obj)
               if(all(ex)) {
                   # So all are files or directories.
-                  isdir = file.info(obj)$isdir
-                  files = obj[!isdir]
-                  if(any(isdir))
-                      files = c(files, unlist( lapply(obj[isdir], list.files, pattern = "\\.R$", full.names = TRUE, recursive = TRUE)))
-
-                  e = mkS4Catcher()
-                  lapply(files, source, e)
+                  e = sourceRFiles(obj)
                   return(callGraph(e))
               } else if (any(ex)) 
                   stop("really?  - files/directories and non files as names")
@@ -33,40 +26,10 @@ setMethod("callGraph", "character",
                   callGraph(expr)
               }
               
-                  
 #            if(!asNames) {
 #                file.exists(obj)
 #            }
          })
-
-
-mkS4Catcher =
-function(e = new.env(parent = p), p = new.env())
-{
-    addFun = function(id, fun) {
-        if(exists(id, e, inherits = FALSE)) 
-            warning("overwriting ", id)
-        
-        assign(id, fun, e)
-    }
-    
-    p$setGeneric = function(name, def, ...)
-                     addFun(name, def)
-    p$setMethod = function(f, signature, definition, ...)
-                     addFun(sprintf("%s.%s", f, paste(signature, collapse = ".")), definition)
-    p$setAs = function(from, to, def)
-                    addFun(paste("coerce", from, to, sep = "."),
-                           structure(list(from = from, to = to, def = def), class = "SetAs"))
-
-    p$setClass = function(Class, representation, ...) {
-            # (Class, structure(list(Class = Class, representation = representation), class = "S4Class")
-        }
-    p$setOldClass = function(Classes, ...) {
-                      # (Classes[1], structure(list(Classes = Classes), class = "S4OldClass"))
-                 }    
-    e
-}
-
 
 tmp =
 function(obj, ...) {
@@ -83,7 +46,7 @@ setMethod("callGraph", "expression", tmp)
 setMethod("callGraph", "environment",
                      # should be Namespace
           function(obj, withinPackage = TRUE, ...) 
-          callGraph(as.list(obj), withinPackage, ...))
+               callGraph(as.list(obj), withinPackage, ...))
 
 setMethod("callGraph", "list",
           function(obj, withinPackage = TRUE, recursive = FALSE, ..., .done = NULL) {
