@@ -1,21 +1,38 @@
 getSourceInfo =
-    # Recursive.
+    # Handles cases where the file being sourced doesn't exist
+    # so we don't attempt to recursively determine what it source()s
+    # When recursive = TRUE, files that are sourced but don't exist
+    # will have a row in the result, but an NA in the sourced column for that row.
+    # If recursive is true, a file A will have <n> rows in the result
+    # where <n> is the number of files that the file A source()s.
+    # This will be 0 if the file A does not source() any other files.
+    #
 function(x, recursive = TRUE, ...)    
 {
     ans = getSourceInfox(x)
+
     if(recursive) {
-#        browser()        
         done = unique(ans$from)
         while(TRUE) {
-            xtra = unique(getRelativeFiles(ans$sourced, ans$from))
-            w = !(xtra %in% done)
+            # Avoid dealing with the files that don't exist and processing
+            # the in subsequent iterations, i.e., don't consider
+            # sourced files with from == NA that we may have added in previous
+            # iterations.
+            ok = !is.na(ans$sourced)
+            xtra = unique(getRelativeFiles(ans$sourced[ok], ans$from[ok]))
+            ex = file.exists(xtra)
+            w = !(xtra %in% done) & ex
+
+            if(any(!ex))
+                ans = rbind(ans, data.frame(from = xtra[!ex], sourced = rep(NA, sum(!ex))))
+            
             if(any(w)) {
                 new = getSourceInfox(xtra[w])
                 if(nrow(new) == 0)
                     break
                 
                 ans = rbind(ans, new)
-                done = unique(c(done, new$from))
+                done = unique(c(done, new$from[!is.na(new$sourced)]))
             }
         }
     }

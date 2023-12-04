@@ -22,6 +22,16 @@ getSourceInfo(x, recursive = TRUE, ...)
   a 2-column data.frame with each row containing
   the name of the R file that sources the file
   given in the second column.
+
+  If \code{recursive} is \code{TRUE}, \code{getSourceInfo}
+  each file will have \code{<n>} rows in the result
+  where \code{<n>} is the number of files that the file \code{source()}s.
+  This will be 0 if the file A does not \code{source()} any other files.
+
+  If a file sourced by one file doesn't exist, we don't know
+  if it \code{source()}s any other files and so add NA.
+  This allows the caller to see all files that are intended to be \code{source()}d
+  and then check which exist (rather than omitting these files from the result.)
 }
 \author{
 Duncan Temple Lang
