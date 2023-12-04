@@ -684,7 +684,7 @@ function(x, ...)
 
 getGraphicsOutputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getGraphicsOutputFiles, ..., .funNamesFun = list(findGraphicsDevFuns, "writeFunNames"))
+    generalCharacterMethod2(x, getGraphicsOutputFiles, ..., .funNames = listGraphicsDevFuns())
 
 getGraphicsOutputFiles.expression =
 function(x, filename, ...)
@@ -1207,8 +1207,6 @@ function(param, fun)
 
     any(!w)
 }
-
-
 
 
 showSig =

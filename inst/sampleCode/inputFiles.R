@@ -19,7 +19,7 @@ dev.off()
 jpeg("foo.jpg", 1000, 1000)
 dev.off()
 
-png("foo.jpg", 1000, 1000)
+png("foo.png", 1000, 1000)
 dev.off()
 
 
