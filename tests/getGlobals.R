@@ -278,6 +278,74 @@ f = function(x) {
     bob
 }
 
+stopifnot(length(getGlobals(f)$variables) == 0)
+
+#######
+f =
+function(x)
+{
+    if(any(x < 0))
+        x[x < 0 ] = a
+
+    sum(x)
+}
+
+stopifnot(getGlobals(f)$variables == "a")
+
+
+##
+
+f =
+function(x)
+{
+    if(any(w <- (x < 0)))
+        x[w ] = 0.0
+
+    sum(x)
+}
+
+stopifnot(identical(getGlobals(f)$variables, character()))
+
+f =
+function(x)
+{
+    if(any(w <- (x < epsilon)))
+        x[w ] = 0.0
+
+    sum(x)
+}
+
+
+
+####################################
+#
+# Bad code but getGlobals() doesn't flag this.
+#
+#XXXXX
+
+# conditional evaluation 
+f =
+function(x)
+{
+    if(any(x < 0))
+        a = 1
+
+    sum(x) + a
+}
+
+stopifnot(getGlobals(f)$variables == "a")
+
+# conditional evaluation 
+f =
+function(x)
+{
+    v = 0
+    if(length(x) == 0 || any(w <- is.na(x)))
+          v = sum(w)
+
+    sum(x)
+}
+
 
 
 
