@@ -263,10 +263,23 @@ function(var, .els = list(), rmDups = !is.null(names(var)))
     if(length(.els)) {
         ids = names(.els)
         x = c(x, structure(sapply(.els, as.character), names = ids))
+        # Remove duplicates by name, but only if both var and .els have names
+        # For the examples above, this won't matter as there are no names
+        # and we are merging the contents of the two "vectors".
+        if(length(names(var)) > 0 && length(ids) > 0)
+            x = x[!duplicated(names(x))]
     }
 
     # If .els provides a duplicated element but with a name, the
     # element w/o the name remains which is probably not what we want.
+    #
+    # Some calls to this function have funName = arg and the args are duplicated,
+    # but we would care about removing duplicate names
+    # But let's do that when merging var and .els as the .els is typically fixed/computed once
+    # and so filtered manually. It is the overriding/replacement of those elements by the
+    # person merging var and .els that we care about.
+    #
+    #
     if(rmDups)
         x[!duplicated(x)]
     else
