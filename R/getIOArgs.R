@@ -78,16 +78,16 @@ function(..., .els = list(...))
 ##########
 
 getInputFiles =
-function(x, ..., .readFunNames = getReadDataFuns())
-    getIOArgs(x, .funNames = .readFunNames)
+function(x, ..., .funNames = getReadDataFuns(...))
+    getIOArgs(x, .funNames = .funNames)
 
 getOutputFiles =
-function(x, ..., .readFunNames = getOutputDataFuns())
-    getIOArgs(x, .funNames = .readFunNames)
+function(x, ..., .funNames = getOutputDataFuns(...))
+    getIOArgs(x, .funNames = .funNames)
 
 getGraphicsOutputFiles =
-function(x, ..., .readFunNames = getGraphicsDevFuns())
-    getIOArgs(x, .funNames = .readFunNames)
+function(x, ..., .funNames = getGraphicsDevFuns(...))
+    getIOArgs(x, .funNames = .funNames)
 
 
 ############
@@ -144,45 +144,7 @@ function(call, funArgs, envir = globalenv())
 }
 
 
-
-#XXX Pass in the names of the graphics functions.
-if(FALSE)
-getGraphicsOutputFiles =
-function(x, ...)
-    UseMethod("getGraphicsOutputFiles")
-
-if(FALSE) {
-getGraphicsOutputFiles.character =
-function(x, ...)
-{
-    if(length(x) > 1)
-        return(unlist(lapply(x, getGraphicsOutputFiles, ...)))
-
-    if(file.info(x)$isdir)
-        return(getGraphicsOutputFiles(getRFiles(x), ...))
-
-    getGraphicsOutputFiles(parse(x), x, ...)
-}
-}
-
-
-if(FALSE) {
-getGraphicsOutputFiles.character =
-function(x, ...)
-    generalCharacterMethod2(x, getGraphicsOutputFiles, ..., .funNames = getGraphicsDevFuns())
-
-getGraphicsOutputFiles.expression =
-function(x, filename, ...)
-{
-    calls = getGraphicsDeviceCalls(x)
-    ans = sapply(calls, getCallParam, 1L)
-    names(ans) = rep(filename, length(ans))
-    ans
-}
-}
-
-
-
+####################
 
 if(FALSE) {
     i1 = getInputFiles("code")
@@ -229,18 +191,12 @@ function(x, .funNames, ...)
     structure(unlist(ans), names = rep(names(x), sapply(ans, length)))
 }
 
-
+###############
 
 # These are from dependFuns.R
 # Were previously S4 methods.
 # But we no longer have a generic for getInputFiles.
 # Perhaps merge with getIOArgs, but specific to input.
-
-if(FALSE) {
-getInputFiles.character = 
-function(x, num = NA, ...)
-     getInputFiles(readScript(x), num = NA, ...)
-}
 
 getInputFiles.ScriptInfo = 
 function(x, num = NA, ...) {
@@ -260,21 +216,3 @@ function(x, num = NA, ...) {
 }
 
 
-if(FALSE) {
-getOutputFiles =
-function(x, ...)    
-  UseMethod("getOutputFiles")
-
-getOutputFiles.character =
-function(x, ...)
-    generalCharacterMethod2(x, getOutputFiles, ..., .funNames = listWriteDataFuns())
-
-getOutputFiles.expression =
-function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
-{
-    ans = findCallsToFunctions(getAllCalls(x), writeFunNames, "file", ...)
-    if(length(ans) > 0)
-        names(ans) = rep(filename, length(ans))
-    ans
-}
-}
