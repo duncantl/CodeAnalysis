@@ -9,27 +9,24 @@
 -->
 
 # To Fix
+  
++ listReadDataFuns() and listWriteDataFuns() - allow return a list if any elements have a different number
+```
+listWriteDataFuns( myWrite = c("a", "b"))
+```  
+   + currently myWrite1 and myWrite2 elements rather than a single  element.
+   + Don't break the other uses of the primitive function underlying this.
 
-+ √ Check uses of isAssignTo/isSimpleAssignTo and ensure they are okay with the check the RHS is a
-  name, not a complex LHS.
-   + Split this into isAssignTo and isSimpleAssignTo and isComplexAssignTo and isAssignTo() is an ||
-     of calls to the two specific ones.
-	   + Could be more efficient.
-   + Checked where they were used and made this change.
-   
-+ getSourceInfo() 
-  + make recursive.
++ getGraphicsOutputFiles
+   + make listGraphicsWriteFuns()
+
++ [check] getSourceInfo() 
+  + [check] make recursive.
   + get the directories correct.
-     + setwd
+     + chdir
 
 + getInputFiles and getOutputFiles and getGraphicOutputFiles
   + process the correct argument in the call.
-
-+ [check] Make code walkers - optionally - skip descending into if(FALSE) expressions.
-   + but do process if(TRUE) and the else part of if(FALSE) {} else {... }
-   + √√ Done for mkCallWalkerPred
-   + Done for the other code walker generators and top-level functions  that call them
-      + and updated Rd files.
    
 + getFunctionDefs for call
   + √ examples for some types do recursive regardless
@@ -37,17 +34,15 @@
         returns both when recursive is either TRUE or FALSE
   + √ example for ifCall and whileCall gives very nested list.
       + unlist works fine in the tmp function.
-	  
-+ √ callGraph(".") for CodeAnalysis/R gives an error `cannot change value of locked binding for
-  'isAssignReturn`
-    + trying to source() the code into an environment but the setGeneric is not given the target environment.
-    + fix the environment for setGeneric/setMethod or 	    
-	+ √ provide setGeneric/setMethod in the environment so these are called instead of the ones in
-      methods.
-	   + √ put the functions into the target namespace or a list.
 
-+ getGlobals() doesn't detect local variable in if() could be a global
-  + which example???
++ callGraph() - add special edges between generic function and its methods
+   + not necessarily called but an association.
+   + in S4Catcher, additionally collect the methods.
+   + Could also find the as(x, "class") and try to figure out which setAs() is in effect, but need to
+     know the class of x.
+
++ getGlobals() doesn't detect local variable in the code blocks in an if()-else could be a global
+  + See "conditional evaluation" in tests/getGlobals.R
   + same with  x < 0 || (w <- any(is.na(x))) when x is < 0 and second term not evaluated.
 
 + Find unused parameters and local variables 
@@ -104,7 +99,6 @@
 
 + implement findOS()/mkOSWalker for finding code that depends on the platform/OS
 
-+ If a function has a literal externalptr inlined, then getGlobals() fails in lapply(els, fun, w)
 
 + Fix mkGlobalsLocal() to optionally not add a default value to a parameter
    e.g. not replace Jvar with .Jvar = Jvar
@@ -117,7 +111,7 @@
 + for loop concatenation, rewrite the code.
    We need type information about the elements to be able to initialize the answer vector.
 
-+ [low] code analysis example (unrelated to highlighting, just the example)
++ [low priority] code analysis example (unrelated to highlighting, just the example)
   + highlight package getStyleFile() has
   ```
   if (grepl(sprintf("%s$", extension, ignore.case = TRUE),  name))
@@ -153,6 +147,44 @@
   + example, isLHS and envir in function isIndirectCall
 
 # Done
+
++ √ callGraph(".") for CodeAnalysis/R gives an error `cannot change value of locked binding for
+  'isAssignReturn`
+    + trying to source() the code into an environment but the setGeneric is not given the target environment.
+    + fix the environment for setGeneric/setMethod or 	    
+	+ √ provide setGeneric/setMethod in the environment so these are called instead of the ones in
+      methods.
+	   + √ put the functions into the target namespace or a list.
+
++ √ If a function has a literal externalptr inlined, then getGlobals() fails in lapply(els, fun, w)
+  + Seems okay
+```
+p = new('externalptr')
+f = function() return(x)
+body(f)[[2]] = p
+getGlobals(f)
+
+g = function() { if(x < 0)  y else p}
+body(g)[[2]][[4]] = p
+getGlobals(g)
+
+g = function(a = 1) { if(x < 0)  y else p}
+formals(g)$a = p
+getGlobals(g)
+```
+
++ [check] Make code walkers - optionally - skip descending into if(FALSE) expressions.
+   + but do process if(TRUE) and the else part of if(FALSE) {} else {... }
+   + √√ Done for mkCallWalkerPred
+   + Done for the other code walker generators and top-level functions  that call them
+      + and updated Rd files.
+
++ √ Check uses of isAssignTo/isSimpleAssignTo and ensure they are okay with the check the RHS is a
+  name, not a complex LHS.
+   + Split this into isAssignTo and isSimpleAssignTo and isComplexAssignTo and isAssignTo() is an ||
+     of calls to the two specific ones.
+	   + Could be more efficient.
+   + Checked where they were used and made this change.
 
 + √ in findCallsTo(), if parse fails, make it happen silently.
 
