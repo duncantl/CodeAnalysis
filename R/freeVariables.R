@@ -1017,16 +1017,6 @@ function(dir)
     grep("^(http|ftp)", unique(c(strings, xtra)), value = TRUE)
 }
 
-
-
-getRFiles =
-function(dir, pattern = '\\.[RrSsQq]$')
-   list.files(dir, pattern, full.names = TRUE)
-
-
-
-
-
 usedInCode =
 function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir),
           fun = function(x) x$value)
