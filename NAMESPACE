@@ -83,8 +83,8 @@ S3method(getAllCalls, character)
 S3method(getAllCalls, expression)
 
 export(getSourceInfo)
-S3method(getSourceInfo, character)
-S3method(getSourceInfo, expression)
+#S3method(getSourceInfo, character)
+#S3method(getSourceInfo, expression)
 
 export(callGraph)
 exportMethods(callGraph)
