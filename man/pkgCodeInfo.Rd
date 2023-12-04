@@ -11,13 +11,15 @@
   It ignores code in \code{if(FALSE)} expressions.
 }
 \usage{
-pkgCodeInfo(dir, rfiles = list.files(dir, pattern = "\\\\.[RrSs]$", full.names = TRUE))
+pkgCodeInfo(dir, rfiles = getRFiles(dir, recursive = recursive), recursive = TRUE)
 fileCodeInfo(file, code = parse(file), addClass = TRUE)
 }
 \arguments{
   \item{dir}{the path to a directory containing the R code, or a file}
   \item{rfiles}{the full paths to the files to process, useful if one only wants to process a subset
     of the files in the directory or combine files from multiple directories.}
+  \item{recursive}{a logical value passed to \code{\link{list.files}} and controls
+     whether we find R code files in sub-directories.}
   \item{file}{the full path to the R file containing the code to process}
   \item{code}{the R code to analyze}
   \item{addClass}{a logical value indicating whether to add the \code{FileCodeInfo} class to the

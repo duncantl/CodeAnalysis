@@ -21,7 +21,7 @@
 
 
 pkgCodeInfo = # processDir =
-function(dir, rfiles = list.files(dir, pattern = "\\.[RrSs]$", full.names = TRUE))
+function(dir, rfiles = getRFiles(dir, recursive = recursive), recursive = TRUE)
 {
     if(!file.info(dir)$isdir)
         return(fileCodeInfo(dir))
@@ -81,7 +81,7 @@ function(e, index, filename)
             
         } else if(class(e) == "name") {
            data.frame(name = as.character(e), type = "symbol", stringsAsFactors = FALSE)
-         } else if(class(e) %in% c("=", "<-")) {
+        } else if(class(e) %in% c("=", "<-")) {
              # Allow for chaining, e.g.m
              # a = b = c = function...
              ty = e[[3]]
@@ -91,17 +91,17 @@ function(e, index, filename)
                  ty = "call"
                  op = as.character(if(is.name(e[[3]])) e[[3]] else (e[[3]][[1]]))
              }
-           data.frame(name = as.character(e[[2]]), type = ty)
+           data.frame(name = deparse(e[[2]]), type = ty)
        } else if(is.call(e)) {
-           switch(as.character(e[[1]]),
+           switch(deparse(e[[1]]),
                "setClass" = data.frame(name = e[[2]], type = "S4class", stringsAsFactors = FALSE),
                "setClassUnion" = data.frame(name = e[[2]], type = "ClassUnion", stringsAsFactors = FALSE),
-                  "setOldClass" = data.frame(name = if(is.character(e[[2]])) e[[2]]
+               "setOldClass" = data.frame(name = if(is.character(e[[2]])) e[[2]]
                                                      else e[[2]][[2]], type = "OldClass", stringsAsFactors = FALSE),
                "setMethod" = data.frame(name = e[[2]], type = "S4Method", stringsAsFactors = FALSE),
                "setGeneric" = data.frame(name = e[[2]], type = "S4generic", stringsAsFactors = FALSE),
                "setAs" = data.frame(name = e[[2]], type = "coerce", stringsAsFactors = FALSE),
-                  default = stop("Don't recognize ", as.character(e[[1]]))
+               default = stop("Don't recognize ", as.character(e[[1]]))
               )
        }
 
