@@ -5,7 +5,7 @@
 #   isIfFalse
 #   rlangType
 #
-#   findReadDataFuns? findWriteDataFuns?
+#   listReadDataFuns? listWriteDataFuns?
 #
 ###############################
 #
@@ -23,7 +23,7 @@
 #     + √ take all of the Call objects - getAllCalls()
 #     + √ when a directory, and missing readDataFuns argument, √ call findWriteDataFuns().
 #
-# √ function for finding functions that call graphics device functions - mirroring findReadDataFuns() =  findGraphicsDevFuns
+# √ function for finding functions that call graphics device functions - mirroring listReadDataFuns() =  findGraphicsDevFuns
 #
 # √ functions for finding the files in read and write functions calls.
 #
@@ -525,10 +525,21 @@ function(x)
 
 ##############
 
-PrimitiveGraphicDeviceFuns = c("png", "pdf", "jpeg", "svg", "cairo", "quartz", "pictex", "cairo_pdf", "cairo_ps", "bitmap")
+PrimitiveGraphicDeviceFuns = c("png" = "filename",
+                               "pdf"= "file",
+                               "jpeg" = "filename",
+                               "svg" = "filename",
+#                               "cairo" = "", # XXX
+                               "quartz" = "file",
+                               "pictex" = "file",
+                               "cairo_pdf" = "filename",  # can create multiple files
+                               "cairo_ps" = "filename",
+                               "bitmap" = "file")
+
+
 #XXX  Make a function that mirrors the findReadDataFuns .
 
-findGraphicsDevFuns =
+listGraphicsDevFuns =
     #
     # ff = list(foo = function(f) save(1:10, file = f))
     # findWriteDataFuns(ff)
@@ -562,7 +573,30 @@ function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFu
 
 
 
+ generalCharacterMethod =
+
+
++                   "readFunNames" = getInputFiles(files, readFunNames = funNames, definitions = funDefs, ...),
++                   "writeFunNames" = getOutputFiles(files, writeFunNames = funNames, definitions = funDefs, ...),
++                   stop(paste0("Need to implement generalCharacterMethod for ", .op))))
+         }
+         return(fun(getRFiles(x), ...))
+     }
+ 
+     fun(parse(x), x, ...)
+ }
+
+
 generalCharacterMethod =
+    #
+    # fun is a generic function such as getInputFiles, getOutputFiles, getGraphicsOutputFiles
+    #
+    # If x is a collection of file names, apply
+    # .funNamesFun = list(fun, op)
+    #   where op is "readFunNames", "writeFunNames", ...
+    #    and fun is the function that returns the list/character vector of c(funName = argName)
+    # ... are extra arguments to fun
+    #
 function(x, fun, ..., .funNamesFun = character())
 {
     if(length(x) > 1)
@@ -581,13 +615,68 @@ function(x, fun, ..., .funNamesFun = character())
                    "readFunNames" = fun(files, readFunNames = funNames, definitions = funDefs, ...),
                    "writeFunNames" = fun(files, writeFunNames = funNames, definitions = funDefs, ...),
                    stop("Duncan made a mistake in the .funNamesFun setup")))
+# Added but hopefully original back to previous.            
+#                 "readFunNames" = getInputFiles(files, readFunNames = funNames, definitions = funDefs, ...),
+#                 "writeFunNames" = getOutputFiles(files, writeFunNames = funNames, definitions = funDefs, ...),
+#                 stop(paste0("Need to implement generalCharacterMethod for ", .op))))
         }
         return(fun(getRFiles(x), ...))
     }
 
     fun(parse(x), x, ...)
 }
+
+generalCharacterMethod2 =
+    #
+    # fun is a generic function such as getInputFiles, getOutputFiles, getGraphicsOutputFiles
+    #
+    # If x is a collection of file names, apply 
+    #
+function(x, fun, ..., .funNames = character())
+{
+    if(length(x) == 1) {
+        if(!file.info(x)$isdir) {
+            code = parse(x)
+        } else
+            return(generalCharacterMethod2(getRFiles(x), fun, ..., .funNames = .funNames))
+    } else { 
+        code = unlist(lapply(x, parse), recursive = FALSE)
+    }
+
+    calls = findCallsTo(code, names(.funNames))
+    sapply(calls, matchArgInCall, .funNames)
+}
+
+matchArgInCall =
+function(call, funArgs, envir = globalenv())
+{
+    fn = call[[1]]
+    if(isCallTo(fn, c("::", ":::")))
+        def = eval(fn, envir)
+    else
+        def = get(as.character(call[[1]]), envir, mode = "function")
+
+    fn = deparse(fn)
+    i = match(fn,  names(funArgs))
+    if(is.na(i))
+        i = match(gsub(".*::", "", fn), names(funArgs))
+
+    if(any(is.na(i)) || length(i) > 1)
+        stop(paste0("problems matching", fn, " in ", paste(names(funArgs), collapse = ", ")))
     
+    argName = funArgs[[i]]    
+    # For write.csv, write.csv2, etc. that are defined as function(...) and then an NSE call
+    # to utils::write.table or some other function, can't match.
+    # FIX
+    if(!(argName %in% names(formals(def))))
+        return(NA)
+    
+    m = match.call(def, call, expand.dots = TRUE)
+    # funArgs  could be a list with more than one parameter name in a function
+    # if more than one parameter is of interest.
+    m[[argName]]
+}
+
 
 
 #XXX Pass in the names of the graphics functions.
@@ -738,12 +827,26 @@ function(x)
 
 ###################################
 
-PrimitiveReadDataFuns = c("readLines", "read_excel", "read.csv", "read.table", "read.fwf", "excel_sheets",
-                          "scan", "data.table",
-                          "readRDS", "load")
+PrimitiveReadDataFuns = list("readLines" = "con",
+                          "read.csv" = "file",
+                          "read.table" = "file",
+                          "read.fwf" = "file",
+                          "read_excel" = "path",                          
+                          "excel_sheets" = "path",
+                          "scan" = "file",
+                          "data.table" = "...",
+                          "readRDS" = "file",
+                          "load" = "file")
+
+getReadDataFuns =
+    #
+    # combine ... with the PrimitiveReadDataFuns
+function(..., .els = list())
+    mkFunNameList(.els, PrimitiveReadDataFuns)
+
 
 findReadDataFuns =
-function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+function(funs, ..., primitiveFuns = getReadDataFunList())
 {
     if(missing(funs))
         return(primitiveFuns)
@@ -753,26 +856,26 @@ function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
 
 
 findReadDataFuns.list =
-function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+function(funs, ..., primitiveFuns = getReadDataFunList())
 {
     # DEBUGGING EG.  Leave primtiveFuns as ReadDataFuns. or PrimitiveReadDataFuns.
     # Also shows that not using global variables but parameter with default value which is global variable is better.
-    xtra = names(funs)[sapply(funs, function(f) any(getGlobals(f)$functions %in% primitiveFuns))] 
+    xtra = names(funs)[sapply(funs, function(f) any(getGlobals(f)$functions %in% names(primitiveFuns)))] 
     unique(c(primitiveFuns, xtra))
 }
 
 findReadDataFuns.environment =
-function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+function(funs, ..., primitiveFuns = getReadDataFunList())
     findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 findReadDataFuns.character =
-function(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+function(funs, ..., primitiveFuns = getReadDataFunList())
    findReadDataFuns(getFunctionDefs(funs), primitiveFuns = primitiveFuns)
 
 
 findReadDataFuns.expression =
     # a parsed file
-function(funs,..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
+function(funs,..., primitiveFuns = getReadDataFunList())
     findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 
@@ -786,18 +889,18 @@ if(FALSE) {
 
 
 getInputFiles =
-function(x, ...)    
+function(x, readFunNames = getReadDataFuns(), ...)    
   UseMethod("getInputFiles")
 
 getInputFiles.character =
-function(x, ...)
-    generalCharacterMethod(x, getInputFiles, ..., .funNamesFun = list(findReadDataFuns, "readFunNames"))
+function(x, readFunNames = getReadDataFuns(), ...)
+    generalCharacterMethod2(x, getInputFiles, ..., .funNames = readFunNames)
 
 getInputFiles.expression =
     #
     # Could actually call findCallsTo(x, readFunNames)
     #
-function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
+function(x, readFunNames = getReadDataFuns(), filename = NA, ...)
 {
     k = structure(findCallsTo(x, readFunNames), class = "ListOfCalls")
     # was k = getAllCalls(x) but now filtering as we walk the code to only keep the calls
@@ -807,7 +910,7 @@ function(x, filename = NA, readFunNames = findReadDataFuns(x), ...)
 }
 
 getInputFiles.ListOfCalls =
-function(x, filename = NA, readFunNames = findReadDataFuns(), ...)
+function(x, readFunNames = getReadDataFuns(), filename = NA, ...)
 {
     ans = findCallsToFunctions(x, readFunNames, 1L, ...)
     if(length(ans))
@@ -816,7 +919,7 @@ function(x, filename = NA, readFunNames = findReadDataFuns(), ...)
 }
 
 getInputFiles.DirectoryCalls =
-function(x, readFunNames = findReadDataFuns(), ...)
+function(x, readFunNames = getReadDataFuns(), ...)
 {
     ans = mapply(getInputFiles, x, names(x), MoreArgs = list(readFunNames, ...), SIMPLIFY = FALSE)
     structure(unlist(ans), names = rep(names(x), sapply(ans, length)))
@@ -857,7 +960,7 @@ function(x, ...)
 
 getOutputFiles.character =
 function(x, ...)
-    generalCharacterMethod(x, getOutputFiles, ..., .funNamesFun = list(findWriteDataFuns, "writeFunNames"))
+    generalCharacterMethod2(x, getOutputFiles, ..., .funNames = listWriteDataFuns())
 
 getOutputFiles.expression =
 function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
@@ -870,11 +973,19 @@ function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
     
 
 
-PrimitiveSaveDataFuns = c("saveRDS", "save.image", "save", "serialize", "write.table", "write.csv", "write.csv2", "write", "write.matrix")
+PrimitiveSaveDataFuns = c("saveRDS" = "file",
+                          "save.image" = "file",
+                          "save" = "file",
+                          "serialize" = "connection",
+                          "write.table" = "file",
+                          "write.csv" = "file",
+                          "write.csv2" = "file",
+                          "write" = "file",
+                          "MASS::write.matrix" = "file")
 # cat? but only with a file = ... argument
 #
 
-findWriteDataFuns =
+listWriteDataFuns =
     #
     # ff = list(foo = function(f) save(1:10, file = f))
     # findWriteDataFuns(ff)
@@ -884,7 +995,7 @@ function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
     if(missing(funs))
         return(primitiveFuns)
     
-    findReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+    listReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
 }
 
 
@@ -965,10 +1076,6 @@ function(x, ...)
     # k = find_nodes(to_ast(x), is, "Call")
     structure( k, class = "ListOfCalls" )
 }
-
-
-
-
 
 rlangType =
 function(x)
