@@ -9,25 +9,12 @@
 -->
 
 # To Fix
-  
-+ listReadDataFuns() and listWriteDataFuns() - allow return a list if any elements have a different number
-```
-listWriteDataFuns( myWrite = c("a", "b"))
-```  
-   + currently myWrite1 and myWrite2 elements rather than a single  element.
-   + Don't break the other uses of the primitive function underlying this.
 
-+ getGraphicsOutputFiles
-   + make listGraphicsWriteFuns()
-
-+ [check] getSourceInfo() 
-  + [check] make recursive.
++   getSourceInfo() 
   + get the directories correct.
-     + chdir
+     + chdir - if in a call, follow this.
+  + √ make recursive.
 
-+ getInputFiles and getOutputFiles and getGraphicOutputFiles
-  + process the correct argument in the call.
-   
 + getFunctionDefs for call
   + √ examples for some types do recursive regardless
      + `getFunctionDefs(quote(function(x)  function(mu, sd) prod(dnorm(x, mu, sd))))`
@@ -136,6 +123,11 @@ listWriteDataFuns( myWrite = c("a", "b"))
       + but issue is *probably* if( isEnv <- is.environment(x))
       + findAssignsTo2 seems to work.
 
++ findCallsTo and findCallsToFunctions -  check if should consolidate/remove one
+
++ same with getAllCalls 
+    + did we resolve this already?
+
 # New Features/Functionality
 
 + equivalent to rstatic::find_nodes
@@ -147,6 +139,19 @@ listWriteDataFuns( myWrite = c("a", "b"))
   + example, isLHS and envir in function isIndirectCall
 
 # Done
+
++ √ getInputFiles and getOutputFiles and getGraphicOutputFiles
+  + process the correct argument in the call.
+
++ √ getGraphicsOutputFiles and for Output functions.
+   + make getGraphicsDevFuns()
+
++ √ listReadDataFuns() and listWriteDataFuns() - allow return a list if any elements have a different number
+```
+listWriteDataFuns( myWrite = c("a", "b"))
+```  
+   + currently myWrite1 and myWrite2 elements rather than a single  element.
+   + Don't break the other uses of the primitive function underlying this.
 
 + √ callGraph(".") for CodeAnalysis/R gives an error `cannot change value of locked binding for
   'isAssignReturn`
