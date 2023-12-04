@@ -571,22 +571,6 @@ function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFu
 }
 
 
-
-
- generalCharacterMethod =
-
-
-+                   "readFunNames" = getInputFiles(files, readFunNames = funNames, definitions = funDefs, ...),
-+                   "writeFunNames" = getOutputFiles(files, writeFunNames = funNames, definitions = funDefs, ...),
-+                   stop(paste0("Need to implement generalCharacterMethod for ", .op))))
-         }
-         return(fun(getRFiles(x), ...))
-     }
- 
-     fun(parse(x), x, ...)
- }
-
-
 generalCharacterMethod =
     #
     # fun is a generic function such as getInputFiles, getOutputFiles, getGraphicsOutputFiles
