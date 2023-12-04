@@ -51,6 +51,19 @@ function(files, rel)
     ans
 }
 
+relativeFile =
+    # Seems to be an earlier and similar version but not vectorized.
+    # Called updateLoad() and insertSource().
+function(name, base)
+{
+    # temporary
+    name =  path.expand(name)
+    if(grepl("^/", name))
+        return(name)
+
+    file.path( dirname(base), name)
+}
+
 
 # Call this getSourceInfox rather than getSourceInfo() so that
 # we can use the latter to call this and then do the recursive

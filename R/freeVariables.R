@@ -126,106 +126,12 @@ function(x)
     x
 }
 
-
-getSourceInfo =
-    # Recursive.
-function(x, recursive = TRUE, ...)    
-{
-    ans = getSourceInfox(x)
-    if(recursive) {
-#        browser()        
-        done = unique(ans$from)
-        while(TRUE) {
-            xtra = unique(getRelativeFiles(ans$sourced, ans$from))
-            w = !(xtra %in% done)
-            if(any(w)) {
-                new = getSourceInfox(xtra[w])
-                if(nrow(new) == 0)
-                    break
-                
-                ans = rbind(ans, new)
-                done = unique(c(done, new$from))
-            }
-        }
-    }
-    
-    ans    
-}
-
-getRelativeFiles =
-    #
-    # Is there a function in R that does this? e.g., file.path
-    #  No for file.path - file.path("A/B", "~/foo.R")
-    #
-    # for each of element of a character vector of `files` that were
-    # processed relative each element of `rel`
-    # compute the relative path of file[i] relative to rel[i]
-    #
-    # e.g., files = foo/bar.R and rel = ../A/B/C/abc.R
-    # The result should be ../A/B/C/foo/bar.R (check)
-    #
-    # But  files = ~/foo/bar.R and rel = ../A/B/C/abc.R
-    # should be ~/foo/bar.R or path.expand.
-    #
-    # getRelativeFiles("~/foo.R", "A/B/foo.R")
-    # 
-function(files, rel)
-{
-    dir = dirname(rel)
-    w = grepl("^(~|/)", files)
-    ans = file.path(dir, files)
-
-    if(any(w))
-        ans[w] = files
-    ans
-}
-
-
-
-# Call this getSourceInfox rather than getSourceInfo() so that
-# we can use the latter to call this and then do the recursive
-# step.
-
-
-getSourceInfox =
-function(x, recursive = TRUE, ...)    
-  UseMethod("getSourceInfox")
-
-
-getSourceInfox.character =
-function(x, ...)    
-{
-    if(length(x) > 1)
-        return(do.call(rbind, lapply(x, getSourceInfox)))
-
-    if(!file.exists(x))
-        getSourceInfox(parse(text = x), filename = NA)
-    else if(file.info(x)$isdir)
-        getSourceInfox(getRFiles(x))
-    else
-        getSourceInfox(parse(x), filename = x)
-}
-
-getSourceInfox.expression =
-function(x, filename, ...)    
-{
-    #    w = sapply(x, isSourceCall)
-    # Now, can find source() in subexpressions, including if(FALSE)
-    k = findCallsTo(x, "source")
-    if(length(k))
-        ans = cbind(rep(filename, length(k)), sapply(k, getCallParam, 1L))
-    else
-        ans = matrix(NA, 0, 2)
-
-    colnames(ans) = c("from", "sourced")
-    as.data.frame(ans)
-        
-}
-
 insertSource =
     #
     # works on a file and the regular R language objects from parse()
     # not the CodeDepends Script/ScriptNodeInfo or the rstatic AST objects.
+    #
+    #  Perhaps also see insertLang()
     #
 function(file, code = parse(file), done = character(), asScript = TRUE)
 {
@@ -259,16 +165,6 @@ function(file, code = parse(file), done = character(), asScript = TRUE)
         ans
 }
 
-relativeFile =
-function(name, base)
-{
-    # temporary
-    name =  path.expand(name)
-    if(grepl("^/", name))
-        return(name)
-
-    file.path( dirname(base), name)
-}
 
 
 ################
@@ -523,177 +419,6 @@ function(x)
 
 
 
-##############
-
-PrimitiveGraphicDeviceFuns = c("png" = "filename",
-                               "pdf"= "file",
-                               "jpeg" = "filename",
-                               "svg" = "filename",
-#                               "cairo" = "", # XXX
-                               "quartz" = "file",
-                               "pictex" = "file",
-                               "cairo_pdf" = "filename",  # can create multiple files
-                               "cairo_ps" = "filename",
-                               "bitmap" = "file")
-
-
-#XXX  Make a function that mirrors the findReadDataFuns .
-
-listGraphicsDevFuns =
-    #
-    # ff = list(foo = function(f) save(1:10, file = f))
-    # findWriteDataFuns(ff)
-    #
-function(funs, ..., primitiveFuns = c(PrimitiveGraphicDeviceFuns, ...))
-{
-    if(missing(funs))
-        return(primitiveFuns)
-    
-    findReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
-}
-
-
-
-
-getGraphicsDeviceCalls =
-   # Find calls to (known) graphics devices.    
-function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFuns)
-{
-    if(is.character(f))
-        f = parse(f)
-    
-    e = to_ast(f)
-    if(omitNotRunCode)
-        e = dropNotRunCode(e)
-    
-    find_nodes(e, function(x) is(x, "Call") && is(x$fn, "Symbol") &&
-                                   x$fn$value %in% graphicDeviceFuns)
-}
-
-
-generalCharacterMethod =
-    #
-    # fun is a generic function such as getInputFiles, getOutputFiles, getGraphicsOutputFiles
-    #
-    # If x is a collection of file names, apply
-    # .funNamesFun = list(fun, op)
-    #   where op is "readFunNames", "writeFunNames", ...
-    #    and fun is the function that returns the list/character vector of c(funName = argName)
-    # ... are extra arguments to fun
-    #
-function(x, fun, ..., .funNamesFun = character())
-{
-    if(length(x) > 1)
-        return(unlist(lapply(x, fun, ...)))
-
-    if(file.info(x)$isdir) {
-        files = getRFiles(x)
-        if(length(.funNamesFun) && !(.funNamesFun[[2]] %in% names(list(...)))) {
-            # Is this worth the complexity to reduce the amount of duplicated code????
-
-            # If the parameter names readFunNames and writeFunNames had the same parameter name across functions
-            # we could simplify this code to have no switch and no 3rd version of fun(getRFiles(x), ...)
-            funDefs = getFunctionDefs(x)
-            funNames = .funNamesFun[[1]](funDefs)
-            return(switch(.funNamesFun[[2]],
-                   "readFunNames" = fun(files, readFunNames = funNames, definitions = funDefs, ...),
-                   "writeFunNames" = fun(files, writeFunNames = funNames, definitions = funDefs, ...),
-                   stop("Duncan made a mistake in the .funNamesFun setup")))
-# Added but hopefully original back to previous.            
-#                 "readFunNames" = getInputFiles(files, readFunNames = funNames, definitions = funDefs, ...),
-#                 "writeFunNames" = getOutputFiles(files, writeFunNames = funNames, definitions = funDefs, ...),
-#                 stop(paste0("Need to implement generalCharacterMethod for ", .op))))
-        }
-        return(fun(getRFiles(x), ...))
-    }
-
-    fun(parse(x), x, ...)
-}
-
-generalCharacterMethod2 =
-    #
-    # fun is a generic function such as getInputFiles, getOutputFiles, getGraphicsOutputFiles
-    #
-    # If x is a collection of file names, apply 
-    #
-function(x, fun, ..., .funNames = character())
-{
-    if(length(x) == 1) {
-        if(!file.info(x)$isdir) {
-            code = parse(x)
-        } else
-            return(generalCharacterMethod2(getRFiles(x), fun, ..., .funNames = .funNames))
-    } else { 
-        code = unlist(lapply(x, parse), recursive = FALSE)
-    }
-
-    calls = findCallsTo(code, names(.funNames))
-    sapply(calls, matchArgInCall, .funNames)
-}
-
-matchArgInCall =
-function(call, funArgs, envir = globalenv())
-{
-    fn = call[[1]]
-    if(isCallTo(fn, c("::", ":::")))
-        def = eval(fn, envir)
-    else
-        def = get(as.character(call[[1]]), envir, mode = "function")
-
-    fn = deparse(fn)
-    i = match(fn,  names(funArgs))
-    if(is.na(i))
-        i = match(gsub(".*::", "", fn), names(funArgs))
-
-    if(any(is.na(i)) || length(i) > 1)
-        stop(paste0("problems matching", fn, " in ", paste(names(funArgs), collapse = ", ")))
-    
-    argName = funArgs[[i]]    
-    # For write.csv, write.csv2, etc. that are defined as function(...) and then an NSE call
-    # to utils::write.table or some other function, can't match.
-    # FIX
-    if(!(argName %in% names(formals(def))))
-        return(NA)
-    
-    m = match.call(def, call, expand.dots = TRUE)
-    # funArgs  could be a list with more than one parameter name in a function
-    # if more than one parameter is of interest.
-    m[[argName]]
-}
-
-
-
-#XXX Pass in the names of the graphics functions.
-getGraphicsOutputFiles =
-function(x, ...)
-    UseMethod("getGraphicsOutputFiles")
-
-if(FALSE) {
-getGraphicsOutputFiles.character =
-function(x, ...)
-{
-    if(length(x) > 1)
-        return(unlist(lapply(x, getGraphicsOutputFiles, ...)))
-
-    if(file.info(x)$isdir)
-        return(getGraphicsOutputFiles(getRFiles(x), ...))
-
-    getGraphicsOutputFiles(parse(x), x, ...)
-}
-}
-
-getGraphicsOutputFiles.character =
-function(x, ...)
-    generalCharacterMethod2(x, getGraphicsOutputFiles, ..., .funNames = listGraphicsDevFuns())
-
-getGraphicsOutputFiles.expression =
-function(x, filename, ...)
-{
-    calls = getGraphicsDeviceCalls(x)
-    ans = sapply(calls, getCallParam, 1L)
-    names(ans) = rep(filename, length(ans))
-    ans
-}
     
 ##################
 getCallParam =
@@ -809,24 +534,32 @@ function(x)
 }
 
 
-###################################
 
-PrimitiveReadDataFuns = list("readLines" = "con",
-                          "read.csv" = "file",
-                          "read.table" = "file",
-                          "read.fwf" = "file",
-                          "read_excel" = "path",                          
-                          "excel_sheets" = "path",
-                          "scan" = "file",
-                          "data.table" = "...",
-                          "readRDS" = "file",
-                          "load" = "file")
+# What do these function intend to do specifically?
+# Seems we want to
+# find the names of IO arguments for read, write, graphics 
+#  1) given a set of function-parameter details we already have
+# and
+#  2) create that list of function-parameter(s) pairs by analyzing
+#  functions to see if they read or write.
 
-getReadDataFuns =
+# See getIOArgs.R for the former and a list of primitive function-parameter
+# info with which we can analyze other functions to see if they call those
+# so as to compute 2).  (Also analyze the C code.)
+
+listWriteDataFuns =
     #
-    # combine ... with the PrimitiveReadDataFuns
-function(..., .els = list())
-    mkFunNameList(.els, PrimitiveReadDataFuns)
+    # ff = list(foo = function(f) save(1:10, file = f))
+    # findWriteDataFuns(ff)
+    #
+function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
+{
+    if(missing(funs))
+        return(primitiveFuns)
+    
+    listReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+}
+
 
 
 findReadDataFuns =
@@ -864,122 +597,39 @@ function(funs,..., primitiveFuns = getReadDataFunList())
 
 
 
-if(FALSE) {
-    i1 = getInputFiles("code")
-    i2 = getInputFiles(getAllCalls("code"))
-    i3 = getInputFiles(parse("code/getPOWER.R"))
-    i4 = getInputFiles(getAllCalls("code/getPOWER.R"))    
-}
+############
 
-
-getInputFiles =
-function(x, readFunNames = getReadDataFuns(), ...)    
-  UseMethod("getInputFiles")
-
-getInputFiles.character =
-function(x, readFunNames = getReadDataFuns(), ...)
-    generalCharacterMethod2(x, getInputFiles, ..., .funNames = readFunNames)
-
-getInputFiles.expression =
-    #
-    # Could actually call findCallsTo(x, readFunNames)
-    #
-function(x, readFunNames = getReadDataFuns(), filename = NA, ...)
-{
-    k = structure(findCallsTo(x, readFunNames), class = "ListOfCalls")
-    # was k = getAllCalls(x) but now filtering as we walk the code to only keep the calls
-    # that are calls to functions in readFunNames.
-    # Could make subsequent methods faster by knowing these are pre-filtered, but leave for now.
-    getInputFiles(k, filename = filename, readFunNames = readFunNames, ...)
-}
-
-getInputFiles.ListOfCalls =
-function(x, readFunNames = getReadDataFuns(), filename = NA, ...)
-{
-    ans = findCallsToFunctions(x, readFunNames, 1L, ...)
-    if(length(ans))
-        names(ans) = rep(filename, length(ans))
-    ans
-}
-
-getInputFiles.DirectoryCalls =
-function(x, readFunNames = getReadDataFuns(), ...)
-{
-    ans = mapply(getInputFiles, x, names(x), MoreArgs = list(readFunNames, ...), SIMPLIFY = FALSE)
-    structure(unlist(ans), names = rep(names(x), sapply(ans, length)))
-}
-
-
-# These are from dependFuns.R
-# Were previously S4 methods.
-
-if(FALSE) 
-getInputFiles.character = 
-function(x, num = NA, ...)
-     getInputFiles(readScript(x), num = NA, ...)
-
-getInputFiles.ScriptInfo = 
-function(x, num = NA, ...) {
-    tmp = lapply(seq_along(x), function(i) getInputFiles(x[[i]], i, ...))
-    do.call(rbind, tmp)
-}
-
-getInputFiles.ScriptNodeInfo = 
-function(x, num = NA, ...) {
-    file = x@files
-    file = file[file != "" ]
-    if(length(file) == 0)
-        return(NULL)
-    op = names(x@functions)
-    
-    data.frame(filename = file, operation = op,  expressionNum = num, stringsAsFactors = FALSE)
-}
-
-
-
-
-getOutputFiles =
-function(x, ...)    
-  UseMethod("getOutputFiles")
-
-getOutputFiles.character =
-function(x, ...)
-    generalCharacterMethod2(x, getOutputFiles, ..., .funNames = listWriteDataFuns())
-
-getOutputFiles.expression =
-function(x, filename = NA, writeFunNames = findWriteDataFuns(x), ...)
-{
-    ans = findCallsToFunctions(getAllCalls(x), writeFunNames, "file", ...)
-    if(length(ans) > 0)
-        names(ans) = rep(filename, length(ans))
-    ans
-}
-    
-
-
-PrimitiveSaveDataFuns = c("saveRDS" = "file",
-                          "save.image" = "file",
-                          "save" = "file",
-                          "serialize" = "connection",
-                          "write.table" = "file",
-                          "write.csv" = "file",
-                          "write.csv2" = "file",
-                          "write" = "file",
-                          "MASS::write.matrix" = "file")
-# cat? but only with a file = ... argument
-#
-
-listWriteDataFuns =
+listGraphicsDevFuns =
     #
     # ff = list(foo = function(f) save(1:10, file = f))
     # findWriteDataFuns(ff)
     #
-function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
+function(funs, ..., primitiveFuns = c(PrimitiveGraphicDeviceFuns, ...))
 {
     if(missing(funs))
         return(primitiveFuns)
     
-    listReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+    findReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+}
+
+
+###################################
+
+
+
+getGraphicsDeviceCalls =
+   # Find calls to (known) graphics devices.    
+function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFuns)
+{
+    if(is.character(f))
+        f = parse(f)
+    
+    e = to_ast(f)
+    if(omitNotRunCode)
+        e = dropNotRunCode(e)
+    
+    find_nodes(e, function(x) is(x, "Call") && is(x$fn, "Symbol") &&
+                                   x$fn$value %in% graphicDeviceFuns)
 }
 
 

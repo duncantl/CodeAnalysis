@@ -14,7 +14,7 @@ setMethod("callGraph", "character",
                   e = sourceRFiles(obj)
                   return(callGraph(e))
               } else if (any(ex)) 
-                  stop("really?  - files/directories and non files as names")
+                  stop("really?  - files/directories and non-files as names")
 
              
               fdefs = findFunctionDefs(obj)
