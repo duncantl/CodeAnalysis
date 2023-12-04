@@ -30,7 +30,7 @@ function()
 
 isAssignTo =
 function(x, var = character())
-    isSimpleAssignTo(x, var) || isComplexAssignTo(x, va)
+    isSimpleAssignTo(x, var) || isComplexAssignTo(x, var)
 
 isSimpleAssignTo =
 function(x, var = character())    

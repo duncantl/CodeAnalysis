@@ -547,23 +547,23 @@ function(x)
 # info with which we can analyze other functions to see if they call those
 # so as to compute 2).  (Also analyze the C code.)
 
-listWriteDataFuns =
+findWriteDataFuns =
     #
     # ff = list(foo = function(f) save(1:10, file = f))
     # findWriteDataFuns(ff)
     #
-function(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
+function(funs, ..., primitiveFuns = getOutputDataFuns(...))
 {
     if(missing(funs))
         return(primitiveFuns)
     
-    listReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
+    findReadDataFuns(funs, ..., primitiveFuns = primitiveFuns)
 }
 
 
 
 findReadDataFuns =
-function(funs, ..., primitiveFuns = getReadDataFunList())
+function(funs, ..., primitiveFuns = getReadDataFuns(...))
 {
     if(missing(funs))
         return(primitiveFuns)
@@ -573,7 +573,7 @@ function(funs, ..., primitiveFuns = getReadDataFunList())
 
 
 findReadDataFuns.list =
-function(funs, ..., primitiveFuns = getReadDataFunList())
+function(funs, ..., primitiveFuns = getReadDataFuns(...))
 {
     # DEBUGGING EG.  Leave primtiveFuns as ReadDataFuns. or PrimitiveReadDataFuns.
     # Also shows that not using global variables but parameter with default value which is global variable is better.
@@ -582,29 +582,29 @@ function(funs, ..., primitiveFuns = getReadDataFunList())
 }
 
 findReadDataFuns.environment =
-function(funs, ..., primitiveFuns = getReadDataFunList())
+function(funs, ..., primitiveFuns = getReadDataFuns(...))
     findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 findReadDataFuns.character =
-function(funs, ..., primitiveFuns = getReadDataFunList())
+function(funs, ..., primitiveFuns = getReadDataFuns(...))
    findReadDataFuns(getFunctionDefs(funs), primitiveFuns = primitiveFuns)
 
 
 findReadDataFuns.expression =
     # a parsed file
-function(funs,..., primitiveFuns = getReadDataFunList())
+function(funs,..., primitiveFuns = getReadDataFuns(...))
     findReadDataFuns(as.list(funs), primitiveFuns = primitiveFuns, ...)
 
 
 
 ############
 
-listGraphicsDevFuns =
+findGraphicsDevFuns =
     #
     # ff = list(foo = function(f) save(1:10, file = f))
     # findWriteDataFuns(ff)
     #
-function(funs, ..., primitiveFuns = c(PrimitiveGraphicDeviceFuns, ...))
+function(funs, ..., primitiveFuns = getGraphicsDevFuns(...))
 {
     if(missing(funs))
         return(primitiveFuns)
@@ -619,7 +619,7 @@ function(funs, ..., primitiveFuns = c(PrimitiveGraphicDeviceFuns, ...))
 
 getGraphicsDeviceCalls =
    # Find calls to (known) graphics devices.    
-function(f, omitNotRunCode = FALSE, graphicDeviceFuns = PrimitiveGraphicDeviceFuns)
+function(f, omitNotRunCode = FALSE, graphicDeviceFuns = names(PrimitiveGraphicDeviceIOInfo))
 {
     if(is.character(f))
         f = parse(f)

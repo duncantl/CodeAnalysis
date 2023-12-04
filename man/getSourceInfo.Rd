@@ -31,7 +31,11 @@ Duncan Temple Lang
 }
 \examples{
 f = system.file("sampleCode/source.R", package = "CodeAnalysis")
-getSourceInfo(f)
+a = getSourceInfo(f, FALSE)
+a
+
+b = getSourceInfo(f)
+b
 }
 \concept{meta-programming}
 \concept{static code analysis}

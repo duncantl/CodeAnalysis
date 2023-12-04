@@ -19,7 +19,6 @@ if(FALSE) {
 
     stopifnot(identical(getGraphicsOutputFiles("inst/sampleCode/inputFiles.R"),
                         c("foo.pdf", "foo.jpg", "foo.png")))
-
 }
 
 ##############

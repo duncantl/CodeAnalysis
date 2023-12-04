@@ -15,8 +15,8 @@ Identify functions that call read and write functions
   if so, include those wrapper functions in the return value.
 }
 \usage{
-findReadDataFuns(funs, ..., primitiveFuns = c(PrimitiveReadDataFuns, ...))
-findWriteDataFuns(funs, ..., primitiveFuns = c(PrimitiveSaveDataFuns, ...))
+findReadDataFuns(funs, ..., primitiveFuns = getReadDataFuns(...))
+findWriteDataFuns(funs, ..., primitiveFuns = getOutputDataFuns(...))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
