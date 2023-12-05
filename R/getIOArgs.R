@@ -52,8 +52,8 @@ PrimitiveReadIOInfo = list("readLines" = "con",
                            "read.csv" = "file",
                            "read.table" = "file",
                            "read.fwf" = "file",
-                           "read_excel" = "path",                          
-                           "excel_sheets" = "path",
+                           "readxl::read_excel" = "path",                          
+                           "readxl::excel_sheets" = "path",
                            "scan" = "file",
                            "data.table" = "...",
                            "readRDS" = "file",
@@ -77,16 +77,16 @@ function(..., .els = list(...))
 ##########
 
 getInputFiles =
-function(x, ..., .funNames = getReadDataFuns(...))
-    getIOArgs(x, .funNames = .funNames)
+function(x, lang = TRUE, ..., .funNames = getReadDataFuns(...))
+    getIOArgs(x, .funNames = .funNames, lang =lang)
 
 getOutputFiles =
-function(x, ..., .funNames = getOutputDataFuns(...))
-    getIOArgs(x, .funNames = .funNames)
+function(x, lang = TRUE, ..., .funNames = getOutputDataFuns(...))
+    getIOArgs(x, .funNames = .funNames, lang = lang)
 
 getGraphicsOutputFiles =
-function(x, ..., .funNames = getGraphicsDevFuns(...))
-    getIOArgs(x, .funNames = .funNames)
+function(x, lang = TRUE, ..., .funNames = getGraphicsDevFuns(...))
+    getIOArgs(x, .funNames = .funNames, lang = lang)
 
 
 ############
@@ -109,11 +109,11 @@ function(x, fun, ..., .funNames = character())
     }
 
     calls = findCallsTo(code, names(.funNames))
-    sapply(calls, matchArgInCall, .funNames)
+    sapply(calls, matchArgInCall, .funNames, ...)
 }
 
 matchArgInCall =
-function(call, funArgs, envir = globalenv())
+function(call, funArgs, envir = globalenv(), lang = TRUE)
 {
     fn = call[[1]]
     if(isCallTo(fn, c("::", ":::")))
@@ -139,7 +139,12 @@ function(call, funArgs, envir = globalenv())
     m = match.call(def, call, expand.dots = TRUE)
     # funArgs  could be a list with more than one parameter name in a function
     # if more than one parameter is of interest.
-    m[[argName]]
+
+    ans = m[[argName]]
+    if(lang || isLiteral(ans))
+        ans
+    else
+        NA
 }
 
 

@@ -16,13 +16,17 @@
   functions  and so include those functions as targets.
 }
 \usage{
-getInputFiles(x, ..., .funNames = getReadDataFuns(...))
-getOutputFiles(x, ..., .funNames = getOutputDataFuns(...))
-getGraphicsOutputFiles(x, ..., .funNames = getGraphicsDevFuns(...))
+getInputFiles(x, lang = TRUE, ..., .funNames = getReadDataFuns(...))
+getOutputFiles(x, lang = TRUE, ..., .funNames = getOutputDataFuns(...))
+getGraphicsOutputFiles(x, lang = TRUE, ..., .funNames = getGraphicsDevFuns(...))
 }
 \arguments{
   \item{x}{a character vector of R file or directory names, an expression
-    from parsing an R script, the output from \code{\link{getAllCalls}} or generally any R language objects. }
+    from parsing an R script, the output from \code{\link{getAllCalls}} or generally any R language
+    objects. }
+  \item{lang}{a logical value. If \code{FALSE},  only literal arguments are returned, basically, literal
+    strings representing file names (but possibly also logical, integer or numeric values);
+    if \code{TRUE}, expressions/language objects that are the arguments.}
   \item{\dots}{a collection of \code{function = parameter-name(s)} pairs
     specifying additional functions and their parameters that identify where a function
     is writing to a file/connection.  }
@@ -43,7 +47,11 @@ getGraphicsOutputFiles(x, ..., .funNames = getGraphicsDevFuns(...))
 }
 \examples{
   f = system.file("sampleCode/inputFiles.R", package = "CodeAnalysis")
-  i = getInputFiles(f)
+  getInputFiles(f)
+  # includes a call to sprintf()
+
+  getInputFiles(f, lang = FALSE)
+  # NA in place of the sprintf()
 }
 \keyword{IO}
 \concept{meta-programming}
