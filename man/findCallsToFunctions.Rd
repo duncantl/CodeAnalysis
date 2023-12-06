@@ -112,6 +112,17 @@ numCalls(code)
   a = findCallsTo(f, "source")
   b = findCallsTo(f, "source", skipIfFalse = FALSE)
   setdiff(b, a)
+
+
+\dontrun{
+
+    # Project from git@github.com:mespe/Variety_trial_analysis.git
+  ff = list.files("~/Book/ExploreCode/Variety_trial_analysis/code", pattern = "\\.R$", full = TRUE)
+  e = unlist(lapply(ff, parse), recursive = FALSE)
+  k = findCallsTo(e)
+  z = sapply(k, function(x) deparse(x[[1]]))
+  sort(table(z), decreasing = TRUE)
+}
 }
 \concept{meta-programming}
 \concept{static analysis}

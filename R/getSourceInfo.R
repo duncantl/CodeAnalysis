@@ -11,7 +11,7 @@ function(x, recursive = TRUE, ...)
 {
     ans = getSourceInfox(x)
 
-    if(recursive) {
+    if(recursive && nrow(ans) > 0) {
         done = unique(ans$from)
         while(TRUE) {
             # Avoid dealing with the files that don't exist and processing
@@ -23,6 +23,9 @@ function(x, recursive = TRUE, ...)
             ex = file.exists(xtra)
             w = !(xtra %in% done) & ex
 
+            if(any(w2 <- (xtra %in% done))) 
+                warning("circularity in files source()'ing each other directly or indirectly") # , paste(xtra[w2], collapse = ", "))
+                
             if(any(!ex))
                 ans = rbind(ans, data.frame(from = xtra[!ex], sourced = rep(NA, sum(!ex))))
             
@@ -33,7 +36,8 @@ function(x, recursive = TRUE, ...)
                 
                 ans = rbind(ans, new)
                 done = unique(c(done, new$from[!is.na(new$sourced)]))
-            }
+            } else
+                break
         }
     }
     
@@ -64,7 +68,18 @@ function(files, rel)
     ans = file.path(dir, files)
 
     if(any(w))
-        ans[w] = files
+        ans[w] = files[w]
+
+    # to deal with .. in a path, could use 
+    #    ex = file.exists(ans)
+    #    ans[ex] = normalizePath(ans[ex])
+    # However, this will convert ~/foo/bar to /Users/../foo/bar
+    # and then we'll end up with that and ~/foo/bar in the sourced column
+    # and consider this as 2 different files.
+    # We could address that, but want to keep the ~ as it is not /Users/duncan/ but the
+    # concept of any user's home directory.
+    #
+
     ans
 }
 
