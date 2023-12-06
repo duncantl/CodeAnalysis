@@ -44,6 +44,7 @@ Possible Running Examples:
 1. ?(maybe better in different package?)[TOP] [Clark] Opportunities for parallelization, for example replacing
    lapply with parallel::mclapply in an intelligent way to avoid nesting.
 1. [TOP] [Matt / Duncan] Identify input/output data files (see CodeDepends).
+     + See CodeAnalysis::getInputFiles(), getOutputFiles(), getGraphicsOutputFiles()
 1. [TOP] [Matt / Duncan] Summarize code from a project (see RCleanProject).
    Find minimal example: create graph of scripts for directory?
 1. Identify repetitive blocks of code, i.e. the same code evaluated in multiple
@@ -56,6 +57,7 @@ Possible Running Examples:
    and also recognizes fun in lapply(x, fun)  as  function and not a
    variable. Find use of undefined variables.
    CodeDepends:::freeVariables(readScript(file))
+     + CodeAnalysis::getGlobals() handles pkg::fun and lapply() and other indirect calls, e.g., do.call()
 
 
 ### Improvements

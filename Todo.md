@@ -10,9 +10,25 @@
 
 # To Fix
 
-+   getSourceInfo() 
++ √ getInputFiles, etc. - optionally allow/disallow calls/language objects in the results.
+     Sometimes just want the literal strings.
+	 + can't differentiate between an NA from not matching the argument and a non literal.
+	   + could deparse but then can't differentiate between file name and deparsed string.
+	   + could return character() for either of these or NaN
+
++ getSourceInfo() 
+  + What about returning a list with an element for each file and the files it source()s
+     via findCallsTo(, "source").
+	  + different representation.
   + get the directories correct.
      + chdir - if in a call, follow this.
+  + [verify] check circularities - issues warning.
+     + check with VarietyTrial.R
+  + √ [no - leave as is] fix getRelative() for .. 
+     + [no] normalizePath() for the files that exist.
+	     + this converts ~/foo/bar to /Users/..../foo/bar and we want the ~
+  + √ Why are the files that don't exist included twice in the output. See VarietyTrial.R
+     + because of the normalizePath() and treating ~/foo/bar and /Users/duncan/foo/bar as 2 diferent files.
   + √ make recursive.
 
 + getFunctionDefs for call
@@ -53,7 +69,7 @@
    
 + [check] programmatically determine if a function returns a function - returnsFunction()
   + grDevices:::.select_device
-     + doesn't include pdf as one of the possible functions being returned.
+     + returnsFunction() doesn't include pdf as one of the possible functions being returned.
 	 + not following the definition of local variables within the function when 
 	   the return value is a symbol.
   + fix to deal with processing assignments in subfunctions and not the function itself.
@@ -85,7 +101,8 @@
    + obj is the name of the first argument.
 
 + implement findOS()/mkOSWalker for finding code that depends on the platform/OS
-
+   + if ( os ) {} else {} 
+   + use of .Platform$field
 
 + Fix mkGlobalsLocal() to optionally not add a default value to a parameter
    e.g. not replace Jvar with .Jvar = Jvar
