@@ -48,6 +48,13 @@ resolveVar =
     #
     # If not a name, return ex.
     #
+    #  Have to be smarter here to determine branches and possible values
+    #  by the time returning.
+    #
+    #  But also, putting intermediate assignments on the expressions is
+    #  not convenient to deal with.
+    #
+    #
 function(ex, fun)
 {
     if(is.name(ex)) {
