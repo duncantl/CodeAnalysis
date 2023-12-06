@@ -52,6 +52,20 @@ getGraphicsOutputFiles(x, lang = TRUE, ..., .funNames = getGraphicsDevFuns(...))
 
   getInputFiles(f, lang = FALSE)
   # NA in place of the sprintf()
+
+
+\dontrun{
+    # Project from git@github.com:mespe/Variety_trial_analysis.git
+  ff = list.files("~/Book/ExploreCode/Variety_trial_analysis/code", pattern = "\\.R$", full = TRUE)
+  inp = lapply(ff, getInputFiles, FALSE)
+  names(inp) = basename(ff)
+
+  out = lapply(ff, getOutputFiles, FALSE)
+  names(out) = basename(ff)
+
+  grout = lapply(ff, getGraphicsOutputFiles, FALSE)
+  names(grout) = basename(ff)
+}
 }
 \keyword{IO}
 \concept{meta-programming}

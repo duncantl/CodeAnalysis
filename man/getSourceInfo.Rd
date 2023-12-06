@@ -46,6 +46,27 @@ a
 
 b = getSourceInfo(f)
 b
+
+\dontrun{
+    # Project from git@github.com:mespe/Variety_trial_analysis.git
+  ff = list.files("~/Book/ExploreCode/Variety_trial_analysis/code", pattern = "\\.R$", full = TRUE)
+  src = lapply(ff, getSourceInfo)
+  names(src) = basename(ff)
+  src = src[ sapply(src, nrow) > 0 ]
+
+  library(igraph)
+  tmp = src$temp_analysis
+  tmp = tmp[!is.na(tmp$sourced), ]
+  tmp$from = basename(tmp$from)
+  g = graph_from_data_frame(tmp)
+  plot(g)
+
+  # All the files and what they source combined
+  tmp2 = do.call(rbind, src)
+  tmp2$from = basename(tmp2$from)
+  tmp2 = tmp2[!is.na(tmp2$sourced), ]
+  plot(graph_from_data_frame(tmp2))
+}
 }
 \concept{meta-programming}
 \concept{static code analysis}
