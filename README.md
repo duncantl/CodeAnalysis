@@ -24,4 +24,4 @@ remotes::install_github("duncantl/CodeAnalysis")
 or clone the repository and use
 ```
 R CMD INSTALL CodeAnalysis
-``
+```
