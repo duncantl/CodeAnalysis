@@ -1,7 +1,7 @@
 # CodeAnalysis
 
 Static and dynamic code analysis can be very helpful for understanding R code.
-This package provides some functionality to static code analysis.
+This package provides some functionality to perform static code analysis.
 
 
 See also
