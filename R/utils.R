@@ -164,7 +164,8 @@ find_var = function(expr, var, loc = integer(), found = list())
 #'
 #' @param expr R language object
 #' added the name getAllSymbols to mirror getAllCalls.  Can use either name.
-getAllSymbols = all_symbols = function(expr, predicate = is.symbol)
+getAllSymbols = all_symbols =
+function(expr, unique = TRUE, predicate = is.symbol)
 {
     expr = as.expression(expr)
     symbols = character()
@@ -174,7 +175,10 @@ getAllSymbols = all_symbols = function(expr, predicate = is.symbol)
 
     })
     lapply(expr, codetools::walkCode, walker)
-    unique(symbols)
+    if(unique)
+        unique(symbols)
+    else
+        symbols
 }
 
 
