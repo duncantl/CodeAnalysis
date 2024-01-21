@@ -10,6 +10,15 @@
 
 # To Fix
 
++ Document getIndirectCallFunList
+
++ have procIndirectCal... match the parameter names.
+   + 
+```
+source("~/Books/NextLevelComputationalReasoning/ExploreCode/Variety_trial_analysis/code/uc_ipm_funs.R")
+getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirectCallFunList(xpathSApply = "fun", xpathApply = "fun")))
+```
+
 + √ getInputFiles, etc. - optionally allow/disallow calls/language objects in the results.
      Sometimes just want the literal strings.
 	 + can't differentiate between an NA from not matching the argument and a non literal.
@@ -22,7 +31,7 @@
 	  + different representation.
   + get the directories correct.
      + chdir - if in a call, follow this.
-  + [verify] check circularities - issues warning.
+  + check circularities - issues warning.
      + check with VarietyTrial.R
   + √ [no - leave as is] fix getRelative() for .. 
      + [no] normalizePath() for the files that exist.
