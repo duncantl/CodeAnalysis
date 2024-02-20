@@ -108,3 +108,6 @@ export(returnsFunction)
 
 
 export(getIndirectCallFunList)
+
+
+export(findLiterals)
