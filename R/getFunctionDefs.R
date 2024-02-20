@@ -122,12 +122,16 @@ function(x, env = new.env(parent = globalenv()),
     ans
 })
 
-#XXX Get the names on the elements in this and the .function method
 
 tmp = function(x, parse = FALSE, recursive = FALSE, envir = globalenv(), ...)
 {
+#XXX Get the names on the elements in this and the .function method    
     if(isFunAssign(x)) {
         ans = getFunctionDefs(x[[3]], parse = parse, recursive = recursive, ...)
+        # If we have a single function object, we can't put the name on that.
+        # So can put it in a list.
+        if(!is.list(ans))
+            ans = list(ans)
         names(ans)[1] = as.character(x[[2]])
         ans
     } else if(isFunctionDef(x)) {
