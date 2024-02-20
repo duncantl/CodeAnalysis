@@ -227,7 +227,10 @@ function(code, funNames = character(),
     }
     
     walkCode(code, walker)
-    walker$ans()
+    ans = walker$ans()
+    # Set the name of the function being called as the name of each call, unless it is not a simple function name, but a call.
+    names(ans) = sapply(ans, function(x) if(is.symbol(x[[1]])) as.character(x[[1]]) else "")
+    ans
 }
 
 
