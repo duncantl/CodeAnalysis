@@ -289,7 +289,7 @@ function(ignoreParams = TRUE, skipIfFalse = TRUE)
             return(NULL)
         
         ty = typeof(x)
-        if(ty == "pairlist" && !ignoreParams) { #XXX add expression, list, language ?
+        if( (ty == "pairlist" && !ignoreParams) || ty %in% c("list", "language", "expression")) { #XXX add expression, list, language ?
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
