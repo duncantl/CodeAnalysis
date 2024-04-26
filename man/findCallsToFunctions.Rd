@@ -23,8 +23,12 @@
 \usage{
 findCallsTo(code, funNames = character(),
          indirectCallFuns = getIndirectCallFunList(),
-         walker = mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
-         parse = any(!sapply(funNames, is.name)), skipIfFalse = TRUE) 
+         walker = if(!missing(rx))
+                      mkCallWalkerPred(findCallsRXPred(rx), skipIfFalse = FALSE)
+                  else
+                      mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
+         parse = any(!sapply(funNames, is.name)), skipIfFalse = TRUE,
+         rx = character()) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
 isCallTo(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
 mkCallWalkerPred(pred, ..., skipIfFalse = TRUE)
@@ -36,7 +40,8 @@ numCalls(code)
     character vector of names or of R calls/expressions, or a list of previously parsed
     call language objects.
   }
-\item{indirect,indirectCallFuns}{a named character vector or a logical value.
+  \item{rx}{a regular expression used to identify functions of interest, rather than actual names}
+  \item{indirect,indirectCallFuns}{a named character vector or a logical value.
   If \code{TRUE}, we use the value from a call to \code{getIndirectCallFunList()}.
   If \code{FALSE}, we use the empty vector and so do not consider indirect calls.
   For a character vector value, the names identify the
@@ -113,6 +118,25 @@ numCalls(code)
   b = findCallsTo(f, "source", skipIfFalse = FALSE)
   setdiff(b, a)
 
+
+  # Regular expression
+
+  z = findCallsTo(findCallsTo, rx = "is\\.")
+
+  z = findCallsTo(findCallsTo, rx = "file.info")
+
+  z = findCallsTo(findCallsTo, rx = "apply")
+
+
+  # Compare matching any function name and no function names.
+  z = findCallsTo(findCallsTo, rx = ".*")
+  z2 = findCallsTo(findCallsTo)
+  setdiff(z2, z)
+  # The regular expression does not include the walker$ans() call
+  # since the findCallsTo() with no function names includes all calls.
+
+
+  
 
 \dontrun{
 

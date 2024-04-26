@@ -104,6 +104,7 @@ function(funNames, indirect = character(), ...)
 }
 
 
+
 # Functions to check for pkg::foo or pkg:::foo
 #  and to check if that name is in funNames, either the full name pkg::foo or foo.
 isNamespaceAccess =
@@ -178,6 +179,19 @@ function(x, indirects, funNames, isFunNamesStrings, isLHS = getLHS(x), envir = g
 }
 
 
+findCallsRXPred =
+function(rx)
+{        
+    function(x, isName, ...)
+    {
+        if(isName)
+            grepl(rx, as.character(x[[1]]))
+        else
+            FALSE
+    }
+}
+
+
 findCallsTo =
     # How is this related to findCallsToFunctions()?
     #
@@ -189,9 +203,13 @@ findCallsTo =
     #
 function(code, funNames = character(),
          indirectCallFuns = getIndirectCallFunList(),
-         walker = mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
+         walker = if(!missing(rx))
+                      mkCallWalkerPred(findCallsRXPred(rx), skipIfFalse = FALSE)
+                  else
+                      mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
          parse = any(!sapply(funNames, is.name)),
-         skipIfFalse = TRUE)
+         skipIfFalse = TRUE,
+         rx = character())
 {
     # try to parse funNames so that we can compare symols not convert symbols to strings and compare
     # But if we can't parse, keep the original string(s).
