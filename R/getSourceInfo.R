@@ -103,7 +103,7 @@ function(name, base)
 
 
 getSourceInfox =
-function(x, recursive = TRUE, ...)    
+function(x, ..., recursive = TRUE)
   UseMethod("getSourceInfox")
 
 
