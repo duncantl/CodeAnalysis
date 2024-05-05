@@ -18,12 +18,15 @@
 }
 \usage{
 getAllCalls(x, ...)
-getAllSymbols(expr, predicate = is.symbol)
+getAllSymbols(expr, unique = TRUE, predicate = is.symbol)
 }
 \arguments{
   \item{x}{a character vector of file or directory names or the parsed code}
   \item{\dots}{arguments for methods}
   \item{expr}{the R code/language object}
+  \item{unique}{a scalar logical value controlling whether all occurrences of symbols are returned
+    (\code{FALSE}) or just the set of unique symbols that occurred in the code.
+    }
   \item{predicate}{the function that determines whether the language object is a symbol
     and one we want to capture. This can be more specific such as
     \code{function(x) is.symbol(x) && as.character(x) \%in\% c("foo", "bar")}
@@ -38,6 +41,8 @@ A list of \code{rstatic} \code{Call} objects.
 \author{Duncan Temple Lang, Nick Ulle}
 \seealso{
   \code{\link{findCallsTo}}
+
+  \code{\link{findLiterals}}
 }
 \examples{
 \dontrun{
