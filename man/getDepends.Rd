@@ -8,7 +8,9 @@ Get dependent input, output and data files for an R script.
   read (input and/or data) and written (output).
 }
 \usage{
-getDepends(file, info = as(readScript(file), "ScriptInfo"), fileFunctionNames = FileFunctionNames(), prev = info, loadPackages = TRUE, addExpressionNum = TRUE)
+getDepends(file, info = as(readScript(file), "ScriptInfo"),
+           fileFunctionNames = FileFunctionNames(),
+           prev = info, loadPackages = TRUE, addExpressionNum = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,9 +25,8 @@ containing the script information.
 The names of functions which can read or write files. Default functions
 are provided by \code{FileFunctionNames()}
 }
-  \item{prev}{
-	
-}
+\item{prev}{the previous \code{ScriptNodeInfo} from a \code{ScriptInfo} list
+    for the node/block just before \code{info}, or \code{NULL}.}
   \item{loadPackages}{
 logical, should the packages required by the script be loaded? 
 }
