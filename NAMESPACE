@@ -111,3 +111,7 @@ export(getIndirectCallFunList)
 
 
 export(findLiterals)
+
+
+export(getCallPaths)
+
