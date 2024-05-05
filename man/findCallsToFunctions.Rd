@@ -4,6 +4,7 @@
 \alias{isCallTo}
 \alias{numCalls}
 \alias{mkCallWalkerPred}
+\alias{getIndirectCallFunList}
 \title{Find all calls to given functions or all assignments to specific variables}
 \description{
   These analyze R code and find all calls to functions in the given
@@ -33,6 +34,7 @@ findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = N
 isCallTo(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
 mkCallWalkerPred(pred, ..., skipIfFalse = TRUE)
 numCalls(code)
+getIndirectCallFunList(..., .els = list(...))
 }
 \arguments{
   \item{code}{the R code to analyze, or path to an R source file or directory containing R code}
@@ -69,7 +71,11 @@ numCalls(code)
   \item{pred}{a function that takes two arguments - a call and a logical value indicating if the
      function being called is a symbol/name or itself a call - and returns a logical scalar value indicating
      whether to collect and return the specific call. The }
-   \item{\dots}{additional arguments passed to the \code{pred} function.}
+   \item{\dots}{additional arguments passed to the \code{pred} function,
+     and individual named-arguments in call to \code{getIndirectCallFunList}}
+   \item{.els}{a named-list identifying functions that have a parameter/formal argument
+     that is expected to be a function that it will call, e.g., \code{lapply} and \code{FUN}.
+   }
    % discuss this wrt to indexWalkCode and mkIsCallTo().  Could we pass the vector of functions
    % we want to match via the ...
    % mkCallWalkerPred(isCallTo, "foo")
@@ -80,6 +86,7 @@ numCalls(code)
      This is not passed down yet from the functions that call \code{isCallTo} as part of the
      higher-level analyses.
    }
+   \
 }
 \value{
   \code{findCallsTo} returns a list of the call language objects.
@@ -95,6 +102,10 @@ numCalls(code)
   \code{Call} objects.
   Otherwise, a list of all the parameters in each matching call
   identified by \code{argIndices} either by position or name.
+
+  \code{getIndirectCallFunList} returns a named character vector
+  with the values being the parameter names and the names being
+  the function with the parameter.
 }
 \author{Duncan Temple Lang}
 
@@ -121,7 +132,7 @@ numCalls(code)
 
   # Regular expression
 
-  z = findCallsTo(findCallsTo, rx = "is\\.")
+  z = findCallsTo(findCallsTo, rx = "is\\\\.")
 
   z = findCallsTo(findCallsTo, rx = "file.info")
 
