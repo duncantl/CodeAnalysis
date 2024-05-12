@@ -33,7 +33,8 @@ getCallPaths =
     #   so it is in the order top-down.
     #
     #
-function(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = FALSE)    
+function(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = FALSE, map = NULL,
+         recordTypes = if(!is.null(map)) map$name[map$type == "recordType"] else character())
 {
     w = (callGraph[,2] == fun)
 
@@ -48,6 +49,11 @@ function(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = FALSE
 
     if(depth == 1) {
         ans2 = gsub("^;", "", unlist(ans))
+        if(length(recordTypes)) {
+            rx = paste0(";(", paste(recordTypes, collapse = "|"), ");")
+#            browser()
+            ans2 = ans2[ !grepl(rx, ans2) ]
+        }
         if(asString)
             ans2
         else
