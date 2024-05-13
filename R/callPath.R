@@ -36,6 +36,11 @@ getCallPaths =
 function(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = FALSE, map = NULL,
          recordTypes = if(!is.null(map)) map$name[map$type == "recordType"] else character())
 {
+
+    # Avoid infinite recursion.
+    if(grepl( sprintf(";%s(;|$)", fun), cur))
+        return(cur)
+    
     w = (callGraph[,2] == fun)
 
     tmp = paste(cur, fun, sep = ";")
