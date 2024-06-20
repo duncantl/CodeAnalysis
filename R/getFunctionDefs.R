@@ -77,7 +77,7 @@ function(x, recursive = FALSE, ...)
 setMethod("getFunctionDefs", "expression",
           #XXXX  This doesn't seem to directly call any getFunctionsDef and hence its methods for the language elements!
           # Do the other functions call getFunctionDefs?, i.e., does getAllFunctionDefs call getFunctionDefs. No.
-function(x, env = new.env(parent = globalenv()),
+function(x, envir = new.env(parent = globalenv()),
          toSymbol = TRUE, recursive = FALSE,
          funsReturningFuns = FunctionsReturningFunctions,
          ...)
@@ -86,16 +86,16 @@ function(x, env = new.env(parent = globalenv()),
         return(list())
 
     if(recursive)
-        return(getAllFunctionDefs(x, recursive = TRUE, ...))
+        return(getAllFunctionDefs(x, recursive = TRUE, envir = envir, ...))
     
     w = sapply(x, isFunAssign, toSymbol = toSymbol)
 
     ans = if(toSymbol) {
-              lapply(x[w], eval, env)
-              as.list(env, all.names = TRUE)
+              lapply(x[w], eval, envir)
+              as.list(envir, all.names = TRUE)
           } else {
               defs = x[w]
-              funs = lapply(x[w], function(e) eval(e[[3]], env))
+              funs = lapply(x[w], function(e) eval(e[[3]], envir))
               names(funs) = sapply(x[w], function(e)
                                             if(is.name(e[[2]]))
                                                 as.character(e[[2]])
@@ -127,7 +127,7 @@ tmp = function(x, parse = FALSE, recursive = FALSE, envir = globalenv(), ...)
 {
 #XXX Get the names on the elements in this and the .function method    
     if(isFunAssign(x)) {
-        ans = getFunctionDefs(x[[3]], parse = parse, recursive = recursive, ...)
+        ans = getFunctionDefs(x[[3]], parse = parse, recursive = recursive, envir = envir, ...)
         # If we have a single function object, we can't put the name on that.
         # So can put it in a list.
         if(!is.list(ans))
@@ -144,11 +144,11 @@ tmp = function(x, parse = FALSE, recursive = FALSE, envir = globalenv(), ...)
         # Different from method for function.
         tmp = eval(x, envir)
         if(recursive)
-            unlist(c(tmp, getFunctionDefs(eval(x), parse = parse, recursive = TRUE, ...)))
+            unlist(c(tmp, getFunctionDefs(eval(x), parse = parse, recursive = TRUE, envir = envir, ...)))
         else
             tmp
     } else
-        unlist( lapply(as.list(x), getFunctionDefs, parse = parse, recursive = recursive, ...) )
+        unlist( lapply(as.list(x), getFunctionDefs, parse = parse, recursive = recursive, envir = envir, ...) )
 }
 setMethod("getFunctionDefs", "call", tmp)
 #XXX Need to setOldClass("<-")
