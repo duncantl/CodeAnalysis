@@ -281,7 +281,7 @@ mkLiteralCollector =
     # This doesn't collect names such as the "abc/def"
     #  c("abc/def" = "xyz")
     #
-function(ignoreParams = TRUE, skipIfFalse = TRUE)
+function(ignoreParams = TRUE, skipIfFalse = TRUE, predicateFun = isLiteral)
 {
     values = list()
     leaf = function(x, w, ...) {
@@ -299,7 +299,7 @@ function(ignoreParams = TRUE, skipIfFalse = TRUE)
             walkCode(body(x), w)
         }
 
-        if(isLiteral(x, ty)) 
+        if(predicateFun(x, ty)) 
             values[[ length(values) + 1L]] <<- x
 
         NULL
