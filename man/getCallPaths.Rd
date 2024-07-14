@@ -11,7 +11,11 @@
   called those functions, ...
 }
 \usage{
-getCallPaths(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = FALSE)
+getCallPaths(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = FALSE,
+              map = NULL,
+              recordTypes = if(!is.null(map))
+                               map$name[map$type == "recordType"]
+                            else character())
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,7 +31,9 @@ getCallPaths(fun, callGraph, recursive = TRUE, cur = "", depth = 1, asString = F
   \item{asString}{a scalar logical value controlling whether to return
     each path as a single string of the form "A;B;C",
     or a character vector of the form \code{c("A", "B", "C")}.
-    }
+  }
+  \item{map}{an optional data.frame} % fix
+  \item{recordTypes}{an optional character vector of record type names}
 }
 %\details{}
 \value{
