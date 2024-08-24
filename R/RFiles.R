@@ -23,6 +23,7 @@ sourceRFiles =
 function(obj, files = computeRFiles(obj), e = mkS4Catcher())
 {
     lapply(files, source, e)
+    as.list.environment(e, TRUE)
 }
 
 mkS4Catcher =
