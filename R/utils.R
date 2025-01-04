@@ -167,6 +167,16 @@ find_var = function(expr, var, loc = integer(), found = list())
 getAllSymbols = all_symbols =
 function(expr, unique = TRUE, predicate = is.symbol)
 {
+
+    if(is.function(expr)) {
+        ans = getAllSymbols(body(expr), unique, predicate)
+        ans2 = lapply(formals(expr), getAllSymbols, unique, predicate)
+        ans = c(ans, unlist(ans2))
+        if(unique)
+            ans = unique(ans)
+        return(ans)
+    }
+                    
     expr = as.expression(expr)
     symbols = character()
     walker = codetools::makeCodeWalker(leaf = function(e, w){
