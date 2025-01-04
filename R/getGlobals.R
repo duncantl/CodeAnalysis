@@ -188,9 +188,15 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           } else if(funName == "function") {
                 #XXX Should be able to get the name of this if it is available.
 
-              subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip, .ignoreDefaultArgs = .ignoreDefaultArgs)
+              subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip,
+                                                                 .ignoreDefaultArgs = .ignoreDefaultArgs,
+                                                                 # here we provide the names of all the variables
+                                                                 # we have seen in this function that are available
+                                                                 # to the sub-function.
+                                                                 localVars = c(localVars, vars, names(formals(f))))
               if(length(curAssignName) > 0)
                   names(subFunInfo)[length(subFunInfo)] = curAssignName[1]
+              
               return(TRUE)
           } else if(funName %in% c('<-', '=')) {
               
@@ -289,7 +295,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           }
 
            if(!(name %in% localVars)) {
-               # name == "{" ||
              if( name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
              } else {
                  #                 browser()
