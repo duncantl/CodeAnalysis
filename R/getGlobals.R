@@ -86,6 +86,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                      funs <<- c(funs, as.character(id))
                }
 
+    # this for handling calls which we know will call one of their arguments, e.g., lapply(x, fun, z)
   procIndirectFunCall = function(e, funName = as.character(e[[1]]), def = tryCatch(get(funName), error = function(e) NULL)) {
       # remove ... from e as match.call
       #   ... used in a situation where it does not exist
@@ -185,7 +186,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               addFunName(deparse(e))
               return(NULL)    # Return or keep going?  Return or will get pkg/first element of :: in variables.
           } else if(funName == "function") {
-               #XXX Should be able to get the name of this if it is available.
+                #XXX Should be able to get the name of this if it is available.
+
               subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip, .ignoreDefaultArgs = .ignoreDefaultArgs)
               if(length(curAssignName) > 0)
                   names(subFunInfo)[length(subFunInfo)] = curAssignName[1]
@@ -286,8 +288,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               localVars <<- c(localVars, name)
           }
 
-          if(!(name %in% localVars)) {
-             if(name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
+           if(!(name %in% localVars)) {
+               # name == "{" ||
+             if( name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
              } else {
                  #                 browser()
                  #                 if(name  == "xml2" || name == "codetools") browser()
@@ -299,6 +302,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 #       if(name  == "utils") browser()
                  # How would we insert this and ensure we can identify it easily as a debug statement and remove it
                  # or have it as a no-op
+
                  vars <<- c(vars, name)
              }
              
@@ -310,9 +314,10 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            
        }  else {
 
-           if(is.function(e) && .ignoreDefaultArgs)
-               tmp = as.list(body(e))
-           else
+           if(is.function(e) && .ignoreDefaultArgs) {
+               b = body(e)
+               tmp = if(class(b) == "{") as.list(b)[-1] else list(b)
+           } else
                tmp = as.list(e)[-1]               
 
            lapply(tmp, fun, w)
