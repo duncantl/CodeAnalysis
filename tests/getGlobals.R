@@ -349,3 +349,13 @@ function(x)
 
 
 
+
+
+foo1 = function(x, y, threshold = 0) {  z = x + y;  bar = function(a) a[z > 0]; bar(10) } 
+foo2 = function(x, y, threshold = 0) {  z = x + y;  bar = function(a) a[z > 0]; bar(newvar) }
+
+
+v1 = getGlobals(foo1)
+stopifnot(identical(v1$variables, character()))
+v2 = getGlobals(foo2)
+stopifnot(identical(v2$variables, "newvar"))
