@@ -281,7 +281,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           name = as.character(e)
           if(!(name %in% localVars) && name %in% names(params) && !defaultValuesProcessed[name]) {
               defaultValuesProcessed[name] <<- TRUE
-              fun(params[[name]], fun)
+              if(.ignoreDefaultArgs == FALSE) 
+                  fun(params[[name]], fun)
               localVars <<- c(localVars, name)
           }
 
@@ -307,8 +308,17 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
          }
        } else if(typeof(e) == "externalptr") {
            
-       }  else
-             lapply(as.list(e)[-1], fun, w)
+       }  else {
+
+           if(is.function(e) && .ignoreDefaultArgs)
+               tmp = as.list(body(e))
+           else
+               tmp = as.list(e)[-1]               
+
+           lapply(tmp, fun, w)
+
+       }
+        
   } # end of fun = function() {}
 
     # Turn a call to function into an actual function object.
@@ -316,11 +326,12 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
      f = eval(f, globalenv())
 
   if(is.function(f)) {
-    params = formals(f)
-    defaultValuesProcessed = structure(rep(FALSE, length(params)), names = names(params))
+      params = formals(f)
+                                              # .ignoreDefaultArgs but then identifies params as non-local variables.
+      defaultValuesProcessed = structure(rep( FALSE, length(params)), names = names(params))
   } else {
-    params = list()
-    defaultValuesProcessed = logical()
+      params = list()
+      defaultValuesProcessed = logical()
   }
   
   if(typeof(f) == "closure") {
@@ -342,7 +353,8 @@ else
 
   fun(f, fun)
 
-  if(any(!defaultValuesProcessed))
+    if(!.ignoreDefaultArgs && any(!defaultValuesProcessed))
+        # this doesn't update defaultValuesProcessed. May want to set these elements to TRUE.
       lapply(params[!defaultValuesProcessed], fun, fun)
   
   varsByFun = varsByFun[ setdiff(names(varsByFun), c("for", "if", "{"))]
