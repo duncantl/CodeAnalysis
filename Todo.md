@@ -157,7 +157,7 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
 # New Features/Functionality
 
 + getGlobals()
-  + [est- tests/getGlobalsSkipCalls.R] See skip in getGlobals() so can 
+  + [test- tests/getGlobalsSkipCalls.R] See skip in getGlobals() so can 
       avoid NSE functions such as until() and friends in GSPAutoTest.
 
   + Check substitute() calls for non-local variables in the expression that are in the second
@@ -165,10 +165,13 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
   
   + Allow control of reporting non-local variables in nested functions.
   
-  + `if(cond) warning else stop` detects warning, but not stop, as a global variable.
+  + √ `if(cond) warning else stop` detects warning, but not stop, as a global variable.
+     + this is correct in the case because stop() was already identified as a function in an earlier
+   	   expression in the body of the function. This is in GSPAutoTest.
 
-  + `remoteDriver$new()` in GSPAutoTest::getDriver() - reports remoteDriver as a global variable. Allow caller to specify
+  + √ `remoteDriver$new()` in GSPAutoTest::getDriver() - reports remoteDriver as a global variable. Allow caller to specify
      what is available in the imports/search path.
+	  + availableVars
 
 + equivalent to rstatic::find_nodes
    + Do we have such a function already?
