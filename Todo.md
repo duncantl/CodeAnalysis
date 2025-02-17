@@ -162,7 +162,7 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
 
   + Check substitute() calls for non-local variables in the expression that are in the second
     argument.
-  
+     + see GSPAutoTest/checkGlobals.R
   + Allow control of reporting non-local variables in nested functions.
   
   + √ `if(cond) warning else stop` detects warning, but not stop, as a global variable.
