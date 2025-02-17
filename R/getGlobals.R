@@ -60,7 +60,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
          old = TRUE, # remove old when we are sure it worksa
          indirectCallFunctions = names(getIndirectCallFunList()),
          handleTextConnections = TRUE,
-         skipCallsTo = character(), availableVars = character()) 
+         availableVars = character()) 
 {
 
   if(is.logical(.debug))
@@ -84,13 +84,14 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
     # top-level function being analyzed
   topFun = f
 
-  addFunName = function(id) {
+    addFunName = function(id) {
                   if(!(as.character(id) %in% c(c("for", "if", "{", "while"), skip)))
                      funs <<- c(funs, as.character(id))
                }
 
     # this for handling calls which we know will call one of their arguments, e.g., lapply(x, fun, z)
   procIndirectFunCall = function(e, funName = as.character(e[[1]]), def = tryCatch(get(funName), error = function(e) NULL)) {
+
       # remove ... from e as match.call
       #   ... used in a situation where it does not exist
       w = sapply(e, function(x) is.name(x) && x == "...")
@@ -185,7 +186,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
           funName = as.character(fn) # e[[1]])
 
-          if(funName %in% skipCallsTo)
+          if(funName %in% skip)
               return(NULL)
 
           if(funName == "::" || funName == ":::") {
@@ -273,7 +274,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                  expressions[[ funName ]] <<- c(expressions[[ funName ]], e)
           } 
           
-
           els = as.list(e)[-1]
           if(funName == "$") # remove the literal name
               els = els[-2]
@@ -313,7 +313,6 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 #       if(name  == "utils") browser()
                  # How would we insert this and ensure we can identify it easily as a debug statement and remove it
                  # or have it as a no-op
-
                  vars <<- c(vars, name)
              }
              
