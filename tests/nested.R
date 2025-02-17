@@ -10,3 +10,4 @@ function(x, y)
 }
 
 v = getGlobals(f)
+stopifnot(length(v$variables) == 0)
