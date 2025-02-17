@@ -300,7 +300,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               localVars <<- c(localVars, name)
           }
 
-           if(!(name %in% c(localVars, availableVars))) {
+           # XXX shouldn't we put names(formals(topFun)) into localVars at the start??
+           if(!(name %in% c(localVars, availableVars, names(formals(topFun))))) {
              if( name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
              } else {
                  #                 browser()
@@ -357,44 +358,44 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           #  Seems to give the wrong answer.
           # Since this is inside .ignoreDefaultArgs, were we processing those parameters with
           # default values separately?
-if(old) #XXXX  remove when we are certain the new/non-old way is okay.         
-    localVars = names(params)[sapply(params, function(x) is.name(x) && x == "")]
-else
-    localVars = names(params)
-          # lapply(params, fun, fun)
-         f = body(f)
+          if(old) #XXXX  remove when we are certain the new/non-old way is okay.         
+              localVars = names(params)[sapply(params, function(x) is.name(x) && x == "")]
+          else
+              localVars = names(params)
+          
+          f = body(f)
      }
   } 
-#  origFun = body(f)
 
-  fun(f, fun)
+
+    fun(f, fun)
 
     if(!.ignoreDefaultArgs && any(!defaultValuesProcessed))
         # this doesn't update defaultValuesProcessed. May want to set these elements to TRUE.
       lapply(params[!defaultValuesProcessed], fun, fun)
   
-  varsByFun = varsByFun[ setdiff(names(varsByFun), c("for", "if", "{"))]
+    varsByFun = varsByFun[ setdiff(names(varsByFun), c("for", "if", "{"))]
 
-    #XXX This doesn't catch the case that a function is defined and called before the variable it references in the parent function
-    # is defined.
+    #XXX This doesn't catch the case that a function is defined and called before the variable
+    # it references in the parent function is defined.
 
-  gvs = unlist(sapply(subFunInfo, `[[`, "variables"))
-  i = match(gvs, localVars)
-  vars = c(vars, gvs[is.na(i)])
+    gvs = unlist(sapply(subFunInfo, `[[`, "variables"))
+    i = match(gvs, localVars)
+    vars = c(vars, gvs[is.na(i)])
 
-  ans = structure(list(localVariables = localVars,
-                 variables = vars,
-                 functions = funs,
-                 variablesByFun = lapply(varsByFun, table),
-                 expressions = expressions,
-                 subFunctions = subFunInfo,
-                 skippedExpressions = skippedExpressions),
-      class = "GlobalUses")
+    ans = structure(list(localVariables = localVars,
+                         variables = vars,
+                         functions = funs,
+                         variablesByFun = lapply(varsByFun, table),
+                         expressions = expressions,
+                         subFunctions = subFunInfo,
+                         skippedExpressions = skippedExpressions),
+                    class = "GlobalUses")
 
-  if(mergeSubFunGlobals) 
-      ans$functions = getGlobalFunctions(ans, TRUE, TRUE)
+    if(mergeSubFunGlobals) 
+        ans$functions = getGlobalFunctions(ans, TRUE, TRUE)
 
-  ans
+    ans
 }
 
 
