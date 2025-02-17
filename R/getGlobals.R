@@ -81,6 +81,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
   skippedExpressions = list()
 
+    # top-level function being analyzed
+  topFun = f
 
   addFunName = function(id) {
                   if(!(as.character(id) %in% c(c("for", "if", "{", "while"), skip)))
@@ -191,13 +193,13 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               return(NULL)    # Return or keep going?  Return or will get pkg/first element of :: in variables.
           } else if(funName == "function") {
                 #XXX Should be able to get the name of this if it is available.
-
               subFunInfo[[length(subFunInfo)+1L]] <<- getGlobals(e, expressionsFor, skip = skip,
                                                                  .ignoreDefaultArgs = .ignoreDefaultArgs,
                                                                  # here we provide the names of all the variables
                                                                  # we have seen in this function that are available
                                                                  # to the sub-function.
-                                                                 localVars = c(localVars, vars, names(formals(f))))
+                                                                 # localVars =
+                                                                 availableVars = unique(c(localVars, vars, names(formals(topFun)), availableVars)))
               if(length(curAssignName) > 0)
                   names(subFunInfo)[length(subFunInfo)] = curAssignName[1]
               
@@ -336,8 +338,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   } # end of fun = function() {}
 
     # Turn a call to function into an actual function object.
-  if(is.call(f) && isSymbol(f[[1]], "function"))
-     f = eval(f, globalenv())
+  if(is.call(f) && isSymbol(f[[1]], "function"))  {
+      f = topFun = eval(f, globalenv())
+  }
 
   if(is.function(f)) {
       params = formals(f)

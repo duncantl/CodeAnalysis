@@ -226,9 +226,8 @@ function(code, funNames = character(),
         } else
             code = parse(text = code)
     }
-    
-    
-    
+
+
     if(is(code, "getAnywhere")) {
         if(length(code$objs) > 1)
             stop("more than one function in the getAnywhere object")
