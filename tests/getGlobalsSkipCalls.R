@@ -38,13 +38,13 @@ function(x)
 a = getGlobals(foo)
 stopifnot(a$variables == "driver")
 
-b = getGlobals(bar, skipCallsTo = "until")
+b = getGlobals(bar, skip = "until")
 stopifnot(length(b$variables) == 0)
 
-c = getGlobals(bar2, skipCallsTo = "substitute")
+c = getGlobals(bar2, skip = "substitute")
 stopifnot(c$variables == "other")
 
-c = getGlobals(bar2, skipCallsTo = "substitute", availableVars = c("other"))
+c = getGlobals(bar2, skip = "substitute", availableVars = c("other"))
 stopifnot(length(c$variables) == 0)
 
 d = getGlobals(bar3, availableVars = c("Back"))

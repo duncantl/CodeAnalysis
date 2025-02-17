@@ -157,7 +157,7 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
 # New Features/Functionality
 
 + getGlobals()
-  + [test- tests/getGlobalsSkipCalls.R] Add skipCallsTo  in getGlobals() so can 
+  + [test- tests/getGlobalsSkipCalls.R] See skip in getGlobals() so can 
       avoid NSE functions such as until() and friends in GSPAutoTest.
 
   + Check substitute() calls for non-local variables in the expression that are in the second
