@@ -82,7 +82,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
   skippedExpressions = list()
 
     # top-level function being analyzed
-  topFun = f
+    topFun = NULL
+    topFun = if(is.function(f)) f
+
 
     addFunName = function(id) {
                   if(!(as.character(id) %in% c(c("for", "if", "{", "while"), skip)))
@@ -200,7 +202,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                                                                  # we have seen in this function that are available
                                                                  # to the sub-function.
                                                                  # localVars =
-                                                                 availableVars = unique(c(localVars, vars, names(formals(topFun)), availableVars)))
+                                                                 availableVars = unique(c(localVars, vars, if(!is.null(topFun)) names(formals(topFun)), availableVars)))
               if(length(curAssignName) > 0)
                   names(subFunInfo)[length(subFunInfo)] = curAssignName[1]
               
@@ -301,7 +303,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           }
 
            # XXX shouldn't we put names(formals(topFun)) into localVars at the start??
-           if(!(name %in% c(localVars, availableVars, names(formals(topFun))))) {
+           if(!(name %in% c(localVars, availableVars, if(!is.null(topFun)) names(formals(topFun))))) {
              if( name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
              } else {
                  #                 browser()
