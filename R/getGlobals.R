@@ -59,7 +59,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
          localVars = character(), mergeSubFunGlobals = TRUE,
          old = TRUE, # remove old when we are sure it worksa
          indirectCallFunctions = names(getIndirectCallFunList()),
-         handleTextConnections = TRUE) 
+         handleTextConnections = TRUE,
+         skipCallsTo = character(), availableVars = character()) 
 {
 
   if(is.logical(.debug))
@@ -182,6 +183,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
           funName = as.character(fn) # e[[1]])
 
+          if(funName %in% skipCallsTo)
+              return(NULL)
+
           if(funName == "::" || funName == ":::") {
               addFunName(deparse(e))
               return(NULL)    # Return or keep going?  Return or will get pkg/first element of :: in variables.
@@ -294,7 +298,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               localVars <<- c(localVars, name)
           }
 
-           if(!(name %in% localVars)) {
+           if(!(name %in% c(localVars, availableVars))) {
              if( name %in% funs || (!(name %in% localVars) && length(curFuns) && any(expressionsFor %in% curFuns))) {
              } else {
                  #                 browser()
