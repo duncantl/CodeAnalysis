@@ -157,13 +157,28 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
 # New Features/Functionality
 
 + getGlobals()
-  + [test- tests/getGlobalsSkipCalls.R] See skip in getGlobals() so can 
+  + Allow control of reporting non-local variables in nested functions.
+     + might be useful for identifying which variables could be passed
+	   to the function instead of just referencing them from the
+	   enclosing environment. This would help with moving a nested function
+	   outside of its parent function for reuse and better testing 
+	   (assuming it isn't updating these variables via <<-).
+	   
+  + √ [tests/getGlobalsSkipCalls.R] See skip in getGlobals() so can 
       avoid NSE functions such as until() and friends in GSPAutoTest.
 
-  + Check substitute() calls for non-local variables in the expression that are in the second
+  + √ Check substitute() calls for non-local variables in the expression that are in the second
     argument.
      + see GSPAutoTest/checkGlobals.R
-  + Allow control of reporting non-local variables in nested functions.
+	 + √ For substitute(), process the second argument and ignore the first
+	 + √ For quote(), just skip the single argument
+	 + √ For bquote, 
+	    + process the where and splice arguments if present.
+		+ if where is specified, don't process the first argument as we statically don't know what
+		  variables will be in that "environment"
+	    + if where is not present, find the calls to .() and ..() in the first argument and process
+          each of them.
+	 + see tests/substitute.R
   
   + √ `if(cond) warning else stop` detects warning, but not stop, as a global variable.
      + this is correct in the case because stop() was already identified as a function in an earlier
