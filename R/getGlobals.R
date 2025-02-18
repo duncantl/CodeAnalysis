@@ -236,7 +236,27 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               
           } else if(funName == "$<-") {
               #              e = e[[ 2 ]]
+              # ?? Are there any other parts of e we need to process.
               fun(e[[2]])
+              return()
+          } else if(funName == "substitute") {
+              tmp = fun(e[[3]], fun)
+              return()
+          } else if(funName == "quote") {
+              tmp = fun(e[[2]], fun)
+              return()
+          } else if(funName == "bquote") {
+              # 
+              k = match.call(bquote, e)
+              if(length(k) > 2)
+                  lapply(k[ -c(1, 2)], fun, fun)
+              if("where" %in% names(k))
+                  return()
+              
+              dot = findCallsTo(k[[2]], c(".", "."))
+#              av = c(localVars, availableVars, if(is.function(topFun)) names(formals(topFun)))
+              lapply(dot, fun, fun)
+#              tmp = fun(e[[2]], fun)
               return()
           } else {
 
@@ -339,6 +359,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
         
   } # end of fun = function() {}
 
+    
     # Turn a call to function into an actual function object.
   if(is.call(f) && isSymbol(f[[1]], "function"))  {
       f = topFun = eval(f, globalenv())
