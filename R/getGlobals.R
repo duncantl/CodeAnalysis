@@ -239,24 +239,32 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               # ?? Are there any other parts of e we need to process.
               fun(e[[2]])
               return()
-          } else if(funName == "substitute") {
-              tmp = fun(e[[3]], fun)
+          } else if(funName == "substitute" && length(e) > 2) {
+              # Should we bother with matching the arguments via match.call()
+              # to avoid the "unusual"
+              #     substitute(env = list(a = 1), expr)
+              k = match.call(substitute, e)
+              tmp = fun(k[[3]], fun)
               return()
           } else if(funName == "quote") {
-              tmp = fun(e[[2]], fun)
+              # only one argument so skip it as it is intentionally allowed reference non-locals
+              # since may not be evaluated within this function frame/environment.
               return()
           } else if(funName == "bquote") {
-              # 
               k = match.call(bquote, e)
+
+              # if the where and/or splice arguments are provided, process them.
               if(length(k) > 2)
-                  lapply(k[ -c(1, 2)], fun, fun)
+                   lapply(k[ -c(1, 2)], fun, fun)
+
+              # If it has a where argument, then can't statically really know
+              # what variables are available within the where. So don't process the first argument.              
               if("where" %in% names(k))
                   return()
-              
-              dot = findCallsTo(k[[2]], c(".", "."))
-#              av = c(localVars, availableVars, if(is.function(topFun)) names(formals(topFun)))
+
+               # Otherwise, find the .() and ..() in the first argument and process those
+              dot = findCallsTo(k[[2]], c(".", ".."))
               lapply(dot, fun, fun)
-#              tmp = fun(e[[2]], fun)
               return()
           } else {
 
