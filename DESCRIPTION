@@ -1,6 +1,6 @@
 Package: CodeAnalysis
 Title: Tools for Static Analysis of R code
-Version: 0.6-0
+Version: 0.7-0
 Description: This package provides a (growing) collection of 
  functions that analyze R code and identify particular idioms
  or characteristics. Some of these functions modify the code
@@ -13,7 +13,9 @@ Description: This package provides a (growing) collection of
  e.g. memory management, 
       opportunities for parallelism, 
       data locality for parallel computations, ...
- Currently, there is functionality to: 
+      Currently, there is functionality to:
+   *  finding global variables - like codetools::findGlobals but recognizing
+      certain false positives, e.g., FUN in *apply() calls.
    *  find unused parameters/arguments
    *  find unused variables/assignments
    *  identify constant parameters (i.e. unchanged in the function's body)
