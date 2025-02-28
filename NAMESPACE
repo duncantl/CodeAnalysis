@@ -22,7 +22,7 @@ export(removeAfterReturn)
 
 export(removeConstIf)
 
-export(getGlobals, getGlobalFunctions)
+export(getGlobals, getGlobalFunctions, getScriptGlobals)
 export(substituteDefaultValues)
 export(mkGlobalsLocal)
 

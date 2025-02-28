@@ -1,6 +1,7 @@
 \name{getGlobals}
 \alias{getGlobals}
 \alias{getGlobalFunctions}
+\alias{getScriptGlobals}
 \title{Compute information about uses of globals, etc. for a function}
 \description{
  This is an alternative version of \code{\link[codetools]{findGlobals}}
@@ -20,6 +21,7 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            mergeSubFunGlobals = TRUE, old = TRUE,
            indirectCallFunctions = names(getIndirectCallFunList()),
            handleTextConnections = TRUE)
+getScriptGlobals(file, ...)
 }
 \arguments{
   \item{f}{the function to be analyzed}
@@ -57,6 +59,8 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
     (rather than \code{\link[base]{textConnectionValue}})
     that is a legitimate local variable.
   }
+  \item{file}{the full path to the script file}
+  \item{\dots}{additional arguments passed to \code{getGlobals}}
 }
 \value{
   A list of class \code{GlobalUses} with numerous elements:
