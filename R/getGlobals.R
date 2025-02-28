@@ -266,6 +266,10 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               dot = findCallsTo(k[[2]], c(".", ".."))
               lapply(dot, fun, fun)
               return()
+          } else if(funName %in% c("require", "library")) {
+              # XXX Check. Assumes package is the first argument. Should do match.call()
+              lapply(e[-c(1, 2)], fun, fun)
+              return()
           } else {
 
               if(handleTextConnections && funName == "textConnection") {
