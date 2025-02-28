@@ -243,8 +243,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               # Should we bother with matching the arguments via match.call()
               # to avoid the "unusual"
               #     substitute(env = list(a = 1), expr)
-              k = match.call(substitute, e)
-              tmp = fun(k[[3]], fun)
+              # k = match.call(substitute, e)
+              # match.call() doesn't work with substitute.
+              tmp = fun(e[[3]], fun)
               return()
           } else if(funName == "quote") {
               # only one argument so skip it as it is intentionally allowed reference non-locals
