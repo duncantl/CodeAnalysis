@@ -211,8 +211,8 @@ function(code, funNames = character(),
          skipIfFalse = TRUE,
          rx = character())
 {
-    # try to parse funNames so that we can compare symols not convert symbols to strings and compare
-    # But if we can't parse, keep the original string(s).
+    # try to parse funNames so that we can compare symbols and  not have to convert symbols to strings and compare strings.
+    # But if we fail to parse, keep the original string(s).
     if(parse)  
         funNames = lapply(funNames, function(x) tryCatch( parse(text = x)[[1]], error = function(...) x ))
 

@@ -23,6 +23,8 @@ export(removeAfterReturn)
 export(removeConstIf)
 
 export(getGlobals, getGlobalFunctions, getScriptGlobals)
+export(missingVars)
+
 export(substituteDefaultValues)
 export(mkGlobalsLocal)
 
