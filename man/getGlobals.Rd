@@ -20,7 +20,7 @@ getGlobals(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
            .debug = TRUE, .assert = TRUE, localVars = character(),
            mergeSubFunGlobals = TRUE, old = TRUE,
            indirectCallFunctions = names(getIndirectCallFunList()),
-           handleTextConnections = TRUE)
+           handleTextConnections = TRUE, availableVars = character())
 getScriptGlobals(file, ...)
 }
 \arguments{
@@ -59,7 +59,9 @@ getScriptGlobals(file, ...)
     (rather than \code{\link[base]{textConnectionValue}})
     that is a legitimate local variable.
   }
-  \item{file}{the full path to the script file}
+  \item{availableVars}{a character vector of variable names that
+    the are to be considered available as variables the code can reference and not to be identified as non-local/global.}
+  \item{file}{the full path to the script file or the parsed code from the script}
   \item{\dots}{additional arguments passed to \code{getGlobals}}
 }
 \value{
