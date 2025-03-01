@@ -1,3 +1,23 @@
+0.7-0
+	missingVars() for finding undefined variables in a script and finding definitions for them in other scripts
+
+	getScriptGlobals() to find variables used in a script but not defined in them.
+
+	getGlobals()
+		- handle substitute(), quote(), bquote(), library(), require() and uses match.call().
+		- added availableVars parameter.
+		- correct finding parameters in the function and not identifying uses of them as non-local.
+		- correct behavior of .ignoreDefaultArgs parameter
+		- handle writeable textConnection() and NSE in such calls.		
+		- handle $<-
+
+
+	findCallsTo()
+		- detect indirect calls, e.g., lapply(x, fun) to not mark fun as a non-local variable.
+Lots unreported
+
+
+
 0.4-0
 	* getGlobals() correctly handles $<-
 
