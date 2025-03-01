@@ -1,14 +1,13 @@
-missingVars = 
+missingVars =
+    # maybe change name to missingScriptVars
 function(script, dir = ".", allScripts = list.files(dir, pattern = "\\.R$", full.names = TRUE),
           varDefs = varDefsByFile(, allScripts))
 {
-#   vars = lapply(allScripts, topLevelAssignedVars)
-#   names(vars) = allScripts
-#   varDefs = varDefsByFile(vars)
-    
     ans = lapply(script,
-                 function(file)
-                     findMissingVariables(unique(getScriptGlobals(file)$variables), varDefs))
+                 function(file) {
+                     gv = getScriptGlobals(file)$variables
+                     findMissingVariables(unique(gv), varDefs)
+                   })
 
     if(length(script) == 1)
         return(ans[[1]])
