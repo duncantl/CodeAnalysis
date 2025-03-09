@@ -117,3 +117,5 @@ export(findLiterals)
 
 export(getCallPaths)
 
+export(toc,dynToc)
+
