@@ -1,7 +1,7 @@
-missingVars =
-    # maybe change name to missingScriptVars
+missingScriptVars =
 function(script, dir = ".", allScripts = list.files(dir, pattern = "\\.R$", full.names = TRUE),
-          varDefs = varDefsByFile(, allScripts))
+         varDefs = varDefsByFile(, allScripts),
+         unbox = TRUE)
 {
     ans = lapply(script,
                  function(file) {
@@ -9,7 +9,7 @@ function(script, dir = ".", allScripts = list.files(dir, pattern = "\\.R$", full
                      findMissingVariables(unique(gv), varDefs)
                    })
 
-    if(length(script) == 1)
+    if(length(script) == 1 && unbox)
         return(ans[[1]])
 
     
