@@ -50,27 +50,8 @@ function(pkg, recursive = TRUE, readFuns = ReadFileFuns)
 }
 
 getFilesRead =
-function(fun, ..., recursive = FALSE)
-{
-    fun = to_ast(fun)
-    find_nodes(fun, isReadFileCall, ...)
-    # idx = find_nodes....
-    #if(length(idx))
-    #    sapply(idx, function(i) getFileRead(fun[[i]]))
-}
+function(fun, ...., readFileFuns = ReadFileFuns, recursive = FALSE)
+    findCallsTo(fun, readFileFuns) 
 
-isReadFileCall =
-function(node, readFileFuns = ReadFileFuns)
-{
-    is(node, "Call") && is(node$fn, "Symbol") && node$fn$value %in% readFileFuns
-}
 
-getFileRead =
-function(node)
-{
-    f = node$args[[1]]
-    if(is(f, "Character"))
-        f$value
-    else
-        character() # FIX
-}
+

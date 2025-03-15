@@ -54,6 +54,9 @@ function(recursive = TRUE, skipIfFalse = TRUE)
 }
 
 isS3Assign =
+    #
+    # See  isS3ClassSetNode in packageAnalysis.R
+    #
 function(x)
 {
     (is.name(x[[1]]) && ((f <- as.character(x[[1]])) == "<-" ||  f == "=" || f == "<<-") &&
