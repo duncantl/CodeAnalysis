@@ -15,15 +15,6 @@ function(f)
 }
 
 
-astnumTerms = numTerms =
-    #
-    # The number of nodes in the AST.
-    #
-    #
-function(x)
-{
-  length(rstatic::find_nodes(rstatic::to_ast(x), function(x) TRUE))
-}
 
 
 # walkCode.  No documentation for the model
@@ -78,13 +69,13 @@ function(self = FALSE, ctr = 0L, skipIfFalse = TRUE)
 numTerms =
 function(x, ctr = mkCounter(skipIfFalse = skipIfFalse), skipIfFalse = TRUE)
 {
-#    if(is.function(x)) {
-#        walkCode()
-#    }
     walkCode(x, ctr)
     ctr$.result()
 }
 
+
+#############
+# See S3Assigns.R
 
 findS3ClassDefs =
 function(x, ...)
