@@ -459,10 +459,11 @@ function(code, info)
     info
 
 }
+
 isLiteralAssign =
-function(x)
+function(x, assignmentOps = c("=", "<-", "<<-"))
 {
-    class(x) %in% c("=", "<-", "<<-") && is.name(x[[2]]) && class(x[[3]]) %in% c("logical", "integer", "numeric", "character")
+    class(x) %in% assignmentOps && is.name(x[[2]]) && class(x[[3]]) %in% c("logical", "integer", "numeric", "character")
 }
 
 
