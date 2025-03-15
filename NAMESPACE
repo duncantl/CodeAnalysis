@@ -6,8 +6,7 @@ importFrom(CodeDepends, getInputs, findWhenUnneeded, readScript, getVariableDepe
 importFrom(methods,
            is, "body<-", new, slot, getClass, getClasses, as)
 
-importFrom(rstatic, find_nodes, to_ast, as_language, Symbol, replace_nodes, where_is, match_call, is_symbol, children, "children<-")
-#import(rstatic)
+
 importFrom(codetools, walkCode, makeCodeWalker, findGlobals)
 importFrom(graphics, plot)
 
@@ -62,7 +61,7 @@ exportMethods(getFunctionDefs)
 # Needed??
 export(isFunAssign)
 export(isIfFalse)
-export(rlangType)
+
 
 export(getURLs)
 export(freeVariables)
