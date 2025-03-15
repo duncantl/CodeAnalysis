@@ -9,7 +9,19 @@
 # Need to generalize so works on other AST objects or R language objects
 # e.g. an Assign, etc.
 #
-#
+
+
+ifAssignments =
+function(node)    
+{
+    ifs = findCallsTo(node, "if")
+    lapply(ifs, function(x) c(getAssignedVars(x[[3]]),
+                              if(length(x) > 3)
+                                  getAssignedVars(x[[4]])))
+}
+
+
+if(FALSE) #<<<
 ifAssignments =
 function(node)
 {
@@ -37,12 +49,8 @@ getAssignedVars =
     # and get the variable that is assignemt
 function(node)
 {
-    node = to_ast(node)
-    idx = find_nodes(node, is, "Assign")
-    if(length(idx))
-        lapply(idx, function(i) i$write)
-    else
-        list()
+    a = findAssignsTo(node)
+    lapply(a, function(x) x[[2]])
 }
 
 
