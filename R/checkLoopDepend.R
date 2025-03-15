@@ -16,36 +16,30 @@
 
 # @param node see rstatic::find_nodes
 # @param vs rstatic Symbol to search for
-findAllUpdates = function(node, vs)
+findAllUpdates =
+    # Is this for only complex assignments or does it include simple overwrites.
+function(node, vs, includeOverwrite = FALSE) 
 {
-    find_nodes(node, function(x) is(x, "Replacement") && varAppears(x$write, vs))
-}
-
-
-# @param node see rstatic::find_nodes
-# @param vs rstatic Symbol to search for
-findAssignsOverVar = function(node, vs)
-{
-    find_nodes(node, function(x)
-        is(x, "Assign") && !is(x, "Replacement") && x$write == vs)
-}
-
-
-# Search starting from node for a usage of var
-varAppears = function(node, var)
-{
-    # Nick might be interested in this.
-    # I'm using findNodes within another findNodes, and it seems to work fine.
-    if(is(node, "Symbol")){
-        # It doesn't make any sense for find_nodes to return value for leaf nodes of the AST, i.e. symbols and literals, because we cannot index into them.
-        # It would be nice to check whether we're at a leaf here.
-        # As it currently stands, I think I wrote a hidden bug because I'm not checking for literals (can anything else can be a leaf?)
-        node == var
-    } else {
-        finds = find_nodes(node, `==`, var)
-        0 < length(finds)
+    k = findAssignsTo(node, vs)
+    if(!includeOverwrite) {
+        w = !sapply(k, function(x) is.name(x[[2]]))
+        k = k[w]
     }
+
+    k
 }
+
+findAssignsOverVar =
+    # @param node R language object
+    # @param vs rstatic symbol to search for
+function(node, vs)
+    findAssignsTo(node, vs, complex = FALSE)
+
+
+varAppears =
+function(node, var)
+   var %in% getAllSymbols(node)
+
 
 
 # Predicate function for findIndependentUpdates
