@@ -1,26 +1,35 @@
-
 usesDots =
     # In a function body (node), how does it use ...
     #
-function(node)
+function(fun)
 {
-    node = to_ast(node)
-    #XXX need to work on the default values for the parameters also
-    c( unlist(lapply(node$params, usesDotsI), recursive = FALSE), usesDotsI(node$body))
+    c( unlist(lapply(formals(fun), usesDotsI), recursive = FALSE), usesDotsI(body(fun)))
 }
 
+
+# see tests/dots.R
 usesDotsI =
 function(node)
-{            
-    idx = find_nodes(node, isDots)
-    if(length(idx))
-        lapply(idx, function(i) i$parent)
-    else
-        list()
+{
+    findCallsTo(node, walker = mkCallWalkerPred(callContainsDots))
+}
+
+callContainsDots =
+function(call, recursive = FALSE)    
+{
+        # Probably want to limit to one-level
+        # to get foo(list(...)) as a call to foo.
+        
+    any(sapply(as.list(call),
+               function(x) isDots(x) ||
+                           if(recursive)
+                               isCallTo(x, "list") && length(x) == 2 && isDots(x[[2]])
+                           else
+                               TRUE))
 }
 
 isDots =
-function(node)
-{
-  is(node, "Symbol") && node$name == "..."
-}
+function(node)    
+  isSymbol(node, "...")
+
+
