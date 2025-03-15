@@ -686,23 +686,11 @@ function(x, parse = TRUE, fun = findCallsTo, ...)
 }
 
 getAllCalls.expression =
-    #XXX  consider implement this with findCallsTo(x) with no function names.
 function(x, ...)
 {
     k = findCallsTo(x)
-    # k = find_nodes(to_ast(x), is, "Call")
     structure( k, class = "ListOfCalls" )
 }
-
-rlangType =
-function(x)
-{
-    if(inherits(x, c("logical", "integer", "numeric", "character")))
-        class(x)
-    else
-        class(rstatic::as_language(x))  
-}
-
 
 
 
@@ -710,25 +698,28 @@ function(x)
 
 getURLs =
     #
+    # Now changed to not use rstatic and to use findLiterals()
     # This is a slow way of doing this if we have already done some of the computations.
     # So we need to allow this to be called in different ways.
     # However, we still have to make up for the "error" in CodeDepends not processing the default values of parameters.
     #
-    # XX Make more efficient.
+    # ?? Make more efficient.
     #
     #
-function(dir)    
+function(dir, ignoreParams = FALSE, skipIfFalse = FALSE)    
 {
     if(!file.exists(dir))
         stop("no such file ", dir)
 
     if(length(dir) > 1)
-        return(unique(unlist(lapply(dir, getURLs))))
+        return(unique(unlist(lapply(dir, getURLs, ignoreParams, skipIfFalse))))
     
     if(file.info(dir)$isdir) 
         ff = getRFiles(dir)
     else
         ff = dir
+
+if(FALSE) {  #<<<<
     
     sc = lapply(ff, function(f) getInputs(readScript(f)))
     strings = unlist(lapply(sc, function(f) lapply(f, function(x) x@strings)))
@@ -737,10 +728,18 @@ function(dir)
     funs = unlist(getFunctionDefs(dir))
     tmp = unlist(lapply(funs, function(x) find_nodes(to_ast(x), function(x) is(x, "Character") && grepl("^(http|ftp)", x$value))))
     xtra = unlist(sapply(tmp, function(x) x$value))
+} #<<<<<<<<
 
-    grep("^(http|ftp)", unique(c(strings, xtra)), value = TRUE)
+    ans = lapply(ff, function(x) {
+                        lit = findLiterals(parse(x), ignoreParams = ignoreParams, skipIfFalse = skipIfFalse)
+                        lit = unlist(lit[ sapply(lit, is.character) ])
+                        grep("^(http|ftp)", lit, value = TRUE)
+                })
+
+    unique(unlist(ans))
 }
 
+if(FALSE) #<<<<
 usedInCode =
 function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir),
           fun = function(x) x$value)
