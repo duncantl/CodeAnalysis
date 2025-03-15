@@ -288,13 +288,9 @@ isFunAssign =
     # [added] Rlab assigns to a character, not a symbol e.g. "US" <- function()
 function(x, toSymbol = TRUE)
 {
-    if(is(x, "R6"))
-        is(x, "Assignment") && (!toSymbol || is(x$write, "Symbol") || is(x$write, "Character")) && is(x$read, "Function")
-    else {
-        class(x) %in% c("=", "<-") &&
-            (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) && (isFuncDef(x[[3]]) || isFunAssign(x[[3]]))
+    class(x) %in% c("=", "<-", "<<-") &&
+        (!toSymbol || (is.name(x[[2]]) || is.character(x[[2]]))) && (isFuncDef(x[[3]]) || isFunAssign(x[[3]]))
                 
-        }
 }
 
 isFuncDef =
@@ -408,13 +404,10 @@ function(x)
     if(is(x, "ScriptNodeInfo"))
         x = x@code
     
-    if(is(x, "if")) {
-      as.character(x[[1]]) == "if" && is.logical(x[[2]]) && x[[2]] == FALSE && length(x) == 3
-    } else if(is(x, "If"))
-        is(x$condition, "Literal") && x$condition$value == FALSE && length(x$false$contents) == 0
-    else
+    if(is(x, "if")) 
+        as.character(x[[1]]) == "if" && is.logical(x[[2]]) && x[[2]] == FALSE && length(x) == 3
+    else 
         FALSE
-
 }
 
 
