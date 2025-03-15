@@ -2,6 +2,7 @@
 #
 
 if(FALSE) {
+    # See tests/options.R
     findOptionsUses(quote(options()["abc"]))
     findOptionsUses(quote(options()[c("abc", "def")]))
     findOptionsUses(quote(options()[c("abc", x)]))        
@@ -13,11 +14,26 @@ if(FALSE) {
 
 
 findOptionsUses =
+    #
+    # predicate function for a call to determine whether it is
+    # getOption('name')
+    # options('name')
+    # options()[ literal ]
+    # options()[ c(literal, literal2, ...) ]
+    # options()[[ literal ]]
+    # options$literal
+    #
 function(call, isName)    
 {
-
-    w = isCallTo(call, "options") && length(call) == 2 && is.character(call[[2]])
-    w = w | isCallTo(call, "getOption")
+    # should do match.call() to ensure the arguments are in the correct order.
+    w = isCallTo(call, "getOption") && length(call) >= 2 && is.character(call[[2]])
+    if(w)
+        return(TRUE)
+    
+    w = isCallTo(call, "options") && length(call) == 2 &&
+           (is.null(names( k <- match.call(options, call))) || "x" %in% names(k)) &&
+              is.character(k[[2]])
+    
     if(w)
         return(TRUE)
     
@@ -33,13 +49,8 @@ function(call, isName)
 findUsedOptions =
 function(code, asNodes = FALSE)
 {
-#  k = findCallsTo(code, "getOption")
-#  w = sapply(k, function(x) length(x) > 1 && is.character(x[[2]]))
-#  optNames1 = sapply(k[w], `[[`, 2)
-
-    k2 = findCallsTo(code, walker = mkCallWalkerPred(findOptionsUses))
-    sapply(k2, getUsedOptionName)
-#    c(optNames1, optNames2)
+    k = findCallsTo(code, walker = mkCallWalkerPred(findOptionsUses))
+    sapply(k, getUsedOptionName)
 }
 
 getUsedOptionName =
@@ -57,34 +68,4 @@ function(x)
 }
 
 
-if(FALSE) {
-    k = findCallsTo(code, "getOption")
-    w = sapply(k, function(x) length(x) > 1 && is.character(x[[2]]))
-    optNames1 = sapply(k[w], `[[`, 2)    
 
-    nargs = sapply(k, length) - 1
-    w = (sapply(k, isCallTo, "getOption") & nargs > 0) | (sapply(k, isCallTo, "options") & nargs > 0) 
-    k = k[w]
-    
-    if(asNodes)
-        k
-    else
-        sapply(k, getUsedOptionName)
-}
-
-
-if(FALSE) #<<<<<<<<<<
-getUsedOptionName =
-function(node)
-{
-    if(node$fn$value %in% c("options", "getOption")) {
-        els = node$args$contents
-    } else if(node$fn$name == "$") {  # must be  options()$... or [[...]] or [
-       return(node$args[[2]]$name)
-    } else # [[ or [
-        els = node$args[ - 1 ]
-
-
-    w = sapply(els, is, "Character")
-    sapply(els[w], function(x) x$value)    
-}
