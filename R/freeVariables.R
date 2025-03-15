@@ -421,40 +421,32 @@ getCallParam =
     #
 function(call, idx = 1, definitions = globalenv())
 {
-    rlang = is(call, "call")
-    fnName = if(rlang)
-                as.character(call[[1]])
-             else
-                 call$fn$value
+    if(!is(call, "call"))
+        stop("call argument must be a call language object")
 
-    env = globalenv()
-    if(is.environment(definitions))
-        env = definitions
+    if(is.name(call[[1]])) {
+        fnName = as.character(call[[1]])
+
+        env = globalenv()
+        if(is.environment(definitions))
+            env = definitions
     
-    fun = if(is.list(definitions) && fnName %in% names(definitions))
-             definitions[[ fnName ]]
-          else
-             get(fnName, env, mode = "function")
+        fun = if(is.list(definitions) && fnName %in% names(definitions))
+                  definitions[[ fnName ]]
+              else
+                  get(fnName, env, mode = "function")
 
-    ans = if(rlang) 
-             match.call(fun, call)[if(is.numeric(idx)) idx + 1 else idx]
-          else 
-             lapply(match_call(call, fun)$args$contents[idx], paramValue)
+        ans = match.call(fun, call)
+    } else
+        ans = call
 
+    idx = if(is.numeric(idx)) idx + 1 else idx
+    ans = ans[idx]
+    
     if(length(idx) == 1)
         ans[[1]]
     else
         ans
-}
-
-
-paramValue =
-function(v)
-{
-    if(is(v, "Literal"))
-        as_language(v)
-    else
-        findLiteralValue(v)
 }
 
 
