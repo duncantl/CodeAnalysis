@@ -87,39 +87,40 @@ function(x, ...)
 
 findS3ClassDefs.expression = findS3ClassDefs.function =
 function(x, ...)
-    findS3ClassDefs(to_ast(x), ...)
-
-
-findS3ClassDefs.ASTNode =
-function(x, asNodes = FALSE, ...)
 {
-    nodes =  find_nodes(x, isS3ClassSetNode)
-    if(asNodes)
-        return(nodes)
+    w = mkCallWalkerPred(isS3ClassSetNode)
+    k = findCallsTo(x, walker = w)
+    # Now have to post process the nodes.
 
-    sapply(nodes, getS3ClassInfo)
-}
-
-getS3ClassInfo =
-function(x)
-{
-    switch(x$fn$value,
-           "class<-" = paramValue(x$args$contents$value),
-           "structure" = paramValue(x$args$contents$class))
+    # extractS3Class wants the RHS of the class() = ..
+    # not the full assignment call. So this would need to be
+    # fixed if we want to use this function. But it is not exported
+    # or called.
+    browser()
+    lapply(k, extractS3Class)
 }
 
 
-isS3ClassSetNode = 
-function(x)
+isS3ClassSetNode =
+function(x, isName, ...)
 {
-    # Add attr(, "class") = ...
-   (is(x, "Replacement") && is(x$read, "Call") && is_symbol(x$read$fn, "class<-")) ||
-      is(x, "Call") && is_symbol(x$fn, "structure") && "class" %in% names(x$args$contents)
+    if(isCallTo(x, "structure") && "class" %in% names(x))
+        return(TRUE)
+    
+
+    if(!isComplexAssignTo(x))
+        return(FALSE)
+
+    lhs = x[[2]]
+    
+    if(isCallTo(lhs, "class"))
+        return(TRUE)
+
+    isCallTo(lhs, "attr") && length(lhs) >= 2 && is.character(x[[2]]) && x[[2]] == "class"
 }
-#  (is(x, "Replacement") && (is_symbol(x$fn, "class<-"))) ||
 
 
-
+###############
 
 countNestedFunctionLevel =
     #
