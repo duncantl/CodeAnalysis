@@ -40,29 +40,22 @@ function(fun)
 }
 
 
-
 findFunctions =
     #
     # Find the functions defined in the body of the given function
+    # or in any code.
     #
-function(fun)
-{
-    if(is.function(fun)) #!!! deal with default values for parameter
-        fun = body(fun)
+function(code)
+    findCallsTo(fun, "function")
 
-    fun = to_ast(fun)
-    i = find_nodes(fun, is, "Function")
-    lapply(i, function(x) fun[[x]])
-}
 
 
 findSuperAssignments =
     #
-    #  Within a function find non-local assignments, i.e. <<- 
+    #  Within a function or any code find non-local assignments, i.e. <<- 
     #
-function(fun)
+function(fun, ...)
 {
-    fun =  to_ast(fun)
-    i = find_nodes(fun, is, "SuperAssign")
-    lapply(i, function(x) fun[[x]])
+    # could also be findCallsTo(, "<<-")
+    findAssignsTo(fun, assignmentOps = "<<-", ...)
 }
