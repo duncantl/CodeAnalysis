@@ -43,7 +43,7 @@ function(code, var = character(), complex = TRUE,
          pred = if(complex) isComplexAssignTo else isSimpleAssignTo,
          assignmentOps = c("=", "<-", "<<-"))
 {
-    pred2 = function(x, ...) pred(x, var, assignmentOps)
+    pred2 = function(x, ...) pred(x, var, assignmentOps = assignmentOps)
     findCallsTo(code, walker = mkCallWalkerPred(pred2))
 }
 
