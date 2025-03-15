@@ -9,6 +9,7 @@ options()[ c("abc", "xyz") ]
 options()[[ "abc" ]]
 
 options(warn = 2)
+options(other = "2")
 
 options(x, "foo") <- 1
 
