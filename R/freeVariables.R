@@ -636,9 +636,8 @@ function(allCalls, funNames, argIndices = integer(), definitions = NULL)
                                       if(is.language(calls) && isCallTo(calls, funNames))
                                           calls
                                       else if(is(calls, "ListOfCalls"))
-                                          calls[sapply(calls, function(x) x$fn$value) %in% funNames]
-                                      else if(is(calls$fn, "Symbol") && calls$fn$value %in% funNames)
-                                          calls
+                                          calls[sapply(calls, function(x) is.name(x[[1]]) && as.character(x[[1]]) %in% funNames)]
+
                               })
 
     rcalls = unlist(rcalls)
