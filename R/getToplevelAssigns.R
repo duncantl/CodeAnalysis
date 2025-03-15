@@ -29,20 +29,21 @@ function()
 
 
 isAssignTo =
-function(x, var = character())
+function(x, var = character(), assignmentOps = c("=", "<-", "<<-"))
     isSimpleAssignTo(x, var) || isComplexAssignTo(x, var)
 
 isSimpleAssignTo =
-function(x, var = character())    
-    is.call(x) && isSymbol(x[[1]], c("=", "<-")) && is.name(x[[2]]) && (length(var) == 0 || isSymbol(x[[2]], var))
+function(x, var = character(), assignmentOps = c("=", "<-", "<<-"))    
+    is.call(x) && isSymbol(x[[1]], assignmentOps) && is.name(x[[2]]) && (length(var) == 0 || isSymbol(x[[2]], var))
 
 
 # Could also use
 findAssignsTo =
 function(code, var = character(), complex = TRUE,
-         pred = if(complex) isComplexAssignTo else isSimpleAssignTo)
+         pred = if(complex) isComplexAssignTo else isSimpleAssignTo,
+         assignmentOps = c("=", "<-", "<<-"))
 {
-    pred2 = function(x, ...) pred(x, var)
+    pred2 = function(x, ...) pred(x, var, assignmentOps)
     findCallsTo(code, walker = mkCallWalkerPred(pred2))
 }
 
