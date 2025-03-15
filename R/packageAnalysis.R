@@ -322,8 +322,10 @@ function(x, type = typeof(x))
 isLiteral =
 function(x, type = typeof(x))
 {
-   type %in% c("logical", "integer", "numeric", "character", "complex", "double", "NULL")
+    type %in% c("logical", "integer", "numeric", "character", "complex", "double", "NULL")  ||
+       ( isCallTo(x, "c") && all(sapply(x[-1], isLiteral)) )
 }
+
 
 findLiterals =
 function(code, walker = mkLiteralCollector(ignoreParams, skipIfFalse = skipIfFalse, ...),
