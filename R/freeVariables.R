@@ -610,12 +610,10 @@ function(f, omitNotRunCode = FALSE, graphicDeviceFuns = names(PrimitiveGraphicDe
     if(is.character(f))
         f = parse(f)
     
-    e = to_ast(f)
     if(omitNotRunCode)
         e = dropNotRunCode(e)
-    
-    find_nodes(e, function(x) is(x, "Call") && is(x$fn, "Symbol") &&
-                                   x$fn$value %in% graphicDeviceFuns)
+
+    findCallsTo(e, graphicDeviceFuns)
 }
 
 
