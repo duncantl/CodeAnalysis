@@ -20,29 +20,6 @@ function(node)
                                   getAssignedVars(x[[4]])))
 }
 
-
-if(FALSE) #<<<
-ifAssignments =
-function(node)
-{
-    node = to_ast(node)
-
-    # Get the assignments from the body of the if() part (the true part)
-    tr = getAssignedVars(node$true)
-
-    # if there is an else, get the assignments in there
-    if(length(node$false$contents)) {
-        fa = getAssignedVars(node$false)
-        if(length(fa) > 0 && length(tr) > 0)
-            equiv(fa[[length(fa)]], tr[[length(tr)]])
-        else
-            FALSE
-    } else {
-        FALSE
-    }
-
-}
-
 getAssignedVars =
     #
     # Find the assignments in a block of code
