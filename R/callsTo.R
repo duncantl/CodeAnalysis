@@ -9,13 +9,11 @@ function(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
 {
     if(is(code, "ScriptNodeInfo"))
         x = code@code
-    
-    if(is(code, "R6"))
-        is(code, "Call") && is_symbol(code$fn) && code$fn$value %in% funName
-    else 
-        (is.call(code) || is(code, "call")) &&
-         ( isSymbol(code[[1]], funName) ||
-              (!isFALSE(indirect) && isIndirectCall(code, indirect, funName, TRUE, isLHS = isLHS)))
+
+
+    (is.call(code) || is(code, "call")) &&
+        ( isSymbol(code[[1]], funName) ||
+          (!isFALSE(indirect) && isIndirectCall(code, indirect, funName, TRUE, isLHS = isLHS)))
 }
 
 skipIfFalse =
