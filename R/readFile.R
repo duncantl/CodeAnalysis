@@ -50,7 +50,7 @@ function(pkg, recursive = TRUE, readFuns = ReadFileFuns)
 }
 
 getFilesRead =
-function(fun, ...., readFileFuns = ReadFileFuns, recursive = FALSE)
+function(fun, ..., readFileFuns = ReadFileFuns, recursive = FALSE)
     findCallsTo(fun, readFileFuns) 
 
 
