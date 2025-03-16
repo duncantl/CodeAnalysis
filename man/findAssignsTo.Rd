@@ -22,9 +22,10 @@
 }
 \usage{
 findAssignsTo(code, var = character(), complex = TRUE,
-              pred = if (complex) isComplexAssignTo else isSimpleAssignTo)
-isComplexAssignTo(x, var, simpleOk = TRUE) 
-isSimpleAssignTo(x, var = character())
+              pred = if (complex) isComplexAssignTo else isSimpleAssignTo,
+              assignmentOps = c("<-", "=", "<<-"))
+isComplexAssignTo(x, var, simpleOk = TRUE, assignmentOps = c("<-", "=", "<<-")) 
+isSimpleAssignTo(x, var = character(), assignmentOps = c("<-", "=", "<<-"))
 }
 \arguments{
   \item{code,x}{the R code/language object}
@@ -41,7 +42,8 @@ isSimpleAssignTo(x, var = character())
     \code{isAssignTo}.}
   \item{simpleOk}{a logical value. If \code{TRUE}, a simple assignment is also acceptable;
     otherwise,   the assignment call must have a non-symbol/name on the right-hand side but a call
-  such as \code{x[i]}, \code{x$i}, \code{names(x)}.}
+    such as \code{x[i]}, \code{x$i}, \code{names(x)}.}
+  \item{assignmentOps}{a character vector giving the names of the assignment operators to consider.}
 }
 \value{
 A list of the assignment calls found in the code.
