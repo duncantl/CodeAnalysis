@@ -22,6 +22,6 @@ function(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE
 {
     e = new.env()
     lapply(files, source, e)
-    tmp = as.list.environment(e, all = TRUE)
+    tmp = as.list.environment(e, all.names = TRUE)
     data.frame(name = names(tmp), class = sapply(tmp, class), size = sapply(tmp, object.size))
 }
