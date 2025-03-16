@@ -2,6 +2,7 @@
 \alias{getGlobals}
 \alias{getGlobalFunctions}
 \alias{getScriptGlobals}
+
 \title{Compute information about uses of globals, etc. for a function}
 \description{
  This is an alternative version of \code{\link[codetools]{findGlobals}}
