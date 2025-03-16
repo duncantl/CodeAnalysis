@@ -6,13 +6,14 @@
   e.g. uses of \code{eval}, \code{evalq}, \code{eval.parent}, \code{get}, \code{assign}, \code{rm}.
 }
 \usage{
-findNSE(code, asNodes = TRUE)
+findNSE(code, asNodes = TRUE, nseFunNames = NSEFunNames)
 }
 \arguments{
   \item{code}{the R code object}
   \item{asNodes}{a logical value controlling whether to return the
     resulting NSE code objects as nodes or indices.
   }
+  \item{nseFunNames}{a character vector of the names of functions that perform non-standard evaluation.}
 }
 \value{
   the nodes in the \code{rstatic} abstract syntax tree
