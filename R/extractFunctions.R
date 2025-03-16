@@ -1,9 +1,13 @@
+# rstatic
+if(FALSE)
 removeFromBody =
 function(b, index)
 {
   b$body = b$body[- index]
 }
 
+# rstatic
+if(FALSE)
 collectRemoveFun =
 function(body)
 {
@@ -24,12 +28,21 @@ function(body)
 
 
 
+# rstatic
+if(FALSE)
 extractFunctions =
+    #
+    #  Perhaps use indexWalkCode()
+    #  or just write a walkCode() walker that removes the functions
+    #  and stores them so can return the updated code and the function.
+    #  Will look for function definitions in the current expression,
+    #  i.e. from the parent from which we will have to remove them.
+    #
 function(fun)
 {
     b = to_ast(body(fun))
     col = collectRemoveFun(b)
-#browser()
+
     # Note we go from last to first so that if we remove an element
     # this doesn't change the index of the next element.
     mapply(col, b, rev(seq(along = b$body)))
@@ -47,6 +60,22 @@ findFunctions =
     #
 function(code)
     findCallsTo(fun, "function")
+
+
+findAssignedFunctions = findNamedFunctions =
+    # This version finds only function() ...  which are assigned to
+    # a simple variable.
+    # So ignore, e.g., fns$x = function()...
+function(fun)
+{
+    asg = findAssignsTo(fun)
+    isFun = sapply(asg, function(x) isSimpleAssignTo(x) && isCallTo(x[[3]], "function"))
+
+    funs = lapply(asg[isFun], function(x) x[[3]])
+    names(funs) = sapply(asg[isFun], function(x) as.character(x[[2]]))
+   
+    funs
+}
 
 
 

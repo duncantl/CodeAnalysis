@@ -2,6 +2,8 @@
 # find a Symbol and walk back through the script to see if we have a literal value
 # This is for an rstatic AST object.
 
+# rstatic
+if(FALSE)
 findLiteralValue =
 function(sym)
 {
@@ -19,36 +21,6 @@ function(sym)
        sym
 }
 
-asScript =
-function(x)
-{
-    while(!is.null(x$parent))
-        x = x$parent
-    x
-}
-
-asToplevelExpr =
-function(x)
-{
-    if(is.null(x$parent))
-        return(x)
-    
-    while(!is.null(x$parent$parent))
-        x = x$parent
-    x
-}
-
-asFunction =
-function(x)
-{
-    while(!is.null(x)) {
-        if(is(x, "Function"))
-            return(x)
-        x = x$parent
-    }
-    
-    NULL
-}
 
 
 countNestedFunctionLevel =

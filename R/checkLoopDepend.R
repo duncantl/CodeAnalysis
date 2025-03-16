@@ -55,6 +55,9 @@ function(node, var)
 #
 # @param v rstatic Symbol to search for
 # @param ivar rstatic Symbol iterator variable: the j in for(j in ...)
+
+# rstatic
+if(FALSE)
 independentUpdate = function(node, v, ivar, fixed_globals = character())
 {
     if(is(node, "Replacement") && varAppears(node$write, v) ){
@@ -104,6 +107,9 @@ independentUpdate = function(node, v, ivar, fixed_globals = character())
 #'      - result (logical) do the iterations of the loop depend on each other?
 #'      - reason (character) human readable message for why the loop is or is not parallel
 #'      - reasonCode (character) short version of reason, for programming
+
+# rstatic
+if(FALSE)
 checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq", ":", "unique"))
 {
 
@@ -162,7 +168,8 @@ checkLoopDepend = function(forloop, checkIterator = FALSE, uniqueFuncs = c("seq"
     ))
 }
 
-
+# rstatic
+if(FALSE)
 # Check that an iterator is guaranteed to contain unique objects when evaluated.
 checkUnique = function(iterator, uniqueFuncs)
 {
@@ -196,11 +203,13 @@ checkUnique = function(iterator, uniqueFuncs)
 }
 
 
+# rstatic
+if(FALSE)
 checkVariableDependency =
     #??? Comments describing what this does.
 function(v, body, ivar, fixed_globals)
 {
-    vs = rstatic::Symbol$new(v)
+    vs = v  #rstatic::Symbol$new(v)
     assigns_over_var = findAssignsOverVar(body, vs)
     if(0 < length(assigns_over_var)){
         return(list(

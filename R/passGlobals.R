@@ -29,7 +29,8 @@ function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)))
   }
   nm = sapply(syms, is.name)
   names(.funs)[nm] = sapply(syms[nm], as.character)    
-  
+
+  # ¿ Why not getGlobals() ?
   g = lapply(.funs, codetools::findGlobals, FALSE)
   gvars = lapply(g, `[[`, "variables")
   hasNonLocals = sapply(gvars, length) > 0
@@ -52,6 +53,8 @@ function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)))
   updatedFuns
 }
 
+# rstatic
+if(FALSE)
 passGlobals =
     #
     # Add additional arguments to calls to any of the functions
@@ -70,6 +73,8 @@ function(fun, gVarsByFun)
     fun
 }
 
+# rstatic
+if(FALSE)
 updateCallsFun =
     #
     # returns a function that will update a Call object (in the rstatic
@@ -153,6 +158,8 @@ function(fun, param, default, asIs = inherits(default, "AsIs"))
 }
 
 
+# rstatic
+if(FALSE)
 changeParamName =
     #
     # Rewrite the body of a function to change the name of one or more
@@ -173,6 +180,8 @@ function(fun, origName, newName = names(origName))
     as_language(ast)
 }
 
+# rstatic
+if(FALSE)
 renameVarFun =
     #
     # Returns a function that knows to change a Symbol (in the AST)
