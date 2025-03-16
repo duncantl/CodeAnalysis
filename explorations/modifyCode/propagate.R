@@ -1,3 +1,5 @@
+library(codetools)
+
 mkConstPropWalker =
 function(rewrite = function(x, ...) x, skipIfFalse = TRUE, ...)
 {
@@ -82,6 +84,31 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, ...)
 
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
+
+
+genRewriteVars =
+function(names)    
+{
+    function(x, w, ...) {
+        if(is.name(x) && (v <- as.character(x)) %in% names(names))
+            as.name(names[v])
+        else
+            x
+    }
+}
+
+if(FALSE) {
+
+    f = function(x) {
+        alpha *x + beta
+    }
+
+    rw = genRewriteVars(c(alpha = ".alpha", beta = ".beta"))
+    w = mkConstPropWalker(rw, FALSE)
+    #    f2 = walkCode(body(f), w)
+    f2 = walkCode(f, w)    
+}
+
 
 
 if(FALSE) {
