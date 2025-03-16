@@ -31,7 +31,7 @@ function(x, w)
 
 mkCallWalkerPred =
     #
-function(pred, ..., skipIfFalse = TRUE)
+function(pred, ..., skipIfFalse = TRUE, maxFunDepth = Inf)
 {
     calls = list()
 
@@ -46,6 +46,8 @@ function(pred, ..., skipIfFalse = TRUE)
             return(NULL)
         } 
     }
+
+    funLevel = 0L
     
     call = function(x, w) {
 
@@ -55,7 +57,19 @@ function(pred, ..., skipIfFalse = TRUE)
         isName = is.name(x[[1]])
         if(isSymbol(x[[1]], c("<-", "=")) && is.call(x[[2]]))
             attr(x[[2]], "isLHS") = TRUE
-           
+
+
+        if(isName && as.character(x[[1]]) == "function") {
+            funLevel <<- funLevel + 1
+            # message("function depth ", funLevel, " limit = ", maxFunDepth)
+            # part of on.exit: message(" function depth now ", funLevel)
+            on.exit(funLevel <<- funLevel - 1)
+            
+            if(funLevel > maxFunDepth)
+                return(NULL)
+        }
+        
+        
            
         if(pred(x, isName, ...))  # XXXX This is very interesting as to where the ... comes from
             # the mkCallWalkerPred() or the call function.
@@ -204,10 +218,10 @@ function(code, funNames = character(),
          walker = if(!missing(rx))
                       mkCallWalkerPred(findCallsRXPred(rx), skipIfFalse = FALSE)
                   else
-                      mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
+                      mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse, maxFunDepth = maxFunDepth),
          parse = any(!sapply(funNames, is.name)),
          skipIfFalse = TRUE,
-         rx = character())
+         rx = character(), maxFunDepth = Inf)
 {
     # try to parse funNames so that we can compare symbols and  not have to convert symbols to strings and compare strings.
     # But if we fail to parse, keep the original string(s).
