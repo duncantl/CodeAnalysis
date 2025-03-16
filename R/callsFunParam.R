@@ -40,8 +40,13 @@ findCallsParam =
     # Get those with getGlobals().
     # Actually, findCallsTo does find use in lapply()
     #
+    #XXX
+    #  But then we need to handle such results differently 
+    #
     # Doesn't detect calls from C code of course. See the RCIndex package 
     # and NativeCodeAnalysis package for that..
+    #
+    #
     #
 function(fun, asCalls = FALSE)
 {
@@ -52,7 +57,9 @@ function(fun, asCalls = FALSE)
     if(asCalls)
         v
     else
-          # should we use deparse rather than as.character(). Shouldn't matter as direct call to parameter name.
+        # should we use deparse rather than as.character(). Shouldn't matter as direct call to parameter name.
+        # Fix for lapply(), etc. functions, i.e., indirect calls to fun.
+        # Then reenable test in tests/getGlobals.R
        unique(vapply(v, function(x) as.character( x[[1]] ), character(1)))
 }
 
