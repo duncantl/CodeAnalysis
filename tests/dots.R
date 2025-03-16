@@ -1,3 +1,5 @@
+library(CodeAnalysis)
+
 bar = 
 function(x, y = rep(1, length(x)), ...)
 {
