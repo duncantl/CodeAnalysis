@@ -35,12 +35,14 @@ Duncan Temple Lang (?)
   \code{\link{getGlobals}}
 }
 \examples{
+\dontrun{
 f = function(x) x + a
 f2 = mkGlobalsLocal(f)
 formals(f)
 formals(f2)
 f
 f2
+}
 }
 \keyword{programming}
 \concept{static code analysis}
