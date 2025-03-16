@@ -6,10 +6,15 @@
   strings that appear to be URLs.
 }
 \usage{
-getURLs(dir)
+getURLs(dir, ignoreParams = FALSE, skipIfFalse = FALSE)
 }
 \arguments{
   \item{dir}{a directory or file name, or vector of these}
+  \item{ignoreParams}{a scalar logical controlling whether to also
+    include the default values of parameters of functions in the search for
+    URLs.}
+  \item{skipIfFalse}{scalar logical controlling whether to skip/ignore code within
+    \code{if(FALSE)} blocks.}
 }
 \value{
 a character vector
