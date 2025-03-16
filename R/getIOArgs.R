@@ -181,6 +181,8 @@ function(x, .funNames, filename = NA, ...)
 getIOArgs.ListOfCalls =
 function(x, .funNames, filename = NA, ...)
 {
+    # Can we replace this with a call to findCallsTo()
+    # and then get the 
     ans = findCallsToFunctions(x, .funNames, 1L, ...)
     if(length(ans))
         names(ans) = rep(filename, length(ans))
