@@ -27,12 +27,13 @@ findCallsTo(code, funNames = character(),
          walker = if(!missing(rx))
                       mkCallWalkerPred(findCallsRXPred(rx), skipIfFalse = FALSE)
                   else
-                      mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse),
+                      mkCallWalker(funNames, indirect = indirectCallFuns, skipIfFalse = skipIfFalse,
+                                    maxFunDepth = maxFunDepth),
          parse = any(!sapply(funNames, is.name)), skipIfFalse = TRUE,
-         rx = character()) 
+         rx = character(), maxFunDepth = Inf) 
 findCallsToFunctions(allCalls, funNames, argIndices = integer(), definitions = NULL)
 isCallTo(code, funName, indirect = getIndirectCallFunList(), isLHS = NA)
-mkCallWalkerPred(pred, ..., skipIfFalse = TRUE)
+mkCallWalkerPred(pred, ..., skipIfFalse = TRUE, maxFunDepth = Inf)
 numCalls(code)
 getIndirectCallFunList(..., .els = list(...))
 }
@@ -86,7 +87,9 @@ getIndirectCallFunList(..., .els = list(...))
      This is not passed down yet from the functions that call \code{isCallTo} as part of the
      higher-level analyses.
    }
-   \
+   \item{maxFunDepth}{a number. This controls how many nested function levels we descend
+     when analyzing the code. This allows the caller to stop the code walker descending
+     into nested functions.}
 }
 \value{
   \code{findCallsTo} returns a list of the call language objects.
