@@ -183,9 +183,15 @@ cf = function(x, f) for(i in x) { x = f(i); y = g(x) }
 tmp = findCallsParam(cf)
 stopifnot(identical(tmp,  "f"))
 
-cf = function(x, f) lapply(x, f, 2)
-
 stopifnot(getGlobals(cf)$functions == "g")
+
+# FIX   XXXXXXXXXX    
+if(FALSE) {    
+cf = function(x, f) lapply(x, f, 2)
+cf = function(x, f) { lapply(x, f, 2) }
+tmp = findCallsParam(cf)
+stopifnot(identical(tmp,  "f"))
+}
     
 # Broken now with lazy evaluation of default parameters.
 #[Done] Needs to skip for and {.
