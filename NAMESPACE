@@ -10,6 +10,8 @@ importFrom(methods,
 importFrom(codetools, walkCode, makeCodeWalker, findGlobals)
 importFrom(graphics, plot)
 
+importFrom(utils, object.size)
+
 # Exports from this package
 
 S3method(plot, R6ClassInherits)
@@ -118,3 +120,4 @@ export(getCallPaths)
 
 export(toc,dynToc)
 
+export(usesDots)
