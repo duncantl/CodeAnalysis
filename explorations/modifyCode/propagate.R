@@ -1,7 +1,7 @@
 library(codetools)
 
 mkConstPropWalker =
-function(rewrite = function(x, ...) x, skipIfFalse = TRUE, ...)
+function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE, ...)
 {
     Invalid = structure(NA, class = "Invalid")
     map = list()
@@ -67,10 +67,10 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, ...)
 
         # Process assignments to update the map of variable values.
         # Do this at the end after folding constants.
-        if(isSymbol(x[[1]], c("<-", "=", "<<-"))) { #  && is.call(x[[2]])) {
-        browser()            
+        if(mkLiteralMap && isSymbol(x[[1]], c("<-", "=", "<<-"))) { #  && is.call(x[[2]])) {
+
             var = CodeAnalysis:::getAssignedVars(x)
-        literal_p = isLiteral(x[[3]])
+            literal_p = isLiteral(x[[3]])
         # isComplexAssignTo(x)
             if(is.call(x[[2]]) || !literal_p)
                 map[[var]] <<- Invalid
@@ -78,12 +78,40 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, ...)
                 map[[ as.character(var[[1]] )]] <<- x[[3]]
         }
 
-#        browser()
+
         x
     }    
 
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
+
+
+genAddArgsToCalls =
+function(funArgs)    
+{
+    function(x, w, ...) {
+        if(isCallTo(x, names(funArgs))) {
+            args = funArgs[[ as.character(x[[1]]) ]]
+            x[names(args)] = sapply(args, as.name)
+            x
+        } else
+            x
+    }
+}
+
+if(FALSE) {
+
+    f9 = function(n, B = 999) {
+        replicate(B, { a = f(rnorm(n)); mean(g(a))})
+    }
+    
+    fv = list(f = c("alpha" = "alpha1", "beta" = "beta1"), g = c("alpha" = "alpha2"))
+    
+    rw = genAddArgsToCalls(fv)
+    w = mkConstPropWalker(rw, FALSE)
+    f2 = walkCode(f9, w)    
+}
+
 
 
 genRewriteVars =
@@ -105,7 +133,6 @@ if(FALSE) {
 
     rw = genRewriteVars(c(alpha = ".alpha", beta = ".beta"))
     w = mkConstPropWalker(rw, FALSE)
-    #    f2 = walkCode(body(f), w)
     f2 = walkCode(f, w)    
 }
 
