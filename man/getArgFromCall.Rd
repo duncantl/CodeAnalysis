@@ -34,8 +34,8 @@ pkgSymbolsUsed(pkg, fromPkg, ns = getNamespace(pkg), exportedOnly = TRUE)
 \author{
 Duncan Temple Lang
 }
-\seealso{}
-\examples{}
+%\seealso{}
+%\examples{}
 \keyword{programming}
 \concept{metaprogramming}
 

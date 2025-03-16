@@ -42,7 +42,6 @@ a character vector
   \code{\link{getGlobals}}
   \code{\link[codetools]{findGlobals}}
 }
-\examples{
-}
+%\examples{}
 \concept{meta-programming}
 \concept{static analysis}

@@ -31,9 +31,7 @@ returnsFunction(fun, recursive = FALSE, envir = globalenv(),
 \author{
 Duncan Temple Lang
 }
-\seealso{
-%XX export?  \code{\link{getReturnValues}}
-}
+%\seealso{%XX export?  \code{\link{getReturnValues}}}
 \examples{
 f3 = function(x) {
     if(length(x) > 3) {
