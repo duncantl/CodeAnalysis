@@ -11,7 +11,7 @@ Find Definitions for Variables in Scripts
 }
 \usage{
 missingScriptVars(script, dir = ".",
-                  allScripts = list.files(dir, pattern = "\\.R$", full.names = TRUE),
+                  allScripts = list.files(dir, pattern = "\\\\.R$", full.names = TRUE),
                   varDefs = varDefsByFile(, allScripts),
                   unbox = TRUE)
 }
