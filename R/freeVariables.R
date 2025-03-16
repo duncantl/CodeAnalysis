@@ -363,20 +363,10 @@ function(call, baseFile)
 
 dropNotRunCode =
     #
-    # remove code of the form if(FALSE) from an rstatic AST.
+    # remove code of the form if(FALSE) from a language object.
     #
 function(x, ...)
    UseMethod("dropNotRunCode")
-
-dropNotRunCode.R6 =
-function(x, ...)    
-{
-    nodes = find_nodes(x, isIfFalse)
-    if(length(nodes)) 
-           lapply(nodes, function(x) children(x$parent) = children(x$parent)[ - where_is(x) ])
-
-    x
-}
 
 dropNotRunCode.expression = dropNotRunCode.ScriptInfo = dropNotRunCode.Script =
     #
@@ -467,57 +457,6 @@ function(x, assignmentOps = c("=", "<-", "<<-"))
 }
 
 
-# Instead of propagating the constants before analysis, for now we will
-# find a Symbol and walk back through the script to see if we have a literal value
-# This is for an rstatic AST object.
-
-findLiteralValue =
-function(sym)
-{
-        # Assume an argument in an ArgumentList so get to the call.
-   call = sym$parent$parent
-
-   idx = where_is(asToplevelExpr(call))
-   
-   script = asScript(call)
-   before = script$contents[rev(seq_len(idx - 1))]
-   lit = sapply(before, function(x) is(x, "Assignment") && x$write == sym && is(x$read, "Literal"))
-   if(any(lit))
-       as_language(before[[ which(lit)[1] ]]$read)
-   else
-       sym
-}
-
-asScript =
-function(x)
-{
-    while(!is.null(x$parent))
-        x = x$parent
-    x
-}
-
-asToplevelExpr =
-function(x)
-{
-    if(is.null(x$parent))
-        return(x)
-    
-    while(!is.null(x$parent$parent))
-        x = x$parent
-    x
-}
-
-asFunction =
-function(x)
-{
-    while(!is.null(x)) {
-        if(is(x, "Function"))
-            return(x)
-        x = x$parent
-    }
-    
-    NULL
-}
 
 
 
@@ -718,17 +657,6 @@ function(dir, ignoreParams = FALSE, skipIfFalse = FALSE)
         ff = getRFiles(dir)
     else
         ff = dir
-
-if(FALSE) {  #<<<<
-    
-    sc = lapply(ff, function(f) getInputs(readScript(f)))
-    strings = unlist(lapply(sc, function(f) lapply(f, function(x) x@strings)))
-
-    # Because CodeDepends doesn't handle strings properly in default arguments of parameters
-    funs = unlist(getFunctionDefs(dir))
-    tmp = unlist(lapply(funs, function(x) find_nodes(to_ast(x), function(x) is(x, "Character") && grepl("^(http|ftp)", x$value))))
-    xtra = unlist(sapply(tmp, function(x) x$value))
-} #<<<<<<<<
 
     ans = lapply(ff, function(x) {
                         lit = findLiterals(parse(x), ignoreParams = ignoreParams, skipIfFalse = skipIfFalse)
