@@ -12,29 +12,38 @@
 # values to be the global variables.
 #
 # @example
-# source("Topics/globalsRewrite/example/simple.R")
+# source("explorations/globalsRewrite/example/simple.R")
 # z = mkGlobalsLocal(f, g, main)
 
 mkGlobalsLocal =
-function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)))
+function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)), addDot = FALSE, addDefault = FALSE)
 {
-  if(missing(.funs) && length(names(.funs)) == 0) {
-        # Caller gave functions via ... but no names.
-      k = sys.call()
-      syms = k[-1]
-  } else if(length(names(.funs)) == 0) {
-      # Handle names if .funs is passed as .funs = list(f, g, main)        
-      k = sys.call()
-      syms = k[[2]][-1]
-  }
-  nm = sapply(syms, is.name)
-  names(.funs)[nm] = sapply(syms[nm], as.character)    
+    if(! (length(names(.funs)) > 0 && all(names(.funs) != ""))) {
+        # Fix the names on .funs as they can be supplied in different ways for convenience.
+        k = sys.call()
+        getNames = function(k) {
+            k2 = as.list(match.call(mkGlobalsLocal, k)[-1])
+            k2[  !( names(k2) %in%  names(formals(mkGlobalsLocal))) ]      
+        }
 
+        # XXX merge these later.
+        if(missing(.funs) && length(names(.funs)) == 0) {
+            # Caller gave functions via ... but no names.
+            syms = getNames(k)
+        } else if(length(names(.funs)) == 0) {
+            # Handle names if .funs is passed as .funs = list(f, g, main)
+            syms = getNames(k)      
+        } 
+    
+        nm = sapply(syms, is.name)
+        names(.funs)[nm] = sapply(syms[nm], as.character)    
+    }
+    
   # ¿ Why not getGlobals() ?
   g = lapply(.funs, codetools::findGlobals, FALSE)
   gvars = lapply(g, `[[`, "variables")
   hasNonLocals = sapply(gvars, length) > 0
-  .funs[hasNonLocals] = mapply(addParams, .funs[hasNonLocals], gvars[hasNonLocals])
+  .funs[hasNonLocals] = mapply(addParams, .funs[hasNonLocals], gvars[hasNonLocals], MoreArgs = list(addDot = addDot, addDefault = addDefault))
 
   updatedFuns = .funs[hasNonLocals]
 
@@ -110,21 +119,35 @@ addParams =
     #   function(x) x + beta
     # becomes
     #   function(x, .beta = beta) x + .beta
-function(fun, varNames, addDot = TRUE)
+    #
+    # XXX this or probably the caller needs to ensure that the variables
+    #
+function(fun, varNames, addDot = TRUE, addDefault = addDot)
 {
-    ofun = fun    
-    newNames = if(addDot) paste0(".", varNames) else varNames
-    fun = changeParamName(fun, varNames, newNames)
-      # as_language(function() ...)  returns a call object for better or worse!
-      # So need to evaluate that and then set the environment
-    fun = eval(fun)
-    environment(fun) = environment(ofun)
 
+    newNames = if(addDot)
+                   paste0(".", varNames)
+               else
+                   varNames
+    if(addDot) {
+        ofun = fun
+        #XXX fix changeParamName
+        fun = changeParamName(fun, varNames, newNames)
+        # as_language(function() ...)  returns a call object for better or worse!
+        # So need to evaluate that and then set the environment
+        fun = eval(fun)
+        environment(fun) = environment(ofun)
+    }
+
+    templ = formals(function(x) x)$x
+    browser()
     for(i in seq(along = varNames)) 
-        fun = addGlobalParam(fun, newNames[i], as.symbol(varNames[i]))
+        fun = addGlobalParam(fun, newNames[i], as.symbol(varNames[i]), noDefault = !addDefault)
 
     fun
 }
+
+
 
 
 
@@ -145,16 +168,38 @@ addGlobalParam =
     #
     # If you want to add an expression
     #
-function(fun, param, default, asIs = inherits(default, "AsIs"))
+function(fun, param, default, asIs = inherits(default, "AsIs"), noDefault = missing(default))
 {
     formals(fun)[[param]]
     z = alist(x=)
     names(z) = param
     formals(fun) = c(formals(fun), z)
-    if(!missing(default))
+    if(!noDefault) # !missing(default))
         formals(fun)[[param]] = if(asIs) substitute(default) else default
     
     fun
+}
+
+
+changeParamName =
+    #
+    # Rewrite the body of a function to change the name of one or more
+    # variables to a new name, e.g.
+    #
+    # f = function(x, b) { x + b + 1}
+    # changeParamName(f, c("x", "b"), c(".x", ".b"))
+    #
+    # Which then becomes
+    # function(x, .b) { x + .b + 1}
+    #
+    # This new version reverses the names-newNames in origName. Not a big deal
+    #
+function(fun, origName, newName = names(origName))
+{
+    #XXX see explorations/modifyCode/propagate.R.  The function names will change.
+    rw = genRewriteVars(structure(newName, names = origName))
+    w = mkConstPropWalker(rw, FALSE)
+    walkCode(fun, w)    
 }
 
 
