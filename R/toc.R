@@ -21,7 +21,7 @@ dynToc =
 function(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE), pattern = "\\.[RrsSq]")    
 {
     e = new.env()
-    lapply(list.files("../R", pattern = "\\.R$", full = TRUE), source, e)
+    lapply(files, source, e)
     tmp = as.list.environment(e, all = TRUE)
     data.frame(name = names(tmp), class = sapply(tmp, class), size = sapply(tmp, object.size))
 }
