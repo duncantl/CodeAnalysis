@@ -59,7 +59,7 @@ findFunctions =
     # or in any code.
     #
 function(code)
-    findCallsTo(fun, "function")
+    findCallsTo(code, "function")
 
 
 findAssignedFunctions = findNamedFunctions =
