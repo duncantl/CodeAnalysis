@@ -6,12 +6,14 @@
   such as \code{read.table}, \code{read.csv}, \code{scan}, etc.
 }
 \usage{
-getFilesRead(fun, ..., recursive = FALSE)
+getFilesRead(fun, ..., readFileFuns = ReadFileFuns, recursive = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{fun}{R code}
-  \item{\dots}{additional arguments passed to \code{isReadFileCall} via \code{\link[rstatic]{find_nodes}}}
+  \item{\dots}{additional arguments passed to \code{isReadFileCall}}
+  \item{readFileFuns}{a character vector of function names identifying functions that are known to
+    read data.}
   \item{recursive}{a logical value, currently ignored.}
 }
 \value{
