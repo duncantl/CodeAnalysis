@@ -667,29 +667,67 @@ function(dir, ignoreParams = FALSE, skipIfFalse = FALSE)
     unique(unlist(ans))
 }
 
-if(FALSE) #<<<<
-usedInCode =
-function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir),
-          fun = function(x) x$value)
+
+notUsedInCode =
+    #
+    # Break this into reusable functions to be able to get
+    # a) all the code
+    # b) all the variables that would/might be defined
+    # c) all the variables that are used excluding those on the LHS of an assignment.
+    # 
+    # What does this do? Appears to 
+    # Read all files in the directory
+    # Optionally drop any code that wouldn't be run.
+    # Drop the x = function()...
+    #
+    # 
+    # To make this more accurate,
+    # 1) find uses of symbols after they have been defined
+    # 2) look for uses in the functions as global variables.
+    #
+    # For #1, usefule to know the order in which the .R files would be evaluated
+    #    and use that.
+    # Could try to infer/guess.
+    #
+    # Use can specify this explicitly by giving the value for rfiles.
+    #
+function(dir, dropIfFalse = TRUE, notInToplevelFunctions = TRUE,  rfiles = getRFiles(dir, recursive = recursive),
+          fun = function(x) x, recursive = TRUE, ...)
 {
-    asts = lapply(rfiles, function(f) to_ast(parse(f)))
+    asts = lapply(rfiles, parse)
     names(asts) = basename(rfiles)
 
     if(dropIfFalse)
         asts = lapply(asts, dropNotRunCode)
-    
-    if(notInToplevelFunctions)
-        asts = lapply(asts, function(x) x$contents[ !sapply(x$contents, isFunAssign) ])
 
-    if(is.null(fun))
-        fun = function(x) x
+    if(notInToplevelFunctions) 
+        asts = lapply(asts, function(x) x[ !sapply(x, isFunAssign) ])
+
     
-    allSyms = unlist(lapply(unlist(asts),
-                            function(x)
-                             sapply(find_nodes(x,
-                                               function(x)
-                                                  is(x, "Symbol") && !(is(x$parent, "Assignment") && x$parent$write == x)),
-                                    fun)))
+    # Treat the code from the files as one huge script.
+    calls = unlist(asts)
+
+    # Find all the assignments including within if() and while(), etc.
+    # We have already removed the functions so won't find the ones in their bodies.
+    
+    assigns = findAssignsTo(calls, complex = FALSE)
+    # Now get the names of these variables.
+    gvars = unname(sapply(assigns, function(x) as.character(x[[2]])))
+    names(assigns) = gvars
+
+    # Now findl all calls and subcalls
+    calls2 = findCallsTo(calls)
+    # discard the assignments
+    isAssign = sapply(calls2, function(x) is.name(x[[1]]) && as.character(x[[1]]) %in% c("<-", "=", "<<-"))
+    ocalls = calls2
+    ocalls[isAssign] = lapply(ocalls[isAssign], function(x) x[[3]])
+    # Get all the symbols used in those calls
+    used = lapply(ocalls, getAllSymbols)
+
+    # Now see what was defined but not used.
+    u = setdiff(gvars, unlist(used))
+
+    assigns[u]
 }
 
 
