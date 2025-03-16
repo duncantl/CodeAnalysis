@@ -74,68 +74,9 @@ function(x, ctr = mkCounter(skipIfFalse = skipIfFalse), skipIfFalse = TRUE)
 }
 
 
-#############
-# See S3Assigns.R
-
-findS3ClassDefs =
-function(x, ...)
-   UseMethod("findS3ClassDefs")
-
-findS3ClassDefs.character =
-function(x, ...)
-    findS3ClassDefs(parse(x), ...) # deal with vector, directory.
-
-findS3ClassDefs.expression = findS3ClassDefs.function =
-function(x, ...)
-{
-    w = mkCallWalkerPred(isS3ClassSetNode)
-    k = findCallsTo(x, walker = w)
-    # Now have to post process the nodes.
-
-    # extractS3Class wants the RHS of the class() = ..
-    # not the full assignment call. So this would need to be
-    # fixed if we want to use this function. But it is not exported
-    # or called.
-    browser()
-    lapply(k, extractS3Class)
-}
-
-
-isS3ClassSetNode =
-function(x, isName, ...)
-{
-    if(isCallTo(x, "structure") && "class" %in% names(x))
-        return(TRUE)
-    
-
-    if(!isComplexAssignTo(x))
-        return(FALSE)
-
-    lhs = x[[2]]
-    
-    if(isCallTo(lhs, "class"))
-        return(TRUE)
-
-    isCallTo(lhs, "attr") && length(lhs) >= 2 && is.character(x[[2]]) && x[[2]] == "class"
-}
-
 
 ###############
 
-countNestedFunctionLevel =
-    #
-    # Given a Function object, this walks up the AST 
-    #
-    #
-function(f, count = 0)
-{
-    f2 = asFunction(f$parent)
-    if(!is.null(f2))
-        return(countNestedFunctionLevel(f2, count + 1))
-
-    count
-
-}
 
 if(FALSE) {
   p = to_ast(parse("~/R-devel3/src/library/tools/R/QC.R"))
