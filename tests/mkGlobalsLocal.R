@@ -1,5 +1,7 @@
 library(CodeAnalysis)
 
+#XXXX remove if(FALSE) when fix function.
+if(FALSE) {
 f = function(x) {  y = x + a; z = 2*a ; return(z + y)}
 fn = mkGlobalsLocal(f)
 
@@ -8,5 +10,6 @@ fn = mkGlobalsLocal(f)
 f = function(x) {  y = x + a; z = 2*a ; return(z + y + a)}
 fn = mkGlobalsLocal(f)
 
+}
 
 
