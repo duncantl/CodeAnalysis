@@ -49,7 +49,7 @@ p = function(x, ...)
     isCallTo(x, "function")
 
 rw = genRemoveCode(p)
-w = mkConstPropWalker(rw, FALSE)
+w = mkModifyCodeWalker(rw, FALSE)
 f2 = walkCode(fun2, w)        
     
 

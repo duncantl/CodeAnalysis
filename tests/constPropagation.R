@@ -1,6 +1,8 @@
 library(codetools)
 library(CodeAnalysis)
 
+if(FALSE) {
+
 ef = parse("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/constProp.R")
 
 chVar =
@@ -16,4 +18,6 @@ function(x, w, map, ...)
 }
 
 w = mkModifyCodeWalker(chVar, FALSE)
+
 o = walkCode(ef$f1, w)
+}
