@@ -10,6 +10,9 @@
 
 # To Fix
 
++ Combine and rationalize mkGlobalsLocal and .addDefault and addDefault.
+
+
 + Document getIndirectCallFunList
 
 + have procIndirectCal... match the parameter names.
@@ -197,6 +200,8 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
   + example, isLHS and envir in function isIndirectCall
 
 # Done
+
++ √ Fix mkGlobalsLocal when no named arguments and match.call() doesn't put any names on them.
 
 + √ getInputFiles and getOutputFiles and getGraphicOutputFiles
   + process the correct argument in the call.
