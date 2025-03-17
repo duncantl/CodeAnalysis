@@ -19,6 +19,13 @@ function(fun)
 removeNamedFunctionDefs =
 function(fun)    
 {
+    # XXX  this doesn't handle a <- b <- function()...
+    # Ends up with a <-  and then NULL and the assignment language object has length 2 but displays as a <- NULL.
+    # See tools:::get_CITATION_entry_fields  and FOO1 <- FOO2 <- function().
+    #
+    # XXX  var = if(...)  function() ... else function( ) ... 
+    #  also tools::check_doi_db 
+    #
     rw = genRemoveCode(isNamedFunctionAssign)
     w = mkModifyCodeWalker(rw, FALSE)
     walkCode(fun, w)        
@@ -45,6 +52,9 @@ findAssignedFunctions = findNamedFunctions =
 function(fun)
 {
     asg = findAssignsTo(fun)
+    if(length(asg) == 0)
+        return(list())
+    
     isFun = sapply(asg, isNamedFunctionAssign)
 
     funs = lapply(asg[isFun], function(x) x[[3]])
