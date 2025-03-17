@@ -1,4 +1,4 @@
-mkConstPropWalker =
+mkModifyCodeWalker = mkConstPropWalker =
 function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE, ..., verbose = FALSE)
 {
     Invalid = structure(NA, class = "Invalid")
@@ -47,6 +47,7 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
 
         y = x
         assignmentOps = c("<-", "=", "<<-")
+        cur = 1L
         for (i in seq(along.with = els)) {
             el = els[[i]]
             if (!missing(el)) {
@@ -64,8 +65,16 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
                     }
                 } else
                     tmp = rewrite(tmp, w, map)
+
+
+                if(is.null(tmp)) {
+#                    message("null value from rewrite()")
+                    x = x[-cur]
+                    next
+                }
                 
-                x[[i]] = els[[i]] = tmp
+                x[[cur]] = tmp   # els[[cur]] = tmp
+                cur = cur + 1L
             }
         }
 
@@ -88,6 +97,20 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
     list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
 }
 
+###################################
+# Generator functions to create the function we pass to the mkModifyCodeWalker()
+
+genRemoveCode =
+function(pred)
+{
+    function(x, w, ...) {
+        if(pred(x))
+            NULL
+        else
+            x
+    }
+}
+
 
 genAddArgsToCalls =
 function(funArgs)    
@@ -102,6 +125,78 @@ function(funArgs)
     }
 }
 
+genRewriteVars =
+function(names)    
+{
+    function(x, w, ...) {
+        if(is.name(x) && (v <- as.character(x)) %in% names(names))
+            as.name(names[v])
+        else
+            x
+    }
+}
+
+
+
+###################
+# Examples/tests for the different generator functions and modifying the code.
+
+
+if(FALSE) {
+    fun = function(x, y, z) {
+        a = 2
+        b = 1+2
+        c = a + b
+        foo(a, b, c)
+
+        # remove the intermediate assignment, but leave for now so still have 2 commands.
+        ans = (x + y)*z
+        ans
+    }
+
+    p = function(x, ...) {
+        isCallTo(x, "foo") || isAssignTo(x, c("a", "c"))
+    }
+
+    rw = genRemoveCode(p)
+    w = CodeAnalysis:::mkConstPropWalker(rw, FALSE)
+    f2 = walkCode(fun, w)    
+}
+
+
+if(FALSE) {
+
+    fun2 = function(x, y, z) {
+        len = sapply(list(x, y, z), length)
+        if(any(len) == 0)
+            stop("zero-length argument")
+        
+        a = function(v) x+v
+        b = function(o) o/z
+
+        while(length(z) > 1){
+            w = a(x) > 10 & b(y) < 100
+            z = z[w]
+            x = x[w]
+            y = y[w]
+        }
+
+        z
+    }
+
+    p = function(x, ...) 
+           isCallTo(x, "function")
+
+
+    rw = genRemoveCode(p)
+    w = CodeAnalysis:::mkConstPropWalker(rw, FALSE)
+    f2 = walkCode(fun2, w)        
+    
+}
+
+##
+
+
 if(FALSE) {
 
     f9 = function(n, B = 999) {
@@ -115,18 +210,7 @@ if(FALSE) {
     f2 = walkCode(f9, w)    
 }
 
-
-
-genRewriteVars =
-function(names)    
-{
-    function(x, w, ...) {
-        if(is.name(x) && (v <- as.character(x)) %in% names(names))
-            as.name(names[v])
-        else
-            x
-    }
-}
+##
 
 if(FALSE) {
 
@@ -140,21 +224,22 @@ if(FALSE) {
 }
 
 
+##
 
 if(FALSE) {
-ef = parse("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/constProp.R")
-source("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/propagate.R")
-chVar = function(x, w, map, ...) {
-#    browser()
-    if(is.name(x)) {
-        v = as.character(x)
-        if(v %in% names(map) && !inherits(map[[v]], "Invalid"))
-            return(map[[v]])
+    ef = parse("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/constProp.R")
+    source("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/propagate.R")
+    chVar = function(x, w, map, ...) {
+        #    browser()
+        if(is.name(x)) {
+            v = as.character(x)
+            if(v %in% names(map) && !inherits(map[[v]], "Invalid"))
+                return(map[[v]])
+        }
+        
+        x	   
     }
-	   
-    x	   
-}
 
-w = mkConstPropWalker(chVar, FALSE)
-o = walkCode(ef$f1, w)
+    w = mkConstPropWalker(chVar, FALSE)
+    o = walkCode(ef$f1, w)
 }
