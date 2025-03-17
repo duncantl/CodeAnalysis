@@ -123,4 +123,6 @@ export(toc,dynToc)
 export(usesDots)
 
 export(mkModifyCodeWalker)
+export(genRemoveCode, genAddArgsToCalls, genRewriteVars)
 
+export(extractFunctions)

@@ -26,7 +26,6 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             return(f)
         } else
             x
-        
     }
 
     
@@ -44,18 +43,18 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
         if(isName && as.character(x[[1]]) %in% c(".Internal", ".Primitive")) 
             els = els[-2]
 
-        y = x
         assignmentOps = c("<-", "=", "<<-")
         cur = 1L
         for (i in seq(along.with = els)) {
             el = els[[i]]
+
+            #?? if  is.null(el) next and leave it there.
+            
             if (!missing(el)) {
                 tmp = walkCode(el, w)
-                if(is.null(tmp)) {
-                    message("null value from walkCode()")
-                    browser()
-                }
 
+                # ??? Get rid of this and put the map contruction into the predicate.
+                # It is for constant propagation only.
                 # if this is a simple assignment and we are dealing
                 # with the lhs, don't rewrite()
                 if(i == 2 && isName && as.character(x[[1]]) %in% assignmentOps) {
@@ -67,7 +66,6 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
 
 
                 if(is.null(tmp)) {
-#                    message("null value from rewrite()")
                     x = x[-cur]
                     next
                 }
@@ -78,7 +76,11 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
         }
 
         # Process assignments to update the map of variable values.
-        # Do this at the end after folding constants.
+        # Do this at the end after propogating constants.
+        # We could have the rewwrite function do this. It will be called for every element
+        # if we remove the if(i==2... above for simple assignments. Just let those
+        # go to the rewrite function.
+        # 
         if(mkLiteralMap && isSymbol(x[[1]], c("<-", "=", "<<-"))) { #  && is.call(x[[2]])) {
 
             var = getAssignedVars(x)
@@ -137,108 +139,3 @@ function(names)
 
 
 
-###################
-# Examples/tests for the different generator functions and modifying the code.
-
-
-if(FALSE) {
-    fun = function(x, y, z) {
-        a = 2
-        b = 1+2
-        c = a + b
-        foo(a, b, c)
-
-        # remove the intermediate assignment, but leave for now so still have 2 commands.
-        ans = (x + y)*z
-        ans
-    }
-
-    p = function(x, ...) {
-        isCallTo(x, "foo") || isAssignTo(x, c("a", "c"))
-    }
-
-    rw = genRemoveCode(p)
-    w = CodeAnalysis:::mkConstPropWalker(rw, FALSE)
-    f2 = walkCode(fun, w)    
-}
-
-
-if(FALSE) {
-
-    fun2 = function(x, y, z) {
-        len = sapply(list(x, y, z), length)
-        if(any(len) == 0)
-            stop("zero-length argument")
-        
-        a = function(v) x+v
-        b = function(o) o/z
-
-        while(length(z) > 1){
-            w = a(x) > 10 & b(y) < 100
-            z = z[w]
-            x = x[w]
-            y = y[w]
-        }
-
-        z
-    }
-
-    p = function(x, ...) 
-           isCallTo(x, "function")
-
-
-    rw = genRemoveCode(p)
-    w = CodeAnalysis:::mkConstPropWalker(rw, FALSE)
-    f2 = walkCode(fun2, w)        
-    
-}
-
-##
-
-
-if(FALSE) {
-
-    f9 = function(n, B = 999) {
-        replicate(B, { a = f(rnorm(n)); mean(g(a))})
-    }
-    
-    fv = list(f = c("alpha" = "alpha1", "beta" = "beta1"), g = c("alpha" = "alpha2"))
-    
-    rw = genAddArgsToCalls(fv)
-    w = mkConstPropWalker(rw, FALSE)
-    f2 = walkCode(f9, w)    
-}
-
-##
-
-if(FALSE) {
-
-    f = function(x) {
-        alpha *x + beta
-    }
-
-    rw = genRewriteVars(c(alpha = ".alpha", beta = ".beta"))
-    w = mkConstPropWalker(rw, FALSE)
-    f2 = walkCode(f, w)    
-}
-
-
-##
-
-if(FALSE) {
-    ef = parse("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/constProp.R")
-    source("~/GitWorkingArea/CodeAnalysisWORstatic/explorations/propagate.R")
-    chVar = function(x, w, map, ...) {
-        #    browser()
-        if(is.name(x)) {
-            v = as.character(x)
-            if(v %in% names(map) && !inherits(map[[v]], "Invalid"))
-                return(map[[v]])
-        }
-        
-        x	   
-    }
-
-    w = mkConstPropWalker(chVar, FALSE)
-    o = walkCode(ef$f1, w)
-}
