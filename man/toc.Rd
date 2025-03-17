@@ -12,7 +12,7 @@
   a \code{data.frame} with the names of the functions and the file each is in.
 }
 \usage{
-toc(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE), pattern = "\\\\.[RrsSq]")
+toc(dir = ".", files = getRFiles(dir, pattern = pattern), pattern = "\\\\.[RrsSq]$")    
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
