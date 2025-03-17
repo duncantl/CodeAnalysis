@@ -1,4 +1,4 @@
-mkModifyCodeWalker = mkConstPropWalker =
+mkModifyCodeWalker = 
 function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE, ..., verbose = FALSE)
 {
     Invalid = structure(NA, class = "Invalid")

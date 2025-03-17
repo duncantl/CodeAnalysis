@@ -102,6 +102,8 @@ passGlobals =
     #
 function(fun, gVarsByFun)
 {
+    # if an element of gVarsByFun has no names, use its values also as its names, i.e.,
+    #  abc maps to abc
     gVarsByFun = lapply(gVarsByFun, function(x) { if(length(names(x)) == 0) names(x) = x; x})
     params = unique(unlist(gVarsByFun))
     w = setdiff(params, names(formals(fun)))
@@ -109,7 +111,7 @@ function(fun, gVarsByFun)
         fun = addParams(fun, w, FALSE, FALSE)
     
     rw = genAddArgsToCalls(gVarsByFun)
-    w = mkConstPropWalker(rw, FALSE)
+    w = mkModifyCodeWalker(rw, FALSE)
     walkCode(fun, w)    
 }
 
@@ -135,11 +137,13 @@ function(fun, varNames, addDot = TRUE, addDefault = addDot)
                else
                    varNames
     if(addDot) {
+        # if adding . to the names, then have to update all references
+        # to that.  e.g., changing alpha to .alpha means changing references
+        # in the body from alpha to .alpha
         ofun = fun
-        #XXX fix changeParamName
         fun = changeParamName(fun, varNames, newNames)
-        # as_language(function() ...)  returns a call object for better or worse!
-        # So need to evaluate that and then set the environment
+        # eval and setting environment may no longer be necessary now that we are
+        # modifying the function with mkModifyCodeWalker().
         fun = eval(fun)
         environment(fun) = environment(ofun)
     }
@@ -199,9 +203,8 @@ changeParamName =
     #
 function(fun, origName, newName = names(origName))
 {
-    #XXX see explorations/modifyCode/propagate.R.  The function names will change.
     rw = genRewriteVars(structure(newName, names = origName))
-    w = mkConstPropWalker(rw, FALSE)
+    w = mkModifyCodeWalker(rw, FALSE)
     walkCode(fun, w)    
 }
 
