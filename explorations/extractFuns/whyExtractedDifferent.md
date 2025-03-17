@@ -36,6 +36,56 @@ f = function() {
     + See toolsExtract.R
 
 
+
+
+##
+
+Moved from tools_package.md and written before we solved the issue and 
+noted it above.
+
+The size of the original function
+is not necessarily the same size 
+as the number of terms in the modified function and the sum of the number of terms in the 
+```
+cbind(d$numTerms - d$sizeNestedFunctions, d$afterExtractedNumTerms)
+```
+```
+     [,1] [,2]
+[1,]  200   56
+[2,] 3193 3072
+[3,] 1256 1206
+[4,]  441  376
+[5,] 1757 1702
+[6,]  441  390
+```
+This is in part due to the `var <- function() {...}` being removed and the `var` and `<-` are not
+count. So for every named nested functions (the one we take out), we remove three terms
+and only count
+
+
+cbind(d$numTerms - d$sizeNestedFunctions - 2*d$numFunctions, d$afterExtractedNumTerms)
+
+
+v = "makeJSS"
+library(codetools)
+# The nested functions
+ctr = CodeAnalysis:::mkCounter ()
+invisible(lapply(nfns[[v]], walkCode, ctr))
+
+# the original version
+ctr2 = CodeAnalysis:::mkCounter()
+invisible(walkCode(tfns[[v]], ctr2))
+length(ctr2$.els())
+
+# the reduced/extracted version
+ctr3 = CodeAnalysis:::mkCounter()
+invisible(walkCode(ex[[v]]$newFun, ctr3))
+length(ctr3$.els())
+
+
+
+
+
 getTerms = function(code) { ctr = CodeAnalysis:::mkCounter(); walkCode(code, ctr); ctr$.els()}
 
 getTerms(quote(function() a))
