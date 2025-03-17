@@ -129,4 +129,7 @@ export(extractFunctions)
 
 export(findNamedFunctions)
 
+export(getRFiles)
+export(numTerms, getTerms)
+
 
