@@ -126,3 +126,7 @@ export(mkModifyCodeWalker)
 export(genRemoveCode, genAddArgsToCalls, genRewriteVars)
 
 export(extractFunctions)
+
+export(findNamedFunctions)
+
+
