@@ -1,3 +1,4 @@
+library(CodeAnalysis)
 ns = getNamespace("tools")
 tfns = as.list(ns, all.names = TRUE)
 w = sapply(tfns, is.function)
@@ -17,10 +18,9 @@ d = data.frame(numTerms = sapply(tfns[w2], numTerms),
                sizeNestedFunctions = sapply(nfns[!err], function(x) if(length(x)) sum(sapply(x, numTerms)) else 0L)
                )
 
-tmp = summary(with(subset(d, numFunctions == 0), numTerms - sizeExtractedFunctions))
 tmp = subset(d, numFunctions == 0)
-summary(tmp$sizeNestedFunctions)
-summary(tmp$sizeExtractedFunctions)
+stopifnot(all(tmp$sizeNestedFunctions == 0))
+stopifnot(all(tmp$sizeExtractedFunctions == 0))
 
 
 d2 = subset(d, numExtractedFunctions > 0)
@@ -33,7 +33,7 @@ summary(d2$diff)
 w3 = d2$diff != 0
 table(w3)
 
-d3 = d2[w3]
+d3 = d2[w3, ]
 d3[order(d3$numTerms), ]
 
 # format.codocClasses &  fetchRdDB
@@ -54,5 +54,5 @@ length(ob)
 # Check for multiple nested named functions
 ids = rownames(d2)[w3]
 nn = lapply(ex[ids], function(x) sapply(x$nested, function(x) length(findNamedFunctions(x))))
-sapply(nn, max)
+stopifnot(all(sapply(nn, max) > 0))
 # all have at least one nested name function.
