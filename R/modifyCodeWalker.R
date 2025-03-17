@@ -1,3 +1,5 @@
+
+
 mkModifyCodeWalker = 
 function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE, ..., verbose = FALSE)
 {
@@ -10,20 +12,33 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             message("leaf: ", ty)
             print(x)
         }
-        
-        if(ty %in% c("pairlist", "expression", "list", "language")) {
+        if(ty == "pairlist") {
+            # When processing the pairlist in the next if() in the same way as list/language/expression
+            # the function we created by putting this list as the formals() was corrupted
+            # Error: badly formed function expression
+            # when we printed it. And we couldn't used it.
+            # So we modify the elements of the pairlist directly w/o creating a new pairlist.
+
+            for(i in seq(along = x)) {
+                tmp = walkCode(x[[i]], w)
+                if(!missing(tmp) && !is.null(tmp))
+                    x[[i]] = tmp
+            }
+            
+            return(x)
+            
+        } else if(ty %in% c("expression", "list", "language")) {
             return(lapply(x, walkCode, w))
             # was return(NULL)
         } else if(ty == "closure") {
-            fm = walkCode(formals(x), w) # lapply(formals(x), walkCode, w)
+            fm = walkCode(formals(x), w) 
             b = walkCode(body(x), w)
             # build the new version of the function
-
-            f = function() {}
-            formals(f) = fm
-            body(f) = b
-            environment(f) = environment(x)
-            return(f)
+            fun = function(x) {}            
+            formals(fun) = fm
+            body(fun) = b
+            environment(fun) = environment(x)
+            return(fun)
         } else
             x
     }
@@ -45,12 +60,18 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
 
         assignmentOps = c("<-", "=", "<<-")
         cur = 1L
+
         for (i in seq(along.with = els)) {
             el = els[[i]]
 
             #?? if  is.null(el) next and leave it there.
-            
+
             if (!missing(el)) {
+
+                if(is.null(el)) {
+                    cur = cur + 1L
+                } else {
+                
                 tmp = walkCode(el, w)
 
                 # ??? Get rid of this and put the map contruction into the predicate.
@@ -61,7 +82,7 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
                     if(isComplexAssignTo(x)) {
                         tmp = rewrite(tmp, w, map)
                     }
-                } else
+                } else 
                     tmp = rewrite(tmp, w, map)
 
 
@@ -72,7 +93,9 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
                 
                 x[[cur]] = tmp   # els[[cur]] = tmp
                 cur = cur + 1L
-            }
+                }
+            } else
+                cur = cur + 1L
         }
 
         # Process assignments to update the map of variable values.
