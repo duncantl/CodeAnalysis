@@ -1,7 +1,7 @@
 
 Some people like to write helper functions within the primary function that uses them.  For example,
-the `summarize_CRAN_check_status()` in the tools package defines the summarize_results(),
-`summarize_details()`, `summarize_issues()` and summarize() functions near the beginning of that
+the `summarize_CRAN_check_status()` in the tools package defines the `summarize_results()`,
+`summarize_details()`, `summarize_issues()` and `summarize()` functions near the beginning of that
 function.
 This avoids cluttering the workspace with functions that are only used within function. 
 These functions can also access non-local variables that are in the primary function. This 
@@ -29,34 +29,25 @@ So we want to extract all the function definitions in the body of the primary fu
 specifically those that don't use the <<- operator to modify non-local variables.
 In our example, none of the functions do this, so we want to extract all 36 functions.
 We'll move these functions to a separate file and also remove them from
-FAO56DualCropCalc().
+`FAO56DualCropCalc()`.
 
 To extract these functions, we don't want to run the code in
-FAO56_dualcropcoeff.R as the code to create the data objects takes some time.
+`FAO56_dualcropcoeff.R` as the code to create the data objects takes some time.
 We could manually edit the file and move the function 
-FAO56DualCropCalc to a separate file.
-However, we will find the definition for FAO56DualCropCalc in 
+`FAO56DualCropCalc()` to a separate file.
+However, we will find the definition for `FAO56DualCropCalc()` in 
 FAO56_dualcropcoeff.R and process the code directly.
 To do this, we use 
 ```
-kode = parse("../extractFuns/example/FAO56_dualcropcoeff.R")
-isFunction = function(x) is(x, "<-") && is.call(x[[3]]) && x[[3]][[1]] == "function"
-isFun = sapply(kode, isFunction)
-```
-This finds the one expression in the file that defines a function and assigns it to 
-a variable.
-So we take that expression and evaluate the right-hand side which is the
-function definition:
-```
-f = kode[[which(isFun)]]
-fun = eval(f[[3]])
+fun = getFunctionDefs("../extractFuns/example/FAO56_dualcropcoeff.R")[[1]]
+class(fun)
 ```
 
 We now have the function which contains the calls to define the 36 internal functions.
 We pass this to the extractFunctions() function:
 ```
-library(rstatic)#XXX FIX
-e = CodeAnalysis:::extractFunctions(fun)
+library(CodeAnalysis)
+e = extractFunctions(fun)
 ```
 <!--  Doesn't work with the linear-ir branch of rstatic Jun 7, 2018. -->
 extractFunctions() returns a list with two elements.
