@@ -27,9 +27,6 @@ function(body)
 }
 
 
-
-# rstatic
-if(FALSE)
 extractFunctions =
     #
     #  Perhaps use indexWalkCode()
@@ -40,16 +37,17 @@ extractFunctions =
     #
 function(fun)
 {
-    b = to_ast(body(fun))
-    col = collectRemoveFun(b)
+    nested = findNamedFunctions(fun)
+    fun2 = removeNamedFunctionDefs(fun)
+    list(newFun = fun2, nested = nested)
+}
 
-    # Note we go from last to first so that if we remove an element
-    # this doesn't change the index of the next element.
-    mapply(col, b, rev(seq(along = b$body)))
-
-    funcs = lapply(environment(col)$funcs, as_language)
-    body(fun) = as_language(b)
-    list(fun = fun, externalFunctions = funcs)
+removeNamedFunctionDefs =
+function(fun)    
+{
+    rw = genRemoveCode(isNamedFunctionAssign)
+    w = mkModifyCodeWalker(rw, FALSE)
+    walkCode(fun, w)        
 }
 
 
@@ -62,6 +60,10 @@ function(code)
     findCallsTo(code, "function")
 
 
+isNamedFunctionAssign =
+function(x, ...)
+    isSimpleAssignTo(x) && isCallTo(x[[3]], "function")
+
 findAssignedFunctions = findNamedFunctions =
     # This version finds only function() ...  which are assigned to
     # a simple variable.
@@ -69,7 +71,7 @@ findAssignedFunctions = findNamedFunctions =
 function(fun)
 {
     asg = findAssignsTo(fun)
-    isFun = sapply(asg, function(x) isSimpleAssignTo(x) && isCallTo(x[[3]], "function"))
+    isFun = sapply(asg, isNamedFunctionAssign)
 
     funs = lapply(asg[isFun], function(x) x[[3]])
     names(funs) = sapply(asg[isFun], function(x) as.character(x[[2]]))
