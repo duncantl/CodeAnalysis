@@ -38,7 +38,7 @@ function(self = FALSE, ctr = 0L, skipIfFalse = TRUE)
             lapply(x, walkCode, w)
             return(NULL)
         } else if(ty == "closure") {
-            walkCode(formals(x), w) # lapply(formals(x), walkCode, w)
+            walkCode(formals(x), w)
             walkCode(body(x), w)
             if(!self) return(NULL)
         }
@@ -54,25 +54,35 @@ function(self = FALSE, ctr = 0L, skipIfFalse = TRUE)
                   return(NULL)
         
               if(self) w$leaf(x)
- ##                           if(is(x, "if")) browser()
+
               for (ee in as.list(x))
                   if (!missing(ee))
                       walkCode(ee, w)
     }
+    
     list(handler = function(x, w) NULL ,
          call = call,
          leaf = leaf,
          .result = function() ctr,
-         .els = function()els)
+         .els = function() els
+        )
 }
 
 numTerms =
-function(x, ctr = mkCounter(skipIfFalse = skipIfFalse), skipIfFalse = TRUE)
+function(x, ctr = mkCounter(self = self, skipIfFalse = skipIfFalse), skipIfFalse = TRUE, self = FALSE)
 {
     walkCode(x, ctr)
     ctr$.result()
 }
 
+getTerms =
+    # get the terms the code walker sees.
+function(code)
+{
+    ctr = mkCounter()
+    walkCode(code, ctr)
+    ctr$.els()
+}
 
 
 ###############
