@@ -152,6 +152,51 @@ function(fun, gVarsByFun)
     fun
 }
 
+updateCallsFun =
+    #
+    # returns a function that will update a Call object (in the rstatic
+    # AST node tree) which is a call to one of the functions that requires
+    # global variables to be passed to it.
+    #
+function(gVarsByFun)
+{
+    function(node) {
+
+        if(is(node, "Call") && is(node$fn, "Symbol")&& node$fn$value %in% names(gVarsByFun)) {
+           extra = gVarsByFun[[ node$fn$value ]]
+           #XXX We may want to add .x = x rather than just x by position
+           # but we need to know if the . was prepended to the variable name
+           # or more generally what parameter each global corresponds to
+           id = names(node$args$contents)
+           if(length(id) != length(node$args$contents))
+               id = character(length(node$args$contents))
+           node$args$contents = append(node$args$contents, lapply(extra, Symbol$new))
+           names(node$args$contents) = c(id, paste0(".", extra))
+        }
+    }
+}
+
+
+renameVarFun =
+    #
+    # Returns a function that knows to change a Symbol (in the AST)
+    # to a new name based on the name-value pairs in the parameter map.
+    # Symbol with name values not in the map remain unchanged.
+    #
+function(map)
+{
+    function(node) {
+        if(is(node, "Symbol")) {
+            i = match(node$value, map)
+            if(!is.na(i)) {
+                #node$set_basename(names(map)[i])
+                node$value = names(map)[i]
+            }
+        }
+        node
+    }
+}
+
 
 ################
 # checkLoopDepend.R

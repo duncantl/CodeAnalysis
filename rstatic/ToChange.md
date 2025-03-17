@@ -75,12 +75,12 @@ But could be called by a function that is not itself called or exported.
    + Moved these three to findLiteralValue.
    + These walk back up the AST.  So need to reimplement.
 
-+ collectRemoveFun
-+ removeFromBody
++ [removed] collectRemoveFun
++ [removed] removeFromBody
     + both related to extractFunctions.
 + renameVarFun
     + used in changeParamName
-+ changeParamName
++ [reimplemented] changeParamName
     + used in addParams()
 
 + checkVariableDependency
@@ -90,7 +90,7 @@ But could be called by a function that is not itself called or exported.
 	+ but only called from checkLoopDepend() which is not exported.
 
 
-+ passGlobals <<<<<<<<
++ [test] passGlobals 
    + passGlobals.R
    + rewrites language objects to rename variable
    + used in mkGlobalsLocal()
@@ -144,7 +144,7 @@ So enclosed in `if(FALSE)`
    + checkLoopDepend.R
 + checkLoopDepend
    + checkLoopDepend.R
-+ extractFunctions
++ [test] extractFunctions
 + [test] findFunctions
 + [test] findSuperAssignments
    + converted to use findAssignsTo
