@@ -6,8 +6,8 @@ information.
 Examples of what we want to do are 
 
 + √ change a variable/parameter name and all of its uses.
-+ add an argument to specific calls
-+ remove calls, e.g.,
++ √ add an argument to specific calls
++ √ remove calls, e.g.,
     + nested functions of the form `fn = function()...`
 	+ rewrite `if(TRUE) ... else ...` to remove the `else ...`
     + assignments to unused variables
@@ -22,7 +22,7 @@ These operations will allow us to implement
        to pass these non-local variables.
 
 
-## Extracting Functions
+## Moving Functions out of a Function 
 
 The following is a very simple example, intentionally so.
 
