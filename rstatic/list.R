@@ -1,4 +1,4 @@
-ll = readLines("~/GitWorkingArea/CodeAnalysisWORstatic/ToChange.md")
+ll = readLines("~/GitWorkingArea/CodeAnalysis/rstatic/ToChange.md")
 ll = ll[ll != ""]
 s = split(ll, cumsum(grepl("^#", ll)))
 names(s) = gsub("# ", "", sapply(s, `[`, 1))

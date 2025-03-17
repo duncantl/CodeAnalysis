@@ -18,7 +18,7 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             fm = walkCode(formals(x), w) # lapply(formals(x), walkCode, w)
             b = walkCode(body(x), w)
             # build the new version of the function
-#            browser()
+
             f = function() {}
             formals(f) = fm
             body(f) = b
@@ -36,7 +36,6 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             print(x)
         }
         
-#        browser()
         if(skipIfFalse && skipIfFalse(x, w))
             return(NULL)
 
@@ -82,7 +81,7 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
         # Do this at the end after folding constants.
         if(mkLiteralMap && isSymbol(x[[1]], c("<-", "=", "<<-"))) { #  && is.call(x[[2]])) {
 
-            var = CodeAnalysis:::getAssignedVars(x)
+            var = getAssignedVars(x)
             literal_p = isLiteral(x[[3]])
         # isComplexAssignTo(x)
             if(is.call(x[[2]]) || !literal_p)
@@ -94,7 +93,7 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
         x
     }    
 
-    list(handler = function(x, w) NULL, leaf = leaf, call = call, ans = function() calls )
+    list(handler = function(x, w) NULL, leaf = leaf, call = call) # , ans = function() NULL )
 }
 
 ###################################
