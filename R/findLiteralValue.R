@@ -2,25 +2,6 @@
 # find a Symbol and walk back through the script to see if we have a literal value
 # This is for an rstatic AST object.
 
-# rstatic
-if(FALSE)
-findLiteralValue =
-function(sym)
-{
-        # Assume an argument in an ArgumentList so get to the call.
-   call = sym$parent$parent
-
-   idx = where_is(asToplevelExpr(call))
-   
-   script = asScript(call)
-   before = script$contents[rev(seq_len(idx - 1))]
-   lit = sapply(before, function(x) is(x, "Assignment") && x$write == sym && is(x$read, "Literal"))
-   if(any(lit))
-       as_language(before[[ which(lit)[1] ]]$read)
-   else
-       sym
-}
-
 
 
 countNestedFunctionLevel =

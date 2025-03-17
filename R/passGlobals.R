@@ -113,52 +113,6 @@ function(fun, gVarsByFun)
     walkCode(fun, w)    
 }
 
-# rstatic
-if(FALSE)
-passGlobals =
-    #
-    # Add additional arguments to calls to any of the functions
-    # named in gVarsByFun
-    #
-function(fun, gVarsByFun)    
-{
-    ofun = fun
-    
-    ast = to_ast(fun)
-    replace_nodes(ast, updateCallsFun(gVarsByFun), in_place = TRUE)    
-    #astTraverse(ast, updateCallsFun(gVarsByFun))
-    
-    fun = eval(as_language(ast))
-    environment(fun) = environment(ofun)
-    fun
-}
-
-# rstatic
-if(FALSE)
-updateCallsFun =
-    #
-    # returns a function that will update a Call object (in the rstatic
-    # AST node tree) which is a call to one of the functions that requires
-    # global variables to be passed to it.
-    #
-function(gVarsByFun)
-{
-    function(node) {
-
-        if(is(node, "Call") && is(node$fn, "Symbol")&& node$fn$value %in% names(gVarsByFun)) {
-           extra = gVarsByFun[[ node$fn$value ]]
-           #XXX We may want to add .x = x rather than just x by position
-           # but we need to know if the . was prepended to the variable name
-           # or more generally what parameter each global corresponds to
-           id = names(node$args$contents)
-           if(length(id) != length(node$args$contents))
-               id = character(length(node$args$contents))
-           node$args$contents = append(node$args$contents, lapply(extra, Symbol$new))
-           names(node$args$contents) = c(id, paste0(".", extra))
-        }
-    }
-}
-
 addParams =
     #
     # Given a function which currently references
@@ -252,46 +206,4 @@ function(fun, origName, newName = names(origName))
 }
 
 
-# rstatic
-if(FALSE)
-changeParamName =
-    #
-    # Rewrite the body of a function to change the name of one or more
-    # variables to a new name, e.g.
-    #
-    # f = function(x, b) { x + b + 1}
-    # changeParamName(f, c("x", "b"), c(".x", ".b"))
-    #
-    # Which then becomes
-    # function(x, .b) { x + .b + 1}
-function(fun, origName, newName = names(origName))
-{
-    ast = to_ast(fun)
-    map = structure(origName, names = newName)
-    replace_nodes(ast, renameVarFun(map), in_place = TRUE)
-    # astTraverse(ast, renameVarFun(map))
-   
-    as_language(ast)
-}
 
-# rstatic
-if(FALSE)
-renameVarFun =
-    #
-    # Returns a function that knows to change a Symbol (in the AST)
-    # to a new name based on the name-value pairs in the parameter map.
-    # Symbol with name values not in the map remain unchanged.
-    #
-function(map)
-{
-    function(node) {
-        if(is(node, "Symbol")) {
-            i = match(node$value, map)
-            if(!is.na(i)) {
-                #node$set_basename(names(map)[i])
-                node$value = names(map)[i]
-            }
-        }
-        node
-    }
-}

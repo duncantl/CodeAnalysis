@@ -1,30 +1,4 @@
-# rstatic
-if(FALSE)
-removeFromBody =
-function(b, index)
-{
-  b$body = b$body[- index]
-}
 
-# rstatic
-if(FALSE)
-collectRemoveFun =
-function(body)
-{
-    funcs = list()
-    function(expr, i) {
-
-           #XXX This should check that the body of the function does not call <<-
-        if(is(expr, "Assign") && is(expr$read, "Function") 
-           && is(expr$write, "Symbol")) {
-            # collect this
-            # funcs <<- append(funcs, expr)
-            funcs[[ expr$write$value ]] <<- expr
-            # Remove from the body
-            removeFromBody(body, i)
-        }
-    }
-}
 
 
 extractFunctions =
