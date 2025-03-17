@@ -5,7 +5,7 @@ information.
 
 Examples of what we want to do are 
 
-+ change a variable/parameter name and all of its uses.
++ √ change a variable/parameter name and all of its uses.
 + add an argument to specific calls
 + remove calls, e.g.,
     + nested functions of the form `fn = function()...`
@@ -91,7 +91,7 @@ function(x, lambda = 2)
 
 ### addParams
 
-+ implement the changeParamName
++ [test] implement the changeParamName
    + character vector of c(name = newName,...) and rewrite() like in propagate.R
 
 + passGlobals

@@ -1,15 +1,16 @@
-library(codetools)
-
 mkConstPropWalker =
-function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE, ...)
+function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE, ..., verbose = FALSE)
 {
     Invalid = structure(NA, class = "Invalid")
     map = list()
 
     leaf = function(x, w, ...) {
         ty = typeof(x)
-        message("leaf: ", ty)
-        print(x)
+        if(verbose) {
+            message("leaf: ", ty)
+            print(x)
+        }
+        
         if(ty %in% c("pairlist", "expression", "list", "language")) {
             return(lapply(x, walkCode, w))
             # was return(NULL)
@@ -17,7 +18,7 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             fm = walkCode(formals(x), w) # lapply(formals(x), walkCode, w)
             b = walkCode(body(x), w)
             # build the new version of the function
-            browser()
+#            browser()
             f = function() {}
             formals(f) = fm
             body(f) = b
@@ -30,8 +31,11 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
 
     
     call = function(x, w) {
-        message("call:")
-        print(x)
+        if(verbose) {
+            message("call:")
+            print(x)
+        }
+        
 #        browser()
         if(skipIfFalse && skipIfFalse(x, w))
             return(NULL)
@@ -77,7 +81,6 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             else
                 map[[ as.character(var[[1]] )]] <<- x[[3]]
         }
-
 
         x
     }    
