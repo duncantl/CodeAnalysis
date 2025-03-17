@@ -7,7 +7,8 @@
 
 toc =
     # XXX Consider getting non-function symbols.
-function(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE), pattern = "\\.[RrsSq]")
+    # Use getRFiles()
+function(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE), pattern = "\\.[RrsSq]$")
 {
     byFile = lapply(files, getFunctionDefs)
     data.frame(functions = unlist(lapply(byFile, names)),
@@ -18,7 +19,7 @@ dynToc =
     #
     # This evaluates the code via source().
     #
-function(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE), pattern = "\\.[RrsSq]")    
+function(dir = ".", files = list.files(dir, pattern = pattern, full.names = TRUE), pattern = "\\.[RrsSq]$")    
 {
     e = new.env()
     lapply(files, source, e)
