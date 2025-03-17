@@ -78,7 +78,7 @@ But could be called by a function that is not itself called or exported.
 + [removed] collectRemoveFun
 + [removed] removeFromBody
     + both related to extractFunctions.
-+ renameVarFun
++ [removed] renameVarFun
     + used in changeParamName
 + [reimplemented] changeParamName
     + used in addParams()
@@ -95,8 +95,9 @@ But could be called by a function that is not itself called or exported.
    + rewrites language objects to rename variable
    + used in mkGlobalsLocal()
    
-+ updateCallsFun
++ [removed] updateCallsFun
     + used in passGlobals
+	+ addParams and 
 
 + [test] getUsedOptionName
 + [false positive] findMissingVariables
