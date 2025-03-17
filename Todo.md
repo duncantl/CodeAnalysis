@@ -10,6 +10,12 @@
 
 # To Fix
 
+
++ 2 bugs shown in extractFunctions and related to findNamedFunctions. Doesn't handle
+   + `a <- b <- function()...`
+   + `var = if(...)  function() ... else function( ) ... `
+   + See get_CITATION_entry_fields and check_doi_db in tools package.
+
 + Combine and rationalize mkGlobalsLocal and .addDefault and addDefault.
 
 
