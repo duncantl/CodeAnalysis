@@ -45,7 +45,7 @@ export(getR6ClassInherits)
 #export(checkLoopDepend)
 
 # Adding as Matt and I write the Exploring Code chapter of the case studies book.
-export(isCallTo)
+export(isCallTo, isAssignTo)
 export(getArgFromCall)
 
 export(getIfCond, getIfTrue, getIfFalse)
@@ -121,3 +121,6 @@ export(getCallPaths)
 export(toc,dynToc)
 
 export(usesDots)
+
+export(mkModifyCodeWalker)
+
