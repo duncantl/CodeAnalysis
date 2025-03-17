@@ -15,14 +15,22 @@ This allows a caller to use \code{f(10)} and use the global value of
 or \code{f(10, 4)} to override \code{a}.
 }
 \usage{
-mkGlobalsLocal(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)))
+mkGlobalsLocal(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)),
+                addDot = FALSE, addDefault = FALSE)
 }
 \arguments{
   \item{\dots}{zero or more function objects to be analyzed and modified}
   \item{.funs}{an alternative way to specify the collection of function objects}
-  \item{.addDefaults}{a logical vector/value controlling whether the
+  \item{.addDefaults, addDefault}{a logical vector/value controlling whether the
     default value for the added parameters is the original corresponding
-    global variable}
+    global variable.   \code{addDefault} needs to get sorted out - just added.}
+  \item{addDot}{a logical scalar indicating whether to prepend the new parameter names
+    with \code{.}, e.g, map \code{x} to \code{.x}. This is to allow
+    \code{.globalVarName = globalVarName} rather than \code{globalVarName = globalVarName}
+    which results in an error. So \code{addDot} is meaningful if one wants to refer
+    to a global variable with the same name but have that as the default value for a
+    parameter in the function with a different name.
+  }
 }
 \value{
 A list of updated functions.
