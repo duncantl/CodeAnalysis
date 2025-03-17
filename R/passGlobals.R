@@ -14,6 +14,9 @@
 # @example
 # source("explorations/globalsRewrite/example/simple.R")
 # z = mkGlobalsLocal(f, g, main)
+#
+# lapply(z, \(x) getGlobals(x)$variables)
+#
 
 mkGlobalsLocal =
 function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)), addDot = FALSE, addDefault = FALSE)
@@ -22,8 +25,12 @@ function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)), addDot
         # Fix the names on .funs as they can be supplied in different ways for convenience.
         k = sys.call()
         getNames = function(k) {
+            # if no named argument in the call, match.call won't put the names on.
             k2 = as.list(match.call(mkGlobalsLocal, k)[-1])
-            k2[  !( names(k2) %in%  names(formals(mkGlobalsLocal))) ]      
+            if(length(names(k2) > 0))
+               k2[  !( names(k2) %in%  names(formals(mkGlobalsLocal))) ]
+            else
+               k2
         }
 
         # XXX merge these later.
@@ -39,27 +46,71 @@ function(..., .funs = list(...), .addDefaults = rep(TRUE, length(.funs)), addDot
         names(.funs)[nm] = sapply(syms[nm], as.character)    
     }
     
-  # ¿ Why not getGlobals() ?
-  g = lapply(.funs, codetools::findGlobals, FALSE)
-  gvars = lapply(g, `[[`, "variables")
-  hasNonLocals = sapply(gvars, length) > 0
-  .funs[hasNonLocals] = mapply(addParams, .funs[hasNonLocals], gvars[hasNonLocals], MoreArgs = list(addDot = addDot, addDefault = addDefault))
+    # Why not getGlobals() ?
+    g = lapply(.funs, codetools::findGlobals, FALSE)
+    gvars = lapply(g, `[[`, "variables")
+    hasNonLocals = sapply(gvars, length) > 0
+    .funs[hasNonLocals] = mapply(addParams,
+                                 .funs[hasNonLocals],
+                                 gvars[hasNonLocals],
+                                 MoreArgs = list(addDot = addDot, addDefault = addDefault))
 
-  updatedFuns = .funs[hasNonLocals]
+    updatedFuns = .funs[hasNonLocals]
 
-  # See which functions call any of these updated functions.
-  # We will have to change their calls to these updated functions.
-  calls = sapply(g, function(f) any(unlist(f) %in% names(updatedFuns)))
-  if(any(calls)) {
-      # Add arguments to the calls to these updated functions
-      .funs[calls] = lapply(.funs[calls], passGlobals, gvars[hasNonLocals])
-      tmp = mkGlobalsLocal(.funs = .funs[calls])
-      .funs[names(tmp)] = tmp
+    # See which functions call any of these updated functions.
+    # We will have to change their calls to these updated functions.
+
+    #  should probably be f$functions and we could do that if we use getGlobals as it will find indirect calls.
+    calls = sapply(g, function(f) any(unlist(f) %in% names(updatedFuns)))
+
+    if(any(calls)) {
+        #XXX go through the different cases here.
+        # 1. moved nested functions out and the variables they need are in the host function.
+        # 2. the host function needs the non-local variables also since they are truly global
+        #    variables and not defined in any of the functions.
+        #
+        # Add arguments to the calls to these updated functions
+        .funs[calls] = lapply(.funs[calls], passGlobals, gvars[hasNonLocals])
+        tmp = mkGlobalsLocal(.funs = .funs[calls])
+        .funs[names(tmp)] = tmp
+        
+        updatedFuns = append(updatedFuns, .funs[calls])
+    }
   
-      updatedFuns = append(updatedFuns, .funs[calls])
-  }
-  
-  updatedFuns
+    updatedFuns
+}
+
+
+passGlobals =
+    #
+    # Add additional arguments to calls to any of the functions
+    # named in gVarsByFun
+    #
+    # We should have an optional argument that specifies what variable/call corresponds
+    # to these parameters.
+    # If NA then add them as formals to fun as well.
+    #
+    # XXXX need to either have caller fixup gVarsByFun or do it here.
+    # And if just get naes of additional arguments, need to create
+    # new formals in fun and then map those
+    #
+    # What if, as in our example (simple.R), we have f and g and both take an alpha argument
+    # and main calls f and g.
+    # For now, assume same alpha since it was global.
+    #
+    # return fun
+    #
+function(fun, gVarsByFun)
+{
+    gVarsByFun = lapply(gVarsByFun, function(x) { if(length(names(x)) == 0) names(x) = x; x})
+    params = unique(unlist(gVarsByFun))
+    w = setdiff(params, names(formals(fun)))
+    if(length(w)) 
+        fun = addParams(fun, w, FALSE, FALSE)
+    
+    rw = genAddArgsToCalls(gVarsByFun)
+    w = mkConstPropWalker(rw, FALSE)
+    walkCode(fun, w)    
 }
 
 # rstatic
@@ -139,8 +190,6 @@ function(fun, varNames, addDot = TRUE, addDefault = addDot)
         environment(fun) = environment(ofun)
     }
 
-    templ = formals(function(x) x)$x
-    browser()
     for(i in seq(along = varNames)) 
         fun = addGlobalParam(fun, newNames[i], as.symbol(varNames[i]), noDefault = !addDefault)
 
