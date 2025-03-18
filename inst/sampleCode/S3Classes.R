@@ -53,3 +53,12 @@ function(x)
     class(ans) = c("Extent", sym)
     ans
 }
+
+f6 =
+function(x)
+{
+    sym = "Bob"
+    ans = c(low = min(x), high = max(x))
+    class(ans) = if(length(x)) "Directory" else "File"
+    ans
+}
