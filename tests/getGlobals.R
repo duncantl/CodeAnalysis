@@ -185,14 +185,13 @@ stopifnot(identical(tmp,  "f"))
 
 stopifnot(getGlobals(cf)$functions == "g")
 
-# FIX   XXXXXXXXXX    
-if(FALSE) {    
+
 cf = function(x, f) lapply(x, f, 2)
-cf = function(x, f) { lapply(x, f, 2) }
 tmp = findCallsParam(cf)
 stopifnot(identical(tmp,  "f"))
-}
-    
+
+
+# Left over... not sure to what it refers.
 # Broken now with lazy evaluation of default parameters.
 #[Done] Needs to skip for and {.
 }
