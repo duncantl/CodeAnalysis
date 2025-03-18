@@ -188,6 +188,7 @@ function(x, ...)
 }
 
 setMethod("getFunctionDefs", "{", tmp)
+setOldClass("=")
 setMethod("getFunctionDefs", "=", tmp)
 setMethod("getFunctionDefs", "if", tmp)
 setMethod("getFunctionDefs", "while", tmp)
