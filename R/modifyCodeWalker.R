@@ -28,7 +28,10 @@ function(rewrite = function(x, ...) x, skipIfFalse = TRUE, mkLiteralMap = FALSE,
             return(x)
             
         } else if(ty %in% c("expression", "list", "language")) {
-            return(lapply(x, walkCode, w))
+            ans = lapply(x, walkCode, w)
+            # ¿¿¿ should we also walk the attributes?
+            attributes(ans) = attributes(x)
+            return(ans)
             # was return(NULL)
         } else if(ty == "closure") {
             fm = walkCode(formals(x), w) 
