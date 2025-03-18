@@ -31,10 +31,9 @@ function(node)
 }
 
 
-# Do we need this?
-# Determine if two AST nodes are the same eventhough they have different parents.
-setGeneric("equiv", function(x, y, ...)standardGeneric("equiv"))
-
-#??? Is this in rstatic?
-setMethod("equiv", c("Symbol", "Symbol"), function(x, y, ...) identical(x$value, y$value))
-
+if(FALSE) {
+    # Do we need this?
+    # Determine if two AST nodes are the same eventhough they have different parents.
+    setGeneric("equiv", function(x, y, ...)standardGeneric("equiv"))
+    setMethod("equiv", c("Symbol", "Symbol"), function(x, y, ...) identical(x$value, y$value))
+}
