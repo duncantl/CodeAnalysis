@@ -24,3 +24,6 @@ stopifnot(identical(a, list(c("Extent", NA))))
 
 a = S3Assignments(e$f5)
 stopifnot(identical(a, list(c("Extent", NA))))
+
+a = S3Assignments(e$f6)
+stopifnot(identical(a, list(structure(c("Directory", "File"), class = "Either"))))
