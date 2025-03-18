@@ -1,6 +1,3 @@
-
-
-
 extractFunctions =
     #
     #  Perhaps use indexWalkCode()
@@ -36,14 +33,36 @@ findFunctions =
     #
     # Find the functions defined in the body of the given function
     # or in any code.
+    # Either assigned or anonymous.
     #
 function(code)
     findCallsTo(code, "function")
 
 
 isNamedFunctionAssign =
+    #
+    # Do we grow this (or another function) to find
+    #  a <- b <- function
+    # and
+    #  a = if(...) function() else function()
+    #
 function(x, ...)
-    isSimpleAssignTo(x) && isCallTo(x[[3]], "function")
+{
+    w0 = isSimpleAssignTo(x)
+    if(!w0)
+        return(FALSE)
+    
+    w =  w0 && isCallTo(x[[3]], "function")
+    if(w)  
+        return(TRUE)
+
+    rhs = x[[3]]
+    w = isCallTo(rhs, "if") && all(sapply(rhs[3:4], evalsToFunction))
+    if(w)
+        return(TRUE)
+
+    FALSE
+}
 
 findAssignedFunctions = findNamedFunctions =
     # This version finds only function() ...  which are assigned to

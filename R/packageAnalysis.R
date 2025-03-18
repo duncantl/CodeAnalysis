@@ -39,9 +39,6 @@ xml.inh = xml.inh[sapply(xml.inh, length) > 0]
 }
 
 
-
-
-
 nonLocalAssigns =
     #  nla = nonLocalAssigns(tools:::.check_packages, varName = TRUE)
     # Note how we make this function more flexible by adding ...
