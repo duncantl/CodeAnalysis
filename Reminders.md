@@ -38,10 +38,15 @@ dsort(table(cfuns))
 + Allows caller to specify a function to modify or remove a language element in an AST.
 
 
-## getAllAttributeNames()
+## S3Assignments
+
++ Finds all the S3 class names used/referenced in code.
+
+## getAttributeNames()
 
 + gets the names of all attributes used in `attr()` or `structure()` calls.
 + currently takes a language object, not a file or directory.
+
 
 
 

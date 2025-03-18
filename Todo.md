@@ -29,7 +29,10 @@
 
 + Document getIndirectCallFunList
 
++ [test] fix findCallsParam to handle indirect calls.
+
 + have procIndirectCal... match the parameter names.
+   + See getCalledParam() which is a new function.
    + 
 ```
 source("~/Books/NextLevelComputationalReasoning/ExploreCode/Variety_trial_analysis/code/uc_ipm_funs.R")
