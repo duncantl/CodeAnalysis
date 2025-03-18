@@ -2,5 +2,8 @@
 Topics/*.pdf
 algComplexity.R
 *-mine
-
+LoopAnalysis.xml
+TAGS
+loopIterationDependencies.R
+lintr/
 
