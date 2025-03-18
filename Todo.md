@@ -16,7 +16,8 @@
    + `var = if(...)  function() ... else function( ) ... `
    + See get_CITATION_entry_fields and check_doi_db in tools package.
 
-+ Combine and rationalize mkGlobalsLocal and .addDefault and addDefault.
++ Combine and rationalize mkGlobalsLocal's .addDefault and addDefault parameters.
+   + added the latter very quickly when reimplementing functions w/o rstatic and didn't read the code.
 
 
 + Document getIndirectCallFunList
@@ -122,13 +123,14 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
    + if ( os ) {} else {} 
    + use of .Platform$field
 
-+ Fix mkGlobalsLocal() to optionally not add a default value to a parameter
++ [check. Seems done. ] Fix mkGlobalsLocal() to optionally not add a default value to a parameter
    e.g. not replace Jvar with .Jvar = Jvar
 
 + Have mkGlobalsLocal() return the entire list, not just the ones that were changed.
    Make this an option.
 
 + mkGlobalsLocal() not changing references inside return() clause. See rstatic probably.
+  + example/test?
 
 + for loop concatenation, rewrite the code.
    We need type information about the elements to be able to initialize the answer vector.
@@ -197,8 +199,6 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
      what is available in the imports/search path.
 	  + availableVars
 
-+ equivalent to rstatic::find_nodes
-   + Do we have such a function already?
 
 + If add a parameter to a function, what calls do we need to change.
   + See R/addParam.R  
@@ -206,6 +206,10 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
   + example, isLHS and envir in function isIndirectCall
 
 # Done
+
++ √ [yes] equivalent to rstatic::find_nodes
+   + Do we have such a function already?
+   + mkCallWalkerPred()
 
 + √ Fix mkGlobalsLocal when no named arguments and match.call() doesn't put any names on them.
 
