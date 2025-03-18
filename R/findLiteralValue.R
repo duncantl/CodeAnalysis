@@ -15,6 +15,10 @@ function(code, count = 0)
 }
 
 getNestedFunctions =
+    #
+    # See also getAllFunctionDefs(). That returns the functions
+    # and sets attributes on the result for nestLevel and nestInfo.
+    #
 function(code, depth = 1L)
 {
     # This is finding all the function() calls at all levels,

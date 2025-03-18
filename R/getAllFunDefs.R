@@ -1,5 +1,7 @@
 getAllFunctionDefs =
     #
+    # See also getNestedFunctions for nesting information.
+    #
     # ??? How does this relate/differ from getFunctionDefs() ?
     #  and findFunctionDefs() in findFunctionDefs.R
     #
