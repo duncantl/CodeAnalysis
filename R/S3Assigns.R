@@ -38,10 +38,10 @@ function(recursive = TRUE, skipIfFalse = TRUE)
         if(skipIfFalse && skipIfFalse(x, w))
             return(NULL)
          
-        if(isS3Assign(x))  #  && !is.na((val <- extractS3Class2(x[[3]]))))
-            defs[[ length(defs) + 1L ]] <<- extractS3Class(if(length(x) >= 3) x[[3]] else x[[2]])
-                                                # structure(class = "aat_splithalf") only has 2 elements.  In AATools
-        
+        if(isS3Assign(x)) { 
+            defs[[ length(defs) + 1L ]] <<- extractS3Class(x) 
+                          # structure(class = "aat_splithalf") only has 2 elements.  In AATools
+        }
         for (ee in as.list(x))
             if (!missing(ee))
                 walkCode(ee, w)
@@ -69,8 +69,11 @@ function(x)
 extractS3Class =
 function(x)
 {
+    val = x 
 
-    val = x # x[[3]]
+    if(isAssignTo(val))
+        val = val[[3]]
+    
     
     if(is.call(val) && as.character(val[[1]]) == "structure")
        val = val$class
@@ -80,6 +83,12 @@ function(x)
 
     if(is.character(val))
         return(val)
+
+    if(isCallTo(val, "if")) {
+        tmp = as.list(val[-c(1,2)] )
+        if(all(sapply(tmp, isLiteral)))
+            return( structure(unlist(tmp), class = "Either"))
+    }
     
     NA
 }
