@@ -46,6 +46,10 @@ isNamedFunctionAssign =
     # and
     #  a = if(...) function() else function()
     #
+    #
+    # CodeAnalysis:::isNamedFunctionAssign(quote( x <- function(x) x+1))
+    # CodeAnalysis:::isNamedFunctionAssign(quote( x <- if(a) function(x) x+1 else function(y) y/2))    
+    #
 function(x, ...)
 {
     w0 = isSimpleAssignTo(x)
@@ -57,7 +61,7 @@ function(x, ...)
         return(TRUE)
 
     rhs = x[[3]]
-    w = isCallTo(rhs, "if") && all(sapply(rhs[3:4], evalsToFunction))
+    w = isCallTo(rhs, "if") && evalsToFunction(rhs) 
     if(w)
         return(TRUE)
 
@@ -65,9 +69,8 @@ function(x, ...)
 }
 
 findAssignedFunctions = findNamedFunctions =
-    # This version finds only function() ...  which are assigned to
-    # a simple variable.
-    # So ignore, e.g., fns$x = function()...
+    # This version finds only function() ...  which are assigned to a simple variable.
+    # So it ignores, e.g., fns$x = function()...aa
 function(fun)
 {
     asg = findAssignsTo(fun)
@@ -75,6 +78,13 @@ function(fun)
         return(list())
     
     isFun = sapply(asg, isNamedFunctionAssign)
+
+    #XXX
+    # Deal with chained assignments a <- b <- function()...
+    # check if RHS is also a simple assign of a function
+    # and the hopefully it is the next one in the list.  Not definitively a match
+    # as could  have a <- b <- function () .... and then another b <- function() ...
+    # But really!  Check same function
 
     funs = lapply(asg[isFun], function(x) x[[3]])
     names(funs) = sapply(asg[isFun], function(x) as.character(x[[2]]))
@@ -90,6 +100,6 @@ findSuperAssignments =
     #
 function(fun, ...)
 {
-    # could also be findCallsTo(, "<<-")
+    # could also be findCallsTo(, "<<-") since complex = TRUE
     findAssignsTo(fun, assignmentOps = "<<-", ...)
 }
