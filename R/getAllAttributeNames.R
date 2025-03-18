@@ -8,17 +8,22 @@ if(FALSE) {
     head(dsort(table(unlist(ats))), 20)
 }
 
-getAllAttributeNames =
+# The order is not guaranteed as we get the attributes in structure() calls first
+# and then attr() calls.
+# We could arrange this with findCallsTo(x, c("attr", "structure"))
+# and then process the calls differently.
+
+getAttributeNames =
 function(x)    
 {
     a = findCallsTo(x, "attr")
     ats = sapply(a, function(x) if(is.character(x[[3]])) as.character(x[[3]]) else NA)
-    c(getAllAttributeNames.structure(x),
+    c(getAttributeNames.structure(x),
       unname(ats[!is.na(ats)])
      )
 }
 
-getAllAttributeNames.structure =
+getAttributeNames.structure =
 function(x)
 {
     st = findCallsTo(x, "structure")

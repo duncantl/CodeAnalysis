@@ -134,5 +134,5 @@ export(numTerms, getTerms)
 
 
 
-export(getAllAttributeNames)
+export(getAttributeNames)
 
