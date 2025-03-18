@@ -14,7 +14,7 @@ function(x, ...)
 setMethod("getFunctionDefs", "character",
     #
     #XXX vectorize in x.  See/use generalCharacterMethod ?
-function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
+function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, warn = TRUE, ...)
 {
     if(!parse)
         return(NULL)
@@ -26,7 +26,9 @@ function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, ...)
 
             if(!recursive) { # !("recursive" %in% names(list(...))) && list(...)$recursive) {
                 tt = table(unlist(lapply(tmp, names)))
-                if(any(tt > 1))
+
+                # Could allow warn to be either TRUE/FALSE or a character vector and then only warn if the duplicate names are in this vector.
+                if(warn && any(tt > 1))
                     warning("multiple definitions for functions ", paste(names(tt)[tt > 1], collapse = ", "))
             }
 
