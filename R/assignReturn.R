@@ -60,10 +60,3 @@ function(e)
 }
 
 
-# See packageAnalysis.R
-if(FALSE) 
-isLiteral =
-function(x, scalar = FALSE)
-{
-   is.numeric(x) || is.integer(x) || is.logical(x) || is.character(x)
-}
