@@ -16,75 +16,6 @@ function(f)
 
 
 
-
-# walkCode.  No documentation for the model
-#  if language object -
-#     if first element symbol or character
-#        call handler
-#        get result
-#        if not NULL call the result as a function
-#          otherwise call  call() element
-#     otherwise call call()
-#  otherwise call leaf()
-
-
-mkCounter =
-function(self = FALSE, ctr = 0L, skipIfFalse = TRUE)
-{
-    els = list()
-    leaf = function(x, w, ...) { #print((x));
-        ty = typeof(x)
-        if(ty %in% c("pairlist", "expression", "list", "language")) {
-            lapply(x, walkCode, w)
-            return(NULL)
-        } else if(ty == "closure") {
-            walkCode(formals(x), w)
-            walkCode(body(x), w)
-            if(!self) return(NULL)
-        }
-
-         ctr <<- ctr + 1L
-         els[[ctr]] <<- x
-
-        NULL
-    }
-    call = function(x, w) {
-
-              if(skipIfFalse && skipIfFalse(x, w))
-                  return(NULL)
-        
-              if(self) w$leaf(x)
-
-              for (ee in as.list(x))
-                  if (!missing(ee))
-                      walkCode(ee, w)
-    }
-    
-    list(handler = function(x, w) NULL ,
-         call = call,
-         leaf = leaf,
-         .result = function() ctr,
-         .els = function() els
-        )
-}
-
-numTerms =
-function(x, ctr = mkCounter(self = self, skipIfFalse = skipIfFalse), skipIfFalse = TRUE, self = FALSE)
-{
-    walkCode(x, ctr)
-    ctr$.result()
-}
-
-getTerms =
-    # get the terms the code walker sees.
-function(code)
-{
-    ctr = mkCounter()
-    walkCode(code, ctr)
-    ctr$.els()
-}
-
-
 ###############
 
 
@@ -195,94 +126,22 @@ function(x, deparse = FALSE, varName = FALSE)
 }
 
 if(FALSE)  {
-findOS =
-function(code, w = mkOSWalker(), ...)
-{
-    walkCode(code, w)
-    w$.results(...)
-}
-
-mkOSWalker =
-function()
-{
-    list(leaf,
-         call,
-         handler = function(x, e) NULL)
-}
-}
-
-
-
-
-
-
-################################################
-
-mkLiteralCollector =
-    #
-    # XXX
-    # This doesn't collect names such as the "abc/def"
-    #  c("abc/def" = "xyz")
-    #
-function(ignoreParams = TRUE, skipIfFalse = TRUE, predicateFun = isLiteral)
-{
-    values = list()
-    leaf = function(x, w, ...) {
-        if(inherits(x, "srcref"))
-            return(NULL)
-        
-        ty = typeof(x)
-        if( (ty == "pairlist" && !ignoreParams) || ty %in% c("list", "language", "expression")) { #XXX add expression, list, language ?
-            lapply(x, walkCode, w)
-            return(NULL)
-        } else if(ty == "closure") {
-            # ignore default values as literals here are okay.
-            if(!ignoreParams)
-                walkCode(formals(x), w) 
-            walkCode(body(x), w)
-        }
-
-        if(predicateFun(x, ty)) 
-            values[[ length(values) + 1L]] <<- x
-
-        NULL
+    findOS =
+        function(code, w = mkOSWalker(), ...)
+    {
+        walkCode(code, w)
+        w$.results(...)
     }
-    call = function(x, w) {
-             if(skipIfFalse && skipIfFalse(x, w))
-                 return(NULL)
-        
-             for (ee in as.list(x))
-               if (!missing(ee))
-                  walkCode(ee, w)
-                        }
-    list(handler = function(x, w) NULL ,
-         call = call,
-         leaf = leaf,
-         .values = function() values)
 
-}
-
-isLiteral2 =
-    # Old version. I suggest not using this but isLiteral below instead.
-    # So have changed the name of this and added the one below.
-function(x, type = typeof(x))
-{
-    # "logical", 
-   type %in% c("integer", "numeric", "character", "complex", "double")
-}
-
-isLiteral =
-function(x, type = typeof(x))
-{
-    type %in% c("logical", "integer", "numeric", "character", "complex", "double", "NULL")  ||
-       ( isCallTo(x, "c") && all(sapply(x[-1], isLiteral)) )
+    mkOSWalker =
+        function()
+    {
+        list(leaf,
+             call,
+             handler = function(x, e) NULL)
+    }
 }
 
 
-findLiterals =
-function(code, walker = mkLiteralCollector(ignoreParams, skipIfFalse = skipIfFalse, ...),
-         ignoreParams = TRUE, skipIfFalse = TRUE, ...)
-{
-    walkCode(code, walker)
-    walker$.values()
-}
+
+
