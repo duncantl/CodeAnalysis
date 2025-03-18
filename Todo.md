@@ -11,14 +11,21 @@
 # To Fix
 
 
++ [low priority] getFunctionDefs(, recursive = TRUE) doesn't handle chained
+  assignment \code{a <- b <- function(...) ...}. See R/varsInLoop.R.
+    + The recursive = FALSE version does get two functions.
+
++ add recursive parameter to extractFunctions to control nested functions, e.g.,
+   top-level function that contains fun1 which itself contains fun2
+
 + 2 bugs shown in extractFunctions and related to findNamedFunctions. Doesn't handle
    + `a <- b <- function()...`
    + `var = if(...)  function() ... else function( ) ... `
    + See get_CITATION_entry_fields and check_doi_db in tools package.
 
+
 + Combine and rationalize mkGlobalsLocal's .addDefault and addDefault parameters.
    + added the latter very quickly when reimplementing functions w/o rstatic and didn't read the code.
-
 
 + Document getIndirectCallFunList
 
