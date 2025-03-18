@@ -92,7 +92,6 @@ function(ns, classNames = character())
 #setOldClass(c("ClassHierarchy", "data.frame"))
 setOldClass(c("CoerceRelationships", "ClassHierarchy", "data.frame"))
 
-setOldClass("igraph")
 setAs("ClassHierarchy", "igraph",
       function(from) {
           # drop the rows with NAs in either column, but use all of the

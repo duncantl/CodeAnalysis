@@ -100,6 +100,7 @@ setMethod("callGraph", "list",
           })
 
 setOldClass(c("CallGraphEdges", "data.frame"))
+setOldClass("igraph")
 setAs("CallGraphEdges", "igraph", function(from)  igraph::graph_from_edgelist(as.matrix(from)))
 
 plot.CallGraphEdges =
