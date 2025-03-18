@@ -2,11 +2,13 @@
 \alias{loadCode}
 \title{Load R code from a directory}
 \description{
-  source() code from a directory. This actually evaluates the code.
+  \code{source()} code from a directory. This actually evaluates the code.
   Often we want to analyze it statically, i.e., without running the
   code.
-  This function is useful if the code is mostly function definitions.
-  But for that, we can now use \code{getFunctionDefs} in \code{CodeDepends}.
+  This function is useful if the code is essentially function definitions
+  and literal values.
+  To get the functions via static analysis, use
+  \code{\link{getFunctionDefs}}.
 }
 \usage{
 loadCode(dir, env = new.env(), files = list.files(dir, pattern = "\\\\.[RrsSqQ]$", full.names = TRUE))
@@ -30,7 +32,7 @@ This sources the code into the given environment.
 Duncan Temple Lang
 }
 \seealso{
-\code{\link[CodeDepends]{getFunctionDefs}}
+ \code{\link{getFunctionDefs}}
 }
 %\examples{}
 \keyword{programming}
