@@ -16,6 +16,10 @@ setMethod("getFunctionDefs", "character",
     #XXX vectorize in x.  See/use generalCharacterMethod ?
 function(x, unlist = TRUE, recursive = FALSE, parse = TRUE, warn = TRUE, ...)
 {
+    if(length(x) > 1)
+        return(structure(lapply(x, getFunctionDefs, unlist, recursive, parse, warn, ...),
+                         names = x))
+    
     if(!parse)
         return(NULL)
     
