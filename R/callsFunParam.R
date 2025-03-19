@@ -32,11 +32,18 @@ function(fun, asCalls = FALSE, indirect = getIndirectCallFunList())
 {
     params = names(formals(fun))
 
+    if(length(params) == 0)
+        return(if(asCalls) list() else character())
+
     v = findCallsTo(fun, params)
+
+    v = v[ sapply(v, function(x) is.null(attr(x, "isLHS"))) ]
 
     if(asCalls)
         v
     else {
+        if(length(v) == 0)
+            return(character())
         ans = sapply(v, getCalledParam, params, indirect)
         unique(ans)
     }
