@@ -270,11 +270,23 @@ IndirectCallFunList = c(do.call = "what",
                         match.fun = "FUN",
                         match.call = "def")
 
-IndirectCallFunList[c("apply", "lapply", "sapply", "mapply", "vapply", "tapply", "by", "aggregate", "outer", "sweep", "kronecker", "eapply")] = "FUN"
+IndirectCallFunList[c("apply", "lapply", "sapply", "mapply", "vapply", "tapply", "by", "aggregate", "outer", "sweep", "kronecker", ".kronecker", "eapply", "Vectorize")] = "FUN"
 IndirectCallFunList[c("Map", "Reduce", "Filter", "Negate", "Find", "Position", "rapply")] = "f"
 # Should we include formals, body, body<- ? Yes.
 #  Could make it optional in getIndirectCallFunList?
-IndirectCallFunList[c("formals", "body", "body<-")] = "fun"
+IndirectCallFunList[c("formals", "formals<-", "body", "body<-", "callCC")] = "fun"
+
+IndirectCallFunList[".kappa_tri"] = "norm"
+IndirectCallFunList[".handleSimpleError"] = "h"
+IndirectCallFunList[".rangeNum"] = "isNumeric"
+IndirectCallFunList["zapsmall"] = "mFUN"
+IndirectCallFunList["file.show"] = "pager"
+IndirectCallFunList["all.equal.numeric"] = "formatFUN"
+
+# first case where 2 arguments are functions. Should have made this a list. See what would break <<<<<<<<<<<<<<<<<<<
+IndirectCallFunList["lazyLoadDBexec"] = "filter"
+IndirectCallFunList["lazyLoadDBexec2"] = "fun"  # set name to lazyLoadDBexec for this
+names(IndirectCallFunList)[length(IndirectCallFunList)] = "lazyLoadDBexec"
 
 
 getIndirectCallFunList =
