@@ -36,3 +36,18 @@ mapply(function(fun, ans)
            identical(findCallsParam(fun), ans),
        funs, exp)
          
+
+
+
+# Check for calls to param<- which means it is not a call to param itself except in the very unusual
+# case where the parameter is named  `x<-`.  That is legitimate.
+
+f = 
+function(x, names)
+{
+    names(x) = names
+    x
+}
+
+stopifnot(length(findCallsParam(f)) == 0)
+
