@@ -1,0 +1,57 @@
+
+# Real
+
+All now added to IndirectCallFunList
+
+.kappa_tri - norm  - can be a function or null or a string number.
+.handleSimpleError - h
+.kronecker - FUN  - pases FUN to outer()
+.rangeNum - isNumeric
+
+all.equal.numeric - formatFUN
+callCC - fun
+lazyLoadDBexec - filter, fun
+file.show - pager   - one  path through the code is if(is.function(pager)) ..
+Vectorize - FUN
+zapsmall - mFUN
+
+# Calls function with same name as parameter
+
+Need to verify.(√)
+
+√ .rowNamesDF<- - make.names
+√ array - dim, dimnames    - calls to dim<- and dimnames<-
+√ cat - file   - file <- file(file, )
+√ diag - names
+√ data.frame - row.names   - is a call to row.names<-
+√ dput - file     - file <- file(file, )
+√ dump - file     - file <- file(file, )
+√ ISOdatetime - min
+√ factor - levels   - actually calls levels<-            <<<<<<<<<<<
+√ file.access - names   - calls names(res) <- names  so calling names<-
+√ format.Date - format     calls format() and passes the argument format as format = format in that call.
+√ kappa.default - norm    - from help says it is a string. But there are calls to norm(). Ambiguous case.
+√ parse - file   -                 file <- file(filename, "r")
+√ print.data.frame - row.names   - but a little trickier to "prove" as have call      n <- length(row.names(x)) at the top of the body.
+√ save - list, file   - have file(file, ...) so clearly not the same.
+√ saveRDS - file   - file(file)
+√ scan - file     - file(file)
+√ sink - file  - file(file)
+√ source - file    -                 file <- file(filename, "r", encoding = encoding)
+√ strftime - format  - sames format.Date. has call format(, format = format)
+√ Sys.which - names
+√ read.dcf - all
+√ as.double.difftime - units    - calls units(x) = units.  Nice example.
+√ write.dcf - file    - calls file <- file(file,...)
+
+# S3 Methods
+by.data.frame - FUN
+by.default - FUN
+
+
+
+# Structural
+
+.S3method - method   - believe this is in the NAMESPACE so uses a name, not a function object.
+as.list.function - x - calls body() and formals()
+formals<- - fun
