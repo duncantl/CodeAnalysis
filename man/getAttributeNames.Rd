@@ -5,14 +5,16 @@ Find Names of Attributes Queried and Set in R Code
 }
 \description{
 
-  Currently this only finds names that are literal strings
+  This  finds names that are literal strings
   in the calls to \code{\link[base]{attr}}, \code{\link[base]{attributes}}
   (and their assignment equivalents) and \code{\link[base]{structure}}.
+
+  It currently doesn't do constant propagation, look backs or inference to
+  handle indirect references to attributes, i.e., via a variable containing the attribute name.
 }
 \usage{
 getAttributeNames(x)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{the R code object to analyze}
 }
@@ -31,6 +33,8 @@ Duncan Temple Lang
 
 \examples{
   getAttributeNames(tools:::.install_packages)
+
+  getAttributeNames(tools::prepare_Rd)
 }
 \keyword{programming}
 \concept{meta-programming}
