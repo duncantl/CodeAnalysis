@@ -7,7 +7,7 @@
   and, if so, which ones.
 }
 \usage{
-findCallsParam(fun, asCalls = FALSE)
+findCallsParam(fun, asCalls = FALSE, indirect = getIndirectCallFunList())
 }
 \arguments{
   \item{fun}{the R function}
@@ -15,6 +15,8 @@ findCallsParam(fun, asCalls = FALSE)
     all of the \code{rstatic} \code{Call} nodes to these parameters.
     Otherwise, it returns the names of the parameters that may be invoked.
   }
+  \item{indirect}{a named character vector with the names identifying
+    functions that call one or more of their arguments.}
 }
 \value{
  If \code{asCalls} is \code{FALSE}, a character vector identifying the names of all instances of calls to
