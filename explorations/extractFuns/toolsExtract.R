@@ -3,19 +3,20 @@ ns = getNamespace("tools")
 tfns = as.list(ns, all.names = TRUE)
 w = sapply(tfns, is.function)
 nfns = lapply(tfns[w], getFunctionDefs)
-ex = lapply(tfns[w], \(x) try(extractFunctions(x)))
+ex = lapply(tfns[w], extractFunctions)
 
-# Expect 1 error currently  FOO1 <- FOO2 <- function()...
-err = sapply(ex, inherits, 'try-error')
-w2 = which(w)[!err]
+# Fixed now.
+# # Expect 1 error currently  FOO1 <- FOO2 <- function()...
+# err = sapply(ex, inherits, 'try-error')
+# w2 = which(w)[!err]
 
-d = data.frame(numTerms = sapply(tfns[w2], numTerms),
-               sizeReducedFunction = sapply(ex[!err], function(x) numTerms(x$new)),
-               numExtractedFunctions = sapply(ex[!err], function(x) length(x$nested)),
-               sizeExtractedFunctions = sapply(ex[!err], function(x) if(length(x$nested)) sum(sapply(x$nested, numTerms)) else 0L),
+d = data.frame(numTerms = sapply(tfns, numTerms),
+               sizeReducedFunction = sapply(ex, function(x) numTerms(x$new)),
+               numExtractedFunctions = sapply(ex, function(x) length(x$nested)),
+               sizeExtractedFunctions = sapply(ex, function(x) if(length(x$nested)) sum(sapply(x$nested, numTerms)) else 0L),
                # working with nfns is not really relevant as this includes anonymous functions.
-               numFunctions = sapply(nfns[!err], length),               
-               sizeNestedFunctions = sapply(nfns[!err], function(x) if(length(x)) sum(sapply(x, numTerms)) else 0L)
+               numFunctions = sapply(nfns, length),               
+               sizeNestedFunctions = sapply(nfns, function(x) if(length(x)) sum(sapply(x, numTerms)) else 0L)
                )
 
 tmp = subset(d, numFunctions == 0)
