@@ -48,6 +48,8 @@ function(pred, ..., skipIfFalse = TRUE, maxFunDepth = Inf)
     }
 
     funLevel = 0L
+
+    assignmentOps = AssignmentOps
     
     call = function(x, w) {
 
@@ -55,7 +57,18 @@ function(pred, ..., skipIfFalse = TRUE, maxFunDepth = Inf)
             return(NULL)
         
         isName = is.name(x[[1]])
-        if(isSymbol(x[[1]], c("<-", "=")) && is.call(x[[2]]))
+
+
+        if(isCallTo(x, assignmentOps) && isCallTo(x[[3]], assignmentOps)) {
+            # Should we put this on the = call of the RHS or on the RHS of the RHS.
+            
+            attr(x[[3]], "chainedAssignmentTo") = deparse(x[[2]])
+            # This could be a simple symbol and so not allowed to set an attribute on it since it is a singleton.
+#            attr(x[[2]], "chainedAssignment") = TRUE            
+        }
+        
+        
+        if(isSymbol(x[[1]], assignmentOps) && is.call(x[[2]])) 
             attr(x[[2]], "isLHS") = TRUE
 
 
@@ -68,9 +81,7 @@ function(pred, ..., skipIfFalse = TRUE, maxFunDepth = Inf)
             if(funLevel > maxFunDepth)
                 return(NULL)
         }
-        
-        
-           
+
         if(pred(x, isName, ...))  # XXXX This is very interesting as to where the ... comes from
             # the mkCallWalkerPred() or the call function.
             # It has to be the former as call() doesn't have ...
