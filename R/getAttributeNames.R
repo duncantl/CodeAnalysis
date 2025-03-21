@@ -16,7 +16,7 @@ if(FALSE) {
 getAttributeNames =
 function(x)    
 {
-    a = findCallsTo(x, c("attr", "structure"))
+    a = findCallsTo(x, c("attr", "structure", "attributes"))
     ats = lapply(a, function(x) {
                            switch(as.character(x[[1]]),
                                   attr = if(is.character(x[[3]])) as.character(x[[3]]) else NA,

@@ -8,7 +8,6 @@
 \usage{
 findUsedOptions(code, asNodes = FALSE)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{code}{the R code}
   \item{asNodes}{a logical value which if \code{TRUE} returns the
