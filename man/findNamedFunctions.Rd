@@ -5,10 +5,14 @@
 Given a function, find the named-function definitions.
 }
 \usage{
-findNamedFunctions(fun)
+findNamedFunctions(fun, skipChained = FALSE)
 }
 \arguments{
   \item{fun}{a function}
+  \item{skipChained}{a scalar logical controlling whether
+    chained assignments of the form \code{a = b = function() ...}
+    are considered a match (\code{TRUE}) or not.
+    }
 }
 \value{
   A list of assignment calls in which the
