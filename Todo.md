@@ -10,6 +10,7 @@
 
 # To Fix
 
++ Explore making IndirectCallFunList a list so can have more than one function parameter.
 
 + [low priority] getFunctionDefs(, recursive = TRUE) doesn't handle chained
   assignment \code{a <- b <- function(...) ...}. See R/varsInLoop.R.
@@ -20,8 +21,13 @@
 
 + 2 bugs shown in extractFunctions and related to findNamedFunctions. Doesn't handle
    + `a <- b <- function()...`
-   + `var = if(...)  function() ... else function( ) ... `
+      + See mkCallWalkerPred and adding chainedAssignmentTo attribute.
+	  + But findNamedFunctions() currently removes/ignores this by getting the name and value
+        separately and not the attribute on the x = function.. call.  Can be easily fixed; just need
+        to coordinate.
+   + [check if fixed] `var = if(...)  function() ... else function( ) ... `
    + See get_CITATION_entry_fields and check_doi_db in tools package.
+     + And tests/extractFunctions3.R.
 
 
 + Combine and rationalize mkGlobalsLocal's .addDefault and addDefault parameters.
@@ -29,7 +35,6 @@
 
 + Document getIndirectCallFunList
 
-+ [test] fix findCallsParam to handle indirect calls.
 
 + have procIndirectCal... match the parameter names.
    + See getCalledParam() which is a new function.
@@ -211,11 +216,13 @@ getGlobals(get_stn_info, indirectCallFunctions = names(CodeAnalysis:::getIndirec
 
 
 + If add a parameter to a function, what calls do we need to change.
-  + See R/addParam.R  
+  + See experiments/addParam.R  
   + did this recently, so finalize and make easy to use.
   + example, isLHS and envir in function isIndirectCall
 
 # Done
+
++ √ [test] fix findCallsParam to handle indirect calls.
 
 + √ [yes] equivalent to rstatic::find_nodes
    + Do we have such a function already?

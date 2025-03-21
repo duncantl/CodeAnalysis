@@ -50,3 +50,12 @@ dsort(table(cfuns))
 
 
 
+
+
+
+###
+
++ findAssignsTo is a call to findCallsTo with a specific predicate function passed to mkCallWalkerPred().
++ findCallsTo just arranges to get the code to walk and calls walkCode() with the walker it is
+  given.
+    + if not given an explicit walker, it creates one with mkCallWalkerPred() or mkCallWalker()
