@@ -259,6 +259,10 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               # since may not be evaluated within this function frame/environment.
               return()
           } else if(funName == "bquote") {
+              # empty call to bquote()
+              if(length(e) == 1)
+                  return()
+              
               k = match.call(bquote, e)
 
               # if the where and/or splice arguments are provided, process them.
@@ -269,6 +273,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               # what variables are available within the where. So don't process the first argument.              
               if("where" %in% names(k))
                   return()
+
 
                # Otherwise, find the .() and ..() in the first argument and process those
               dot = findCallsTo(k[[2]], c(".", ".."))
