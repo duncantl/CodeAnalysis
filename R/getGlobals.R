@@ -132,6 +132,12 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                  formals = 2L,
                  grep("fun$", names(e2), ignore.case = TRUE)) # match(c("fun", "FUN"), names(e2)))
 
+      if(length(i) > 1) {
+          warning("matched multiple arguments - using first match")
+          i = i[1]
+      }
+      
+          
 
       if(length(i) == 0) { # grep("fun$") not matching so FUN not in call but probably in fn defn with a default parameter
           i = grep("fun$", names(formals(def)), ignore.case = TRUE)
