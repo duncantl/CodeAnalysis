@@ -230,7 +230,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                   # Put the <- in the name of the function being called.
                   # !! Need to handle pkg::fun and pkg:::fun.
                   # browser()
-                  funName = paste0(as.character(e[[2]][[1]]), "<-")
+                  #   was as.character(e[[2]][[1]])
+                  funName = paste0(deparse(e[[2]][[1]]), "<-")
                   e[[2]][[1]] = as.name(funName)
               }
               
