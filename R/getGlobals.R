@@ -175,6 +175,21 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       popFuns = FALSE
       if(is.name(e) && as.character(e) == "")  # typically a formal argument that has no default value.
           return(FALSE)
+
+      if(isCallTo(e, "%>%")) {
+          # rewrite the pipe call from lhs %>% rhs(x, y) to rhs(lhs, x, y)
+          # if it is data %>% funName, then have to change that to funName(data)
+          e0 = e
+          e = e[[3]]
+          if(is.symbol(e)) {
+              e = substitute(foo(), list(foo = e))
+          }
+          
+          e[[2]] = e0[[2]]
+          tmp = as.list(e0[[3]])[-1]
+          if(length(tmp) > 0)
+              e[ seq(along.with = tmp) + 2L ] = tmp
+       }
       
       if(is(e, "if")) {
           if(e[[2]] == FALSE) {
