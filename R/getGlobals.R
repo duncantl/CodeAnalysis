@@ -137,6 +137,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                  sapply =,                 
                  rapply =,
                  body = 2L,
+                 apply = 3L,
                  by = 3L,
                  tapply = 3L,
                  match.call = 2L,
@@ -152,9 +153,11 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
       if(length(i) == 0) { # grep("fun$") not matching so FUN not in call but probably in fn defn with a default parameter
           i = grep("fun$", names(formals(def)), ignore.case = TRUE)
-          if(length(i))
-              formals(def)[[i]]
-          else {
+          if(length(i)) {
+              if(is.name(formals(def)[[i]]) &&  as.character(formals(def)[[i]]) == "")
+                  return(list())
+              return(ans)
+          } else {
               warning("couldn't identify function in ", deparse(e2))
               NA
           }
