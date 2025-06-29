@@ -156,7 +156,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           if(length(i)) {
               if(is.name(formals(def)[[i]]) &&  as.character(formals(def)[[i]]) == "")
                   return(list())
-              return(ans)
+              return(formals(def)[[i]])
           } else {
               warning("couldn't identify function in ", deparse(e2))
               NA
@@ -179,20 +179,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       if(is.name(e) && as.character(e) == "")  # typically a formal argument that has no default value.
           return(FALSE)
 
-      if(isCallTo(e, "%>%")) {
-          # rewrite the pipe call from lhs %>% rhs(x, y) to rhs(lhs, x, y)
-          # if it is data %>% funName, then have to change that to funName(data)
-          e0 = e
-          e = e[[3]]
-          if(is.symbol(e)) {
-              e = substitute(foo(), list(foo = e))
-          }
-          
-          e[[2]] = e0[[2]]
-          tmp = as.list(e0[[3]])[-1]
-          if(length(tmp) > 0)
-              e[ seq(along.with = tmp) + 2L ] = tmp
-       }
+      if(isCallTo(e, "%>%")) 
+         e = rewritePipeCall(e)
+
       
       if(is(e, "if")) {
           if(e[[2]] == FALSE) {
@@ -522,4 +511,37 @@ function(x, mergeSubFuns = FALSE, asNames = TRUE, ...)
 
 
 #############################
+
+rewritePipeCall =
+    # rewritePipeCall(quote( x %>% foo))
+    # rewritePipeCall(quote( x %>% foo(2)))
+    # rewritePipeCall(quote( x %>% foo(2, .)))
+function(e)
+{
+    # rewrite the pipe call from lhs %>% rhs(x, y) to rhs(lhs, x, y)
+
+    e0 = e
+    e = e[[3]]
+
+    # if it is data %>% funName, then have to change that to funName(data)    
+    if(is.symbol(e)) 
+        e = substitute(foo(), list(foo = e))
+
+    # Handle a .
+
+    tmp = as.list(e0[[3]]) [-1]
+    
+    w = sapply(e, isSymbol, ".")
+    if(any(w)) {
+        # e0[[2]]
+        e[w] = replicate(sum(w), e0[[2]], simplify = FALSE)
+    } else  {
+        e[[2]] = e0[[2]]
+        # other args
+        if(length(tmp) > 0)
+            e[ seq(along.with = tmp) + 2L ] = tmp    
+    }
+    
+    e
+}
 
