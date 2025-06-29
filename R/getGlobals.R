@@ -60,7 +60,9 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
          old = TRUE, # remove old when we are sure it worksa
          indirectCallFunctions = names(getIndirectCallFunList()),
          handleTextConnections = TRUE,
-         availableVars = character()) 
+         availableVars = character(),
+         funDefs = list()
+         ) 
 {
 
   if(is.logical(.debug))
@@ -93,8 +95,8 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
     # this for handling calls which we know will call one of their arguments, e.g., lapply(x, fun, z)
     procIndirectFunCall = function(e, funName = as.character(e[[1]]),
-                                   def = tryCatch(get(funName),
-                                                  error = function(e) NULL))
+                                   def = getFunDef(funName, funDefs)
+                                   )
     {
 
       # remove ... from e as match.call
@@ -545,3 +547,14 @@ function(e)
     e
 }
 
+
+
+getFunDef =
+function(funName, funDefs)
+{
+    if(funName %in% names(funDefs))
+        return(funDefs[[ funName ]])
+    
+    tryCatch(get(funName),
+             error = function(e) NULL)    
+}
