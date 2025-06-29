@@ -179,7 +179,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
       if(is.name(e) && as.character(e) == "")  # typically a formal argument that has no default value.
           return(FALSE)
 
-      if(isCallTo(e, "%>%")) 
+      if(isCallTo(e, "%>%", indirect = FALSE)) 
          e = rewritePipeCall(e)
 
       
