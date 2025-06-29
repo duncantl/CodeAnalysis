@@ -297,7 +297,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
 
                # Otherwise, find the .() and ..() in the first argument and process those
-              dot = findCallsTo(k[[2]], c(".", ".."))
+              dot = findCallsTo(k[[2]], c(".", ".."), parse = FALSE)
               lapply(dot, fun, fun)
               return()
           } else if(funName %in% c("require", "library")) {
