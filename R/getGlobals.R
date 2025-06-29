@@ -92,13 +92,19 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                }
 
     # this for handling calls which we know will call one of their arguments, e.g., lapply(x, fun, z)
-  procIndirectFunCall = function(e, funName = as.character(e[[1]]), def = tryCatch(get(funName), error = function(e) NULL)) {
+    procIndirectFunCall = function(e, funName = as.character(e[[1]]),
+                                   def = tryCatch(get(funName),
+                                                  error = function(e) NULL))
+    {
 
       # remove ... from e as match.call
       #   ... used in a situation where it does not exist
       w = sapply(e, function(x) is.name(x) && x == "...")
       if(any(w))
           e = e[!w]
+
+      if(length(e) == 1)
+          return(e)
 
       # XXX
       # The function def may not be globally visible but may be defined within a function.
@@ -126,8 +132,13 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
                  Position=,
                  Map=,
                  Reduce=,
+                 vapply =,
+                 lapply = ,
+                 sapply =,                 
                  rapply =,
                  body = 2L,
+                 by = 3L,
+                 tapply = 3L,
                  match.call = 2L,
                  formals = 2L,
                  grep("fun$", names(e2), ignore.case = TRUE)) # match(c("fun", "FUN"), names(e2)))
@@ -148,7 +159,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               NA
           }
           
-      } else if(!is.na(i) && (is.character(tmp <- e2[[i]]) || is.name(tmp) || isColonCall(tmp))) {
+      } else if(!is.na(i) && i <= length(e2) && (is.character(tmp <- e2[[i]]) || is.name(tmp) || isColonCall(tmp))) {
           if(!((val <- deparse(tmp)) %in% localVars))  # as.character rather than deparse()
               addFunName(val)
           e2[-i]
@@ -175,7 +186,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               e = e[[3]]
           } else
              # e = e[-1]
-            return(lapply(e[-1], fun, w))
+            return(lapply(as.list(e)[-1], fun, w))
 
       }  # fall through
 
@@ -196,6 +207,7 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
 
           if(funName %in% skip)
               return(NULL)
+
 
           if(funName == "::" || funName == ":::") {
               addFunName(deparse(e))
@@ -259,11 +271,13 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
               # since may not be evaluated within this function frame/environment.
               return()
           } else if(funName == "bquote") {
-              # empty call to bquote()
-              if(length(e) == 1)
-                  return()
-              
+
               k = match.call(bquote, e)
+
+              # empty call to bquote()
+              # Can be bquote(expr = ) and match.call() will reduce this to bquote()
+              if(length(k) == 1)
+                  return()                            
 
               # if the where and/or splice arguments are provided, process them.
               if(length(k) > 2)
@@ -322,13 +336,15 @@ function(f, expressionsFor = character(), .ignoreDefaultArgs = FALSE,
           } 
           
           els = as.list(e)[-1]
+# if(funName == "apply") browser()
           if(funName == "$") # remove the literal name
               els = els[-2]
           else if (funName %in% indirectCallFunctions || grepl("apply", funName, ignore.case = TRUE)) 
-                els = procIndirectFunCall(e, funName)
+              els = procIndirectFunCall(e, funName)
 
-           
-          lapply(els, fun, w)
+          # procIndirectFunCall may not return a list.
+          if(!is.symbol(els) && is.list(els))
+              lapply(els, fun, w)
           if(popFuns)
               curFuns <<- curFuns[- length(curFuns)]
        } else if(is.name(e)) {
